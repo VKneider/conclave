@@ -44,6 +44,22 @@ slice-myassignmentview .pill.at-capacity.selected { border-color: var(--font-pri
 slice-myassignmentview .pill.at-capacity.selected .cap { color: inherit; }
 slice-myassignmentview .pill-clear { border-style: dashed; color: var(--font-secondary-color); background: transparent; }
 
+@media (max-width: 760px) {
+  slice-myassignmentview .carousel-wrap { gap: 8px; margin-bottom: 14px; }
+  slice-myassignmentview .arrow-btn { width: 38px; height: 38px; font-size: 16px; box-shadow: 2px 2px 0 var(--font-primary-color); }
+  slice-myassignmentview .arrow-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
+  slice-myassignmentview .arrow-btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--font-primary-color); }
+  slice-myassignmentview .person-card { padding: 14px 16px; }
+  slice-myassignmentview .person-name { font-size: 22px; }
+  slice-myassignmentview .person-top { flex-direction: column; align-items: flex-start; }
+  slice-myassignmentview .assign-toolbar { margin-bottom: 10px; }
+  slice-myassignmentview .assign-toolbar .mini-input { width: 140px !important; }
+  slice-myassignmentview .team-pills { margin-top: 12px; gap: 6px; }
+  slice-myassignmentview .pill { padding: 6px 10px; font-size: 12px; }
+  slice-myassignmentview .dots { margin-top: 12px; gap: 4px; }
+  slice-myassignmentview .dot { width: 9px; height: 9px; }
+}
+
 slice-myassignmentview .progress-row { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
 slice-myassignmentview .progress-track { flex: 1; height: 10px; background: var(--secondary-background-color); border: 1.5px solid var(--border-color); border-radius: 999px; overflow: hidden; }
 slice-myassignmentview .progress-track > span { display: block; height: 100%; background: var(--primary-color); }

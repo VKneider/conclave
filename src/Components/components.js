@@ -6,6 +6,7 @@ const components = {
   "HelpView": "AppComponents",
   "MyAssignmentView": "AppComponents",
   "SettingsView": "AppComponents",
+  "TopBar": "AppComponents",
   "Button": "Visual",
   "Link": "Visual",
   "Loading": "Visual",

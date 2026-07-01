@@ -31,6 +31,7 @@ export default class DashboardView extends HTMLElement {
   // parent-destroy cascade won't find them — clean up explicitly.
   beforeDestroy() {
     slice.controller.destroyByContainer(this.$root);
+    if (this._teamModal) this._teamModal.remove();
   }
 
   // Builds the static structure + one StatusBadge per team, once. Later
@@ -56,7 +57,7 @@ export default class DashboardView extends HTMLElement {
     teams.forEach((t) => {
       const col = roster.colorFor(t.id);
       html += `
-        <div class="team-card" style="--team-color:${col}">
+        <div class="team-card" data-team-id="${t.id}" style="--team-color:${col}">
           <div class="team-head">
             <h3><span class="color-dot" style="background:${col}"></span>${esc(t.nombre)}</h3>
             <div class="team-count" style="color:${col}"><span data-el="n-${t.id}"></span><small>/${t.max != null ? t.max : '–'}</small></div>
@@ -91,6 +92,12 @@ export default class DashboardView extends HTMLElement {
       this._badges[t.id] = badgeNodes[i];
       this.$root.querySelector(`[data-badge="${t.id}"]`).appendChild(badgeNodes[i]);
     });
+
+    this.$root.querySelector('.team-grid').addEventListener('click', (e) => {
+      const card = e.target.closest('.team-card');
+      if (!card) return;
+      this._openTeamModal(card.dataset.teamId);
+    });
   }
 
   _refresh() {
@@ -121,6 +128,39 @@ export default class DashboardView extends HTMLElement {
       this._teamEls[t.id].bar.style.width = `${pct}%`;
       slice.setComponentProps(this._badges[t.id], { status: st, label });
     });
+  }
+
+  async _openTeamModal(teamId) {
+    const roster = this._roster;
+    const team = roster.getAssignableTeams().find((t) => t.id === teamId);
+    if (!team) return;
+
+    const asignaciones = slice.getComponent('AssignmentService').getState();
+    const members = roster.getAssignableMembers().filter((m) => asignaciones[m.id] === teamId);
+
+    if (!this._teamModal) {
+      this._teamModal = await slice.build('Modal', {
+        sliceId: 'team-members-modal',
+        dismissable: true,
+      });
+      this._teamModal.classList.add('team-members-modal');
+      this._teamMemberList = document.createElement('div');
+      this._teamMemberList.className = 'team-member-list';
+      this._teamModal.appendBody(this._teamMemberList);
+      document.body.appendChild(this._teamModal);
+    }
+
+    this._teamModal.title = team.nombre;
+    this._teamMemberList.innerHTML = members.length
+      ? members.map((m) => `
+        <div class="team-member-item">
+          <span class="sx ${m.sexo || ''}"></span>
+          <span class="nm">${esc(m.nombre)}</span>
+        </div>
+      `).join('')
+      : '<div class="empty-state">Sin miembros asignados</div>';
+
+    this._teamModal.open = true;
   }
 }
 
