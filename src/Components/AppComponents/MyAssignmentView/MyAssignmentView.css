@@ -23,8 +23,17 @@ slice-myassignmentview .person-tags { display: flex; gap: 8px; align-items: cent
 slice-myassignmentview .tag { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: var(--secondary-background-color); border: 1.5px solid var(--border-color); color: var(--font-secondary-color); }
 slice-myassignmentview .tag.sexo-M { color: var(--primary-color-contrast); background: var(--male-color); border-color: var(--male-color); }
 slice-myassignmentview .tag.sexo-F { color: var(--primary-color-contrast); background: var(--female-color); border-color: var(--female-color); }
-slice-myassignmentview .current-assign { margin-top: 10px; font-size: 14px; color: var(--font-secondary-color); }
+slice-myassignmentview .tag-lider { background: var(--primary-color); color: var(--primary-color-contrast); border-color: var(--primary-color); }
+slice-myassignmentview .current-assign { margin-top: 10px; font-size: 14px; color: var(--font-secondary-color); display: flex; align-items: center; gap: 8px; }
 slice-myassignmentview .current-assign b { color: var(--font-primary-color); }
+slice-myassignmentview .lider-toggle {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; padding: 0;
+  border: 2px solid var(--border-color); background: transparent; cursor: pointer; line-height: 1;
+  transition: transform .08s, box-shadow .08s, border-color .15s; margin-left: auto;
+}
+slice-myassignmentview .lider-toggle:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--font-primary-color); border-color: var(--font-primary-color); }
+slice-myassignmentview .lider-toggle:active { transform: translate(1px, 1px); box-shadow: none; }
+slice-myassignmentview .lider-toggle.is-lider { border-color: var(--font-primary-color); background: var(--primary-color); box-shadow: 2px 2px 0 var(--font-primary-color); }
 
 slice-myassignmentview .team-pills { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px; }
 slice-myassignmentview .pill {

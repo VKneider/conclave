@@ -111,17 +111,27 @@ grep any view for the pattern), call that directly from `init()`, and have
 the public `update()` (invoked by `MultiRoute` on cached revisit) delegate
 to the same private method.
 
-### 5. Concurrent `slice.build()` of the same component type races the template cache
-The framework caches each component TYPE's fetched `.html`/`.css` (checked
-before a fetch starts, populated only once it resolves). Building many
-instances of the same type via a single `Promise.all(...)` fires them all
-before any one resolves, so every one independently re-fetches the same
-files — a real, observed "flood of duplicate network requests" bug (85
-`MemberChip` instances, ~13 `StatusBadge` instances). Fixed via
-`src/utils/sliceBuild.js`'s `buildEach(componentName, propsList)`: builds the
-first instance alone (warming the cache), then parallelizes the rest.
-**Always use `buildEach` instead of a raw `Promise.all(list.map(...))` when
-building 2+ instances of the same component type at once.**
+### 5. The bundle analyzer only sees `slice.build()` literals — `buildEach` hides components
+The CLI's `DependencyAnalyzer` (Babel AST-based) only recognizes the exact
+pattern `slice.build('ComponentName', ...)` and `import ... from '.../Components/...'`.
+Calls like `buildEach('StatusBadge', ...)` (a utility wrapper) are invisible
+to it, so components built through `buildEach` do NOT land in any production
+bundle — they load as separate HTTP requests at runtime.
+
+The fix used throughout the app: **inline the two-step pattern directly** so
+the first `slice.build(...)` call is visible to the analyzer:
+```js
+const propsList = items.map(i => ({ sliceId: `comp-${i.id}`, ... }));
+const [first, ...rest] = propsList;
+const firstNode = await slice.build('MyComponent', first);
+const restNodes = await Promise.all(rest.map(p => slice.build('MyComponent', p)));
+```
+This also avoids the race-condition described in the original gotcha: the
+first call warms the template cache, so the parallel `Promise.all(...)` on
+the rest only fires one XHR per type instead of N.
+
+`src/utils/sliceBuild.js` still exports `buildEach()` as reference, but
+don't use it — it hides components from the analyzer.
 
 ### 6. Cloning a live custom element re-runs its constructor
 Not a Slice quirk — standard custom-element platform behavior. `DragDropService`

@@ -1,6 +1,27 @@
-// Composition root. Its only job: boot every singleton in the right order,
-// then step back. After init(), recover any of them by name:
-//   slice.getComponent('AssignmentService').assign(memberId, teamId)
+// ── Composition root ──────────────────────────────────────────────────
+// Boots every singleton in order, then steps back. After init(), recover
+// any service by name:  slice.getComponent('AssignmentService').assign(...)
+//
+// ── Context catalog (all persist: true → localStorage) ────────────────
+//   settings      { autor, nombreOrganizacion, lideres, lideresEnabled }
+//                 Created by  SettingsService     Watched by  AppShell,
+//                 DashboardView, ByTeamView, SettingsView, TopBar
+//   assignment    { [memberId]: teamId }
+//                 Created by  AssignmentService   Watched by  AppShell,
+//                 DashboardView, MyAssignmentView, ByTeamView, CompareView
+//   resolutions   { [memberId]: teamId }
+//                 Created by  ResolutionService   Watched by  AppShell,
+//                 CompareView
+//
+// ── Event catalog ─────────────────────────────────────────────────────
+//   toast:show          → Providers →  ToastProvider.show()
+//   roster:changed      → DashboardView._refresh, MyAssignmentView._paint,
+//                         ByTeamView._layout, CompareView._paint,
+//                         SettingsView._rebuildDataLists
+//   confirm:request     → ConfirmActionModal._open()
+//   router:change       → auto-declared by framework (not listed here)
+//   context:*           → auto-declared by framework (not listed here)
+// ──────────────────────────────────────────────────────────────────────
 export default class Providers {
   constructor() {
     this._ready = false;
@@ -18,6 +39,12 @@ export default class Providers {
       show: {
         description: 'Show a toast notification',
         payload: { message: 'string', type: 'string', duration: 'number' },
+      },
+    });
+    slice.events.register('roster', {
+      changed: {
+        description: 'Roster data was replaced or edited — views should repaint.',
+        payload: {},
       },
     });
     slice.events.register('confirm', {

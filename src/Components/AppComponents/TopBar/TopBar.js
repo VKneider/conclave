@@ -1,7 +1,6 @@
 const TABS = [
   { path: '/', label: 'Dashboard' },
   { path: '/mi-asignacion', label: 'Mi asignación' },
-  { path: '/por-equipo', label: 'Por equipo' },
   { path: '/comparar', label: 'Comparar' },
   { path: '/ayuda', label: 'Ayuda' },
   { path: '/configuracion', label: 'Configuración' },

@@ -1,7 +1,6 @@
 const ROUTES = [
   { path: '/', component: 'DashboardView' },
-  { path: '/mi-asignacion', component: 'MyAssignmentView' },
-  { path: '/por-equipo', component: 'ByTeamView' },
+  { path: '/mi-asignacion', component: 'AssignmentView' },
   { path: '/comparar', component: 'CompareView' },
   { path: '/ayuda', component: 'HelpView' },
   { path: '/configuracion', component: 'SettingsView' },
@@ -40,6 +39,7 @@ export default class AppShell extends HTMLElement {
     this.$content.before(topBar);
 
     this.events = slice.events.bind(this);
+    this.events.subscribe('router:change', () => this._hideFooterOnInactiveViews());
     slice.context.watch('assignment', this, () => this._flashSave());
     slice.context.watch('resolutions', this, () => this._flashSave());
 
@@ -47,6 +47,13 @@ export default class AppShell extends HTMLElement {
     // here must also exist in routes.js (the Router's source of truth).
     const content = await slice.build('MultiRoute', { sliceId: 'app-content', routes: ROUTES });
     this.$content.appendChild(content);
+
+    this._hideFooterOnInactiveViews();
+  }
+
+  _hideFooterOnInactiveViews() {
+    const noFooter = ['/ayuda', '/configuracion'];
+    this.$btnExport.closest('.footbar').hidden = noFooter.includes(window.location.pathname);
   }
 
   _flashSave() {

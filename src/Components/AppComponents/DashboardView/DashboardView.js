@@ -1,5 +1,4 @@
 import { esc } from '/utils/format.js';
-import { buildEach } from '/utils/sliceBuild.js';
 
 export default class DashboardView extends HTMLElement {
   constructor(props) {
@@ -19,6 +18,8 @@ export default class DashboardView extends HTMLElement {
     // regardless of which view is active). Watch the context directly so an
     // external mutation still repaints without requiring a round-trip nav.
     slice.context.watch('assignment', this, () => this._refresh());
+    slice.context.watch('settings', this, () => this._refresh());
+    slice.events.subscribe('roster:changed', () => this._refresh());
   }
 
   // Called by MultiRoute on cached revisit — the shell already exists, only
@@ -63,6 +64,7 @@ export default class DashboardView extends HTMLElement {
             <div class="team-count" style="color:${col}"><span data-el="n-${t.id}"></span><small>/${t.max != null ? t.max : '–'}</small></div>
           </div>
           <div class="team-meta">Mín ${t.min != null ? t.min : '–'} · Máx ${t.max != null ? t.max : '–'} · Cap ${t.capacidad != null ? t.capacidad : '–'}</div>
+          <div class="team-lider" data-el="lider-${t.id}"></div>
           <div class="bar"><span data-el="bar-${t.id}" style="background:${col}"></span></div>
           <div class="badge-slot" data-badge="${t.id}"></div>
         </div>`;
@@ -83,10 +85,15 @@ export default class DashboardView extends HTMLElement {
       this._teamEls[t.id] = {
         n: this.$root.querySelector(`[data-el="n-${t.id}"]`),
         bar: this.$root.querySelector(`[data-el="bar-${t.id}"]`),
+        lider: this.$root.querySelector(`[data-el="lider-${t.id}"]`),
       };
     });
 
-    const badgeNodes = await buildEach('StatusBadge', teams.map((t) => ({ sliceId: `dash-badge-${t.id}`, status: 'empty', label: '' })));
+    const badgeProps = teams.map((t) => ({ sliceId: `dash-badge-${t.id}`, status: 'empty', label: '' }));
+    const [first, ...rest] = badgeProps;
+    const firstBadge = await slice.build('StatusBadge', first);
+    const restBadges = await Promise.all(rest.map((p) => slice.build('StatusBadge', p)));
+    const badgeNodes = [firstBadge, ...restBadges];
     this._badges = {};
     teams.forEach((t, i) => {
       this._badges[t.id] = badgeNodes[i];
@@ -127,6 +134,9 @@ export default class DashboardView extends HTMLElement {
       this._teamEls[t.id].n.textContent = n;
       this._teamEls[t.id].bar.style.width = `${pct}%`;
       slice.setComponentProps(this._badges[t.id], { status: st, label });
+
+      const lider = slice.getComponent('SettingsService').getEffectiveLider(t.id);
+      this._teamEls[t.id].lider.textContent = lider ? `👑 ${lider.member.nombre}` : '';
     });
   }
 
@@ -137,6 +147,9 @@ export default class DashboardView extends HTMLElement {
 
     const asignaciones = slice.getComponent('AssignmentService').getState();
     const members = roster.getAssignableMembers().filter((m) => asignaciones[m.id] === teamId);
+
+    const lider = slice.getComponent('SettingsService').getEffectiveLider(teamId);
+    const liderId = lider?.member ? String(lider.member.id) : null;
 
     if (!this._teamModal) {
       this._teamModal = await slice.build('Modal', {
@@ -150,12 +163,13 @@ export default class DashboardView extends HTMLElement {
       document.body.appendChild(this._teamModal);
     }
 
-    this._teamModal.title = team.nombre;
+    this._teamModal.title = `${team.nombre} ${lider ? '👑' : ''}`;
     this._teamMemberList.innerHTML = members.length
       ? members.map((m) => `
-        <div class="team-member-item">
+        <div class="team-member-item${liderId === String(m.id) ? ' is-lider' : ''}">
           <span class="sx ${m.sexo || ''}"></span>
           <span class="nm">${esc(m.nombre)}</span>
+          ${liderId === String(m.id) ? '<span class="lider-badge">Líder</span>' : ''}
         </div>
       `).join('')
       : '<div class="empty-state">Sin miembros asignados</div>';

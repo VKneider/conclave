@@ -1,5 +1,6 @@
 const components = {
   "AppShell": "AppComponents",
+  "AssignmentView": "AppComponents",
   "ByTeamView": "AppComponents",
   "CompareView": "AppComponents",
   "DashboardView": "AppComponents",

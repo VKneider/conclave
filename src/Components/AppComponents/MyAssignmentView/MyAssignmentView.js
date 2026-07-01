@@ -27,6 +27,7 @@ export default class MyAssignmentView extends HTMLElement {
     // lives outside it (the footer's "Reiniciar" button) — MultiRoute's
     // update()-on-revisit alone only covers navigating back to this view.
     slice.context.watch('assignment', this, () => this._paint());
+    slice.events.subscribe('roster:changed', () => this._paint());
   }
 
   beforeDestroy() {
@@ -35,6 +36,7 @@ export default class MyAssignmentView extends HTMLElement {
 
   _onKeydown(e) {
     if (!this.isConnected) return;
+    if (this.closest('[hidden]')) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
     const list = this._visibleMembers();
     if (e.key === 'ArrowLeft' && this.carouselIndex > 0) {
@@ -72,7 +74,6 @@ export default class MyAssignmentView extends HTMLElement {
     const pct = list.length ? Math.round((assignedVis / list.length) * 100) : 0;
 
     let html = `
-      <h2 class="view-title">Mi asignación</h2>
       <p class="view-sub">Usa las flechas ‹ › o el teclado (← →). Elige un equipo y avanza al siguiente miembro.</p>
       <div class="assign-toolbar">
         <input class="mini-input" id="buscar" placeholder="Buscar miembro…" value="${esc(this.searchQuery)}" style="width:220px" />
@@ -102,9 +103,12 @@ export default class MyAssignmentView extends HTMLElement {
             <div class="person-tags">
               ${member.sexo ? `<span class="tag sexo-${esc(member.sexo)}">${member.sexo === 'M' ? 'Masculino' : member.sexo === 'F' ? 'Femenino' : esc(member.sexo)}</span>` : ''}
               ${member.edad != null ? `<span class="tag">${member.edad} años</span>` : ''}
+              ${sel && slice.getComponent('SettingsService').isLideresEnabled() && slice.getComponent('SettingsService').getEffectiveLider(sel)?.member?.id === member.id ? '<span class="tag tag-lider">Líder</span>' : ''}
             </div>
           </div>
-          <div class="current-assign">Asignado a: <b>${esc(roster.getTeamById(sel)?.nombre || '—')}</b></div>
+          <div class="current-assign">Asignado a: <b>${esc(roster.getTeamById(sel)?.nombre || '—')}</b>
+            ${sel && slice.getComponent('SettingsService').isLideresEnabled() ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.member?.id === member.id ? ' is-lider' : ''}" data-lider-toggle="${member.id}" type="button">👑</button>` : ''}
+          </div>
           <div class="team-pills">`;
 
     teams.forEach((t) => {
@@ -179,6 +183,22 @@ export default class MyAssignmentView extends HTMLElement {
     this.$root.querySelectorAll('.dot').forEach((d) => {
       d.onclick = () => { this.carouselIndex = +d.dataset.idx; this.update(); };
     });
+
+    const liderToggle = this.$root.querySelector('[data-lider-toggle]');
+    if (liderToggle) {
+      liderToggle.onclick = () => {
+        const settings = slice.getComponent('SettingsService');
+        const sel = slice.getComponent('AssignmentService').getState()[member.id];
+        if (!sel) return;
+        const current = settings.getEffectiveLider(sel);
+        if (current?.member?.id === member.id) {
+          settings.clearLider(sel);
+        } else {
+          settings.setLider(sel, String(member.id));
+        }
+        this.update();
+      };
+    }
   }
 }
 

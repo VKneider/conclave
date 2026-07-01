@@ -38,6 +38,20 @@ export default class RosterService {
   getMemberById(id) { return this._memberById[String(id)]; }
   colorFor(teamId) { return this._colors[teamId] || '#9aa1b1'; }
 
+  getLiderName(teamId) {
+    const team = this._teamById[teamId];
+    return team?.lider || null;
+  }
+
+  isLiderLocked(teamId) {
+    return !!this.getLiderName(teamId);
+  }
+
+  resolveMemberByName(name) {
+    if (!name) return null;
+    return this._members.find((m) => m.nombre === name) || null;
+  }
+
   countByTeam(asignaciones) {
     const counts = {};
     this.getAssignableTeams().forEach((t) => { counts[t.id] = 0; });
@@ -64,5 +78,57 @@ export default class RosterService {
       if (asignaciones[mid] === teamId && mid !== String(exceptMemberId)) n++;
     });
     return n >= team.max;
+  }
+
+  // ─── Data management ─────────────────────────────────────────
+
+  loadFromData(teams, members) {
+    this._teams = teams;
+    this._members = members;
+    this._teamById = Object.fromEntries(this._teams.map((t) => [t.id, t]));
+    this._memberById = Object.fromEntries(this._members.map((m) => [String(m.id), m]));
+    this._colors = {};
+    this.getAssignableTeams().forEach((t, i) => {
+      this._colors[t.id] = PALETTE[i % PALETTE.length];
+    });
+    this._loaded = true;
+    slice.events.emit('roster:changed');
+  }
+
+  nextMemberId() {
+    return Math.max(0, ...this._members.map((m) => m.id), ...Object.keys(this._memberById).map(Number)) + 1;
+  }
+
+  updateTeam(teamId, changes) {
+    const team = this._teamById[teamId];
+    if (!team) return;
+    Object.assign(team, changes);
+    this._teamById[teamId] = team;
+    slice.events.emit('roster:changed');
+  }
+
+  updateMember(memberId, changes) {
+    const member = this._memberById[String(memberId)];
+    if (!member) return;
+    Object.assign(member, changes);
+    this._memberById[String(memberId)] = member;
+    slice.events.emit('roster:changed');
+  }
+
+  addMember(member) {
+    const m = { id: this.nextMemberId(), nombre: '', sexo: '', edad: null, fijo: false, rolFijo: null, ...member };
+    this._members.push(m);
+    this._memberById[String(m.id)] = m;
+    slice.events.emit('roster:changed');
+    return m;
+  }
+
+  removeMember(memberId) {
+    const id = String(memberId);
+    const idx = this._members.findIndex((m) => String(m.id) === id);
+    if (idx === -1) return;
+    this._members.splice(idx, 1);
+    delete this._memberById[id];
+    slice.events.emit('roster:changed');
   }
 }

@@ -34,6 +34,7 @@ export default class CompareView extends HTMLElement {
     // synchronous (no flicker from the extra call).
     slice.context.watch('assignment', this, () => this._paint());
     slice.context.watch('resolutions', this, () => this._paint());
+    slice.events.subscribe('roster:changed', () => this._paint());
   }
 
   update() {

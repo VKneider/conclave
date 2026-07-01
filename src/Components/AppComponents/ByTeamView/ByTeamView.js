@@ -1,5 +1,4 @@
 import { esc } from '/utils/format.js';
-import { buildEach } from '/utils/sliceBuild.js';
 
 // Drag-and-drop board. Chips and dropzones are built ONCE in _buildShell();
 // every subsequent refresh only re-parents existing chip nodes into the
@@ -23,6 +22,8 @@ export default class ByTeamView extends HTMLElement {
     // lives outside it (the footer's "Reiniciar" button) — MultiRoute's
     // update()-on-revisit alone only covers navigating back to this view.
     slice.context.watch('assignment', this, () => this._layout());
+    slice.context.watch('settings', this, () => this._layout());
+    slice.events.subscribe('roster:changed', () => this._layout());
   }
 
   // Called by MultiRoute on cached revisit — the shell/chips/dropzones
@@ -43,7 +44,6 @@ export default class ByTeamView extends HTMLElement {
     const teams = roster.getAssignableTeams();
 
     let html = `
-      <h2 class="view-title">Miembros por equipo</h2>
       <p class="view-sub">Arrastra una persona desde la barra lateral hacia un equipo. Puedes pasar el máximo si hace falta — el equipo queda marcado hasta que muevas o quites a alguien. 🎯</p>
       <div class="ps-layout">
         <aside class="ps-sidebar dropzone ps-unassigned" data-drop="">
@@ -61,6 +61,10 @@ export default class ByTeamView extends HTMLElement {
       const col = roster.colorFor(t.id);
       html += `
         <div class="ps-square dropzone" data-drop="${t.id}" style="--svc:${col}">
+          <div class="lider-drop" data-lider="${t.id}">
+            <span class="lider-drop__icon">👑</span>
+            <span class="lider-drop__name" data-lider-name="${t.id}"></span>
+          </div>
           <div class="ps-sq-head">
             <h3><span class="color-dot" style="background:${col}"></span>${esc(t.nombre)}</h3>
             <span class="ps-count"><span data-el="n-${t.id}"></span><small>/${t.max != null ? t.max : '–'}</small></span>
@@ -92,6 +96,8 @@ export default class ByTeamView extends HTMLElement {
         bar: this.$root.querySelector(`[data-el="bar-${t.id}"]`),
         fullTag: this.$root.querySelector(`[data-fulltag="${t.id}"]`),
         square: this.$root.querySelector(`.ps-square[data-drop="${t.id}"]`),
+        liderDrop: this.$root.querySelector(`[data-lider="${t.id}"]`),
+        liderName: this.$root.querySelector(`[data-lider-name="${t.id}"]`),
       };
     });
     this._unassignedEls = {
@@ -106,7 +112,11 @@ export default class ByTeamView extends HTMLElement {
     };
 
     const badgeKeys = ['unassigned', ...teams.map((t) => t.id)];
-    const badgeNodes = await buildEach('StatusBadge', badgeKeys.map((key) => ({ sliceId: `byteam-badge-${key}`, status: 'empty', label: '' })));
+    const badgeProps = badgeKeys.map((key) => ({ sliceId: `byteam-badge-${key}`, status: 'empty', label: '' }));
+    const [firstBadge, ...restBadges] = badgeProps;
+    const firstBadgeNode = await slice.build('StatusBadge', firstBadge);
+    const restBadgeNodes = await Promise.all(restBadges.map((p) => slice.build('StatusBadge', p)));
+    const badgeNodes = [firstBadgeNode, ...restBadgeNodes];
     this._badges = {};
     badgeKeys.forEach((key, i) => {
       this.$root.querySelector(`[data-badge="${key}"]`).appendChild(badgeNodes[i]);
@@ -115,7 +125,11 @@ export default class ByTeamView extends HTMLElement {
     });
 
     const members = roster.getAssignableMembers();
-    const chipNodes = await buildEach('MemberChip', members.map((m) => ({ sliceId: `byteam-chip-${m.id}`, member: m, draggable: true })));
+    const chipProps = members.map((m) => ({ sliceId: `byteam-chip-${m.id}`, member: m, draggable: true }));
+    const [firstChip, ...restChips] = chipProps;
+    const firstChipNode = await slice.build('MemberChip', firstChip);
+    const restChipNodes = await Promise.all(restChips.map((p) => slice.build('MemberChip', p)));
+    const chipNodes = [firstChipNode, ...restChipNodes];
     this._chips = {};
     members.forEach((m, i) => { this._chips[m.id] = chipNodes[i]; });
 
@@ -124,11 +138,22 @@ export default class ByTeamView extends HTMLElement {
     this._dropzones.forEach((zone) => {
       this._dnd.makeDroppable(zone, {
         accept: () => true,
-        onDragEnter: () => zone.classList.add('drag-over'),
-        onDragLeave: () => zone.classList.remove('drag-over'),
+        onDragEnter: (node, event) => {
+          zone.classList.add('drag-over');
+          const lz = zone.querySelector('[data-lider]');
+          if (lz && lz.contains(event?.target)) lz.classList.add('drag-over');
+        },
+        onDragLeave: (node, event) => {
+          zone.classList.remove('drag-over');
+          const lz = zone.querySelector('[data-lider]');
+          if (lz) lz.classList.remove('drag-over');
+        },
         onDrop: (node, event, data) => {
           zone.classList.remove('drag-over');
-          this._handleDrop(zone.dataset.drop, data?.memberId);
+          const liderZone = zone.querySelector('[data-lider]');
+          if (liderZone) liderZone.classList.remove('drag-over');
+          const isLiderDrop = liderZone && liderZone.contains(event.target);
+          this._handleDrop(zone.dataset.drop, data?.memberId, isLiderDrop);
         },
       });
     });
@@ -195,15 +220,35 @@ export default class ByTeamView extends HTMLElement {
       els.square.classList.toggle('is-full', atOrOverCapacity && !isOver);
       els.square.classList.toggle('is-over', isOver);
       slice.setComponentProps(this._badges[t.id], { status: st, label });
+
+      const settings = slice.getComponent('SettingsService');
+      const lideresEnabled = settings.isLideresEnabled();
+      els.liderDrop.hidden = !lideresEnabled;
+      if (lideresEnabled) {
+        const lider = settings.getEffectiveLider(t.id);
+        if (lider) {
+          els.liderName.textContent = lider.member.nombre;
+          els.liderDrop.classList.add('has-lider');
+        } else {
+          els.liderName.textContent = '';
+          els.liderDrop.classList.remove('has-lider');
+        }
+      }
     });
   }
 
-  _handleDrop(destTeamId, memberId) {
+  _handleDrop(destTeamId, memberId, asLider) {
     if (!memberId) return;
     const assignment = slice.getComponent('AssignmentService');
+    const settings = slice.getComponent('SettingsService');
     if (destTeamId) {
-      if (assignment.getState()[memberId] === destTeamId) return;
-      assignment.assign(memberId, destTeamId);
+      if (asLider) {
+        assignment.assign(memberId, destTeamId);
+        settings.setLider(destTeamId, String(memberId));
+      } else {
+        if (assignment.getState()[memberId] === destTeamId) return;
+        assignment.assign(memberId, destTeamId);
+      }
     } else {
       assignment.unassign(memberId);
     }
