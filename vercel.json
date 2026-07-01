@@ -1,22 +1,9 @@
 {
   "version": 2,
+  "buildCommand": "pnpm run build",
   "functions": {
     "api/index.js": {
-      "includeFiles": [
-        "dist/App/**",
-        "dist/bundles/**",
-        "dist/data/**",
-        "dist/Themes/**",
-        "dist/Styles/**",
-        "dist/utils/**",
-        "dist/assets/**",
-        "dist/images/**",
-        "dist/routes.js",
-        "dist/sliceConfig.json",
-        "dist/manifest.json",
-        "dist/robots.txt",
-        "dist/sitemap.xml"
-      ]
+      "includeFiles": "dist/**"
     }
   },
   "rewrites": [
