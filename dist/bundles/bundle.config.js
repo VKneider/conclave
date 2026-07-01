@@ -1,0 +1,286 @@
+/**
+ * Slice.js Bundle Configuration
+ * Generated: 2026-07-01T17:05:53.697Z
+ * Strategy: hybrid
+ */
+
+// Direct bundle configuration (no fetch required)
+export const SLICE_BUNDLE_CONFIG = {
+  "version": "2.0.0",
+  "format": "v2",
+  "loadingPolicy": "enabled",
+  "strategy": "hybrid",
+  "minified": true,
+  "obfuscated": true,
+  "production": true,
+  "generated": "2026-07-01T17:05:53.695Z",
+  "stats": {
+    "totalComponents": 45,
+    "totalRoutes": 6,
+    "sharedComponents": 1,
+    "sharedPercentage": "2.2",
+    "totalSize": 284860,
+    "criticalSize": 41711
+  },
+  "bundles": {
+    "framework": {
+      "file": "slice-bundle.framework.js",
+      "size": 203040,
+      "hash": "816801a573e2b042b9fc107c8390d928f39ab0898577caa4116afb2cce4fb25c",
+      "integrity": "sha256:816801a573e2b042b9fc107c8390d928f39ab0898577caa4116afb2cce4fb25c",
+      "components": [
+        "Framework/Structural/ContextManager",
+        "Framework/Structural/Controller",
+        "Framework/Structural/EventManager",
+        "Framework/Structural/LeakInspector",
+        "Framework/Structural/Logger",
+        "Framework/Structural/Router",
+        "Framework/Structural/StylesManager",
+        "Framework/Structural/EventManagerDebugger",
+        "Framework/Structural/ContextManagerDebugger",
+        "Framework/Structural/ThemeManager"
+      ]
+    },
+    "vendorShared": null,
+    "critical": {
+      "file": "slice-bundle.critical.js",
+      "size": 41711,
+      "hash": "2467e67fc8fb429a01349d2171b190e2ab63a732e8798fa7856be5bf3a24d554",
+      "integrity": "sha256:2467e67fc8fb429a01349d2171b190e2ab63a732e8798fa7856be5bf3a24d554",
+      "components": [
+        "Loading"
+      ]
+    },
+    "routes": {
+      "misc": {
+        "path": [
+          "/404"
+        ],
+        "file": "slice-bundle.misc.js",
+        "size": 10191,
+        "hash": "94afbffe579ed969a31233e2746d6094780f9823a52ab4d5ca35d27f3dba451c",
+        "integrity": "sha256:94afbffe579ed969a31233e2746d6094780f9823a52ab4d5ca35d27f3dba451c",
+        "components": [
+          "Button",
+          "NotFound"
+        ],
+        "dependencies": [
+          "critical"
+        ]
+      },
+      "multiroute-AppShell--p1": {
+        "path": [
+          "/",
+          "/mi-asignacion",
+          "/comparar",
+          "/ayuda",
+          "/configuracion"
+        ],
+        "file": "slice-bundle.multiroute-appshell--p1.js",
+        "size": 119118,
+        "hash": "30fc9a5cd4047432ff9b910953acaa7294edf46c82bc091234a847c3d538a4e0",
+        "integrity": "sha256:30fc9a5cd4047432ff9b910953acaa7294edf46c82bc091234a847c3d538a4e0",
+        "components": [
+          "AppShell",
+          "AssignmentService",
+          "AssignmentView",
+          "ByTeamView",
+          "CompareView",
+          "ConfirmActionModal",
+          "DashboardView",
+          "DragDropService",
+          "FetchManager",
+          "FileDownloadService",
+          "FinalTally",
+          "HelpView",
+          "ImportDrop"
+        ],
+        "dependencies": [
+          "critical"
+        ]
+      },
+      "multiroute-AppShell--p2": {
+        "path": [
+          "/",
+          "/mi-asignacion",
+          "/comparar",
+          "/ayuda",
+          "/configuracion"
+        ],
+        "file": "slice-bundle.multiroute-appshell--p2.js",
+        "size": 92736,
+        "hash": "3ad829d49dec720abdd79ac0e81ee174bb5536536ddb53713f8e43e34260e273",
+        "integrity": "sha256:3ad829d49dec720abdd79ac0e81ee174bb5536536ddb53713f8e43e34260e273",
+        "components": [
+          "MemberChip",
+          "Modal",
+          "MultiRoute",
+          "MyAssignmentView",
+          "Providers",
+          "ResolutionService",
+          "RosterService",
+          "SettingsService",
+          "SettingsView",
+          "StatusBadge",
+          "ThemeSwitcher",
+          "Toast",
+          "ToastProvider",
+          "TopBar"
+        ],
+        "dependencies": [
+          "critical"
+        ]
+      }
+    }
+  },
+  "routeBundles": {
+    "/404": [
+      "critical",
+      "misc"
+    ],
+    "/": [
+      "critical",
+      "multiroute-AppShell--p1",
+      "multiroute-AppShell--p2"
+    ],
+    "/mi-asignacion": [
+      "critical",
+      "multiroute-AppShell--p1",
+      "multiroute-AppShell--p2"
+    ],
+    "/comparar": [
+      "critical",
+      "multiroute-AppShell--p1",
+      "multiroute-AppShell--p2"
+    ],
+    "/ayuda": [
+      "critical",
+      "multiroute-AppShell--p1",
+      "multiroute-AppShell--p2"
+    ],
+    "/configuracion": [
+      "critical",
+      "multiroute-AppShell--p1",
+      "multiroute-AppShell--p2"
+    ]
+  },
+  "routeDependencyGraph": {
+    "/404": {
+      "bundles": [
+        "misc"
+      ],
+      "edges": [
+        {
+          "from": "critical",
+          "to": "misc"
+        }
+      ]
+    },
+    "/": {
+      "bundles": [
+        "multiroute-AppShell--p1",
+        "multiroute-AppShell--p2"
+      ],
+      "edges": [
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p1"
+        },
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p2"
+        }
+      ]
+    },
+    "/mi-asignacion": {
+      "bundles": [
+        "multiroute-AppShell--p1",
+        "multiroute-AppShell--p2"
+      ],
+      "edges": [
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p1"
+        },
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p2"
+        }
+      ]
+    },
+    "/comparar": {
+      "bundles": [
+        "multiroute-AppShell--p1",
+        "multiroute-AppShell--p2"
+      ],
+      "edges": [
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p1"
+        },
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p2"
+        }
+      ]
+    },
+    "/ayuda": {
+      "bundles": [
+        "multiroute-AppShell--p1",
+        "multiroute-AppShell--p2"
+      ],
+      "edges": [
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p1"
+        },
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p2"
+        }
+      ]
+    },
+    "/configuracion": {
+      "bundles": [
+        "multiroute-AppShell--p1",
+        "multiroute-AppShell--p2"
+      ],
+      "edges": [
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p1"
+        },
+        {
+          "from": "critical",
+          "to": "multiroute-AppShell--p2"
+        }
+      ]
+    }
+  }
+};
+
+// Auto-initialization if slice is available
+if (typeof window !== 'undefined' && window.slice && window.slice.controller) {
+  window.slice.controller.bundleConfig = SLICE_BUNDLE_CONFIG;
+
+  // Load critical bundle automatically
+  if (SLICE_BUNDLE_CONFIG.bundles.critical && !window.slice.controller.criticalBundleLoaded) {
+    (async () => {
+      const bundlePath = "/bundles/" + SLICE_BUNDLE_CONFIG.bundles.critical.file;
+      const integrity = SLICE_BUNDLE_CONFIG.bundles.critical.integrity;
+
+      if (typeof window.slice.controller.verifyBundleIntegrity === 'function') {
+        const ok = await window.slice.controller.verifyBundleIntegrity(bundlePath, integrity);
+        if (!ok) {
+          console.warn('Failed to load critical bundle: integrity check failed');
+          return;
+        }
+      }
+
+      import('./slice-bundle.critical.js').catch(err =>
+        console.warn('Failed to load critical bundle:', err)
+      );
+      window.slice.controller.criticalBundleLoaded = true;
+    })();
+  }
+}

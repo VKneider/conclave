@@ -1,0 +1,1 @@
+export function esc(value){return String(null==value?"":value).replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[t]))}

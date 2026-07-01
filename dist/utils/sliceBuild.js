@@ -1,0 +1,1 @@
+export async function buildEach(i,t){if(!t.length)return[];const[a,...c]=t,e=await slice.build(i,a),n=await Promise.all(c.map(props=>slice.build(i,props)));return[e,...n]}
