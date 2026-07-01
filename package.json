@@ -35,6 +35,7 @@
   },
   "packageManager": "pnpm@11.9.0",
   "dependencies": {
+    "express": "^5.2.1",
     "slicejs-web-framework": "3.5.2"
   },
   "devDependencies": {

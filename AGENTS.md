@@ -313,3 +313,37 @@ diagnostics — run this after any component add/remove/rename),
 `pnpm run component:create <Name> --category <Cat>` /
 `component:delete ... --yes` / `component:list` (rescans and rewrites
 `components.js` — run after any manual file moves).
+
+## Vercel deployment
+
+**`api/index.js`** is a custom Express server (not `createSliceServer()`) as a
+temporary workaround — see below. Vercel config in `vercel.json`: Serverless
+Function at `api/index.js` with `includeFiles: "dist/**"`, rewrite `/(.*)` →
+`/api/index`.
+
+### Why the custom server exists
+
+`createSliceServer()` (the framework's production entry) reads `Slice.js` via
+`fs.readFileSync('node_modules/slicejs-web-framework/Slice/Slice.js')`. Vercel's
+function bundler only includes files reachable via `import`/`require` traces —
+it doesn't follow `fs.readFileSync` calls — so `Slice.js` is missing from the
+deployment bundle, causing a 404 when the browser loads it.
+
+The framework maintainers plan to fix this at the framework level. Once that
+lands, revert `api/index.js` back to the simple `createSliceServer()` pattern.
+
+### How the current workaround works
+
+1. Post-build (`pnpm run build` → CLI build + `node scripts/copy-slice.js`):
+   copies `Slice.js` from `node_modules/slicejs-web-framework/Slice/Slice.js`
+   to `dist/Slice/Slice.js`.
+2. `includeFiles: "dist/**"` in `vercel.json` includes it in the function bundle.
+3. Custom `api/index.js` serves `/Slice/Slice.js` from `dist/Slice/Slice.js`
+   (line 47).
+4. `depends express` is listed because the custom server imports it directly.
+
+### To revert when the framework is fixed
+
+1. Restore `api/index.js` to the original 7-line `createSliceServer()` version.
+2. Verify `dist/Slice/` no longer needs to exist (remove post-build step).
+3. Optionally `pnpm remove express` (no longer a direct consumer).
