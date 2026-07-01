@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node ./node_modules/slicejs-cli/client.js dev",
-    "build": "node ./node_modules/slicejs-cli/client.js build",
+    "build": "node ./node_modules/slicejs-cli/client.js build && node scripts/copy-slice.js",
     "start": "node ./node_modules/slicejs-cli/client.js start",
     "component:create": "node ./node_modules/slicejs-cli/client.js component create",
     "component:list": "node ./node_modules/slicejs-cli/client.js component list",
