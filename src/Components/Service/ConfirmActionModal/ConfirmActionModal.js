@@ -56,18 +56,6 @@ export default class ConfirmActionModal {
     this.$message.className = 'confirm-modal__message';
     this.$modal.appendBody(this.$message);
 
-    this.$inputLabel = document.createElement('label');
-    this.$inputLabel.className = 'confirm-modal__field';
-    this.$inputSpan = document.createElement('span');
-    this.$input = document.createElement('input');
-    this.$input.type = 'text';
-    this.$input.autocomplete = 'off';
-    this.$input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this._resolve(true);
-    });
-    this.$inputLabel.append(this.$inputSpan, this.$input);
-    this.$modal.appendBody(this.$inputLabel);
-
     this.$cancelBtn = document.createElement('button');
     this.$cancelBtn.type = 'button';
     this.$cancelBtn.className = 'btn btn-ghost';
@@ -107,17 +95,30 @@ export default class ConfirmActionModal {
     this.$confirmBtn.textContent = confirmLabel;
     this.$confirmBtn.className = danger ? 'btn btn-danger' : 'btn btn-primary';
 
-    this.$inputLabel.hidden = !this._hasInput;
     if (this._hasInput) {
+      if (!this.$inputLabel) {
+        this.$inputLabel = document.createElement('label');
+        this.$inputLabel.className = 'confirm-modal__field';
+        this.$inputSpan = document.createElement('span');
+        this.$input = document.createElement('input');
+        this.$input.type = 'text';
+        this.$input.autocomplete = 'off';
+        this.$input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') this._resolve(true);
+        });
+        this.$inputLabel.append(this.$inputSpan, this.$input);
+        this.$modal.appendBody(this.$inputLabel);
+      }
+      this.$inputLabel.hidden = false;
       this.$inputSpan.textContent = inputLabel;
       this.$input.placeholder = inputPlaceholder;
       this.$input.value = inputValue;
+    } else if (this.$inputLabel) {
+      this.$inputLabel.hidden = true;
     }
 
     this.$modal.open = true;
     if (this._hasInput) {
-      // The dialog steals focus to itself on showModal(); grab the input
-      // right after, once it's actually visible.
       requestAnimationFrame(() => this.$input.focus());
     }
   }
