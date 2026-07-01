@@ -9,6 +9,7 @@ const components = {
   "SettingsView": "AppComponents",
   "TopBar": "AppComponents",
   "Button": "Visual",
+  "ImportDrop": "Visual",
   "Link": "Visual",
   "Loading": "Visual",
   "MemberChip": "Visual",
@@ -31,6 +32,7 @@ const components = {
   "RosterService": "Service",
   "SettingsService": "Service",
   "ToastProvider": "Service",
+  "FinalTally": "DataDisplay",
   "Providers": "AppServices"
 };
 

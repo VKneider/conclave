@@ -58,6 +58,10 @@
             "path": "/Components/Service",
             "type": "Service"
          },
+         "DataDisplay": {
+            "path": "/Components/DataDisplay",
+            "type": "Visual"
+         },
          "AppServices": {
             "path": "/Components/AppServices",
             "type": "Service"
