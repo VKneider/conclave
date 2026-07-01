@@ -194,7 +194,7 @@ export default class RosterService {
       const lideres = { ...settingsState.lideres };
       let liderChanged = false;
       Object.entries(lideres).forEach(([teamId, memberId]) => {
-        if (rmvMembers.has(memberId)) { delete lideres[teamId]; liderChanged = true; }
+        if (rmvMembers.has(memberId) || rmvTeams.has(teamId)) { delete lideres[teamId]; liderChanged = true; }
       });
       if (liderChanged) {
         slice.context.setState('settings', (prev) => ({ ...prev, lideres }));

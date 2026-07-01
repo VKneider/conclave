@@ -104,11 +104,11 @@ export default class MyAssignmentView extends HTMLElement {
             <div class="person-tags">
               ${member.sexo ? `<span class="tag sexo-${esc(member.sexo)}">${member.sexo === 'M' ? 'Masculino' : member.sexo === 'F' ? 'Femenino' : esc(member.sexo)}</span>` : ''}
               ${member.edad != null ? `<span class="tag">${member.edad} años</span>` : ''}
-              ${sel && slice.getComponent('SettingsService').isLideresEnabled() && slice.getComponent('SettingsService').getEffectiveLider(sel)?.member?.id === member.id ? '<span class="tag tag-lider">Líder</span>' : ''}
+              ${sel && slice.getComponent('SettingsService').isLideresEnabled() && !slice.getComponent('RosterService').isLiderLocked(sel) && slice.getComponent('SettingsService').getEffectiveLider(sel)?.member?.id === member.id ? '<span class="tag tag-lider">Líder</span>' : ''}
             </div>
           </div>
           <div class="current-assign">Asignado a: <b>${esc(roster.getTeamById(sel)?.nombre || '—')}</b>
-          ${sel && slice.getComponent('SettingsService').isLideresEnabled() ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.member?.id === member.id ? ' is-lider' : ''}" data-lider-toggle="${member.id}" type="button">👑</button>` : ''}
+          ${sel && slice.getComponent('SettingsService').isLideresEnabled() && !slice.getComponent('RosterService').isLiderLocked(sel) ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.member?.id === member.id ? ' is-lider' : ''}" data-lider-toggle="${member.id}" type="button">👑</button>` : ''}
            </div>
           <div class="assign-summary" id="assignSummary"></div>
           <div class="team-pills">`;

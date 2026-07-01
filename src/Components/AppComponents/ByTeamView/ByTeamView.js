@@ -222,9 +222,11 @@ export default class ByTeamView extends HTMLElement {
       slice.setComponentProps(this._badges[t.id], { status: st, label });
 
       const settings = slice.getComponent('SettingsService');
+      const roster = slice.getComponent('RosterService');
       const lideresEnabled = settings.isLideresEnabled();
-      els.liderDrop.hidden = !lideresEnabled;
-      if (lideresEnabled) {
+      const liderLocked = roster.isLiderLocked(t.id);
+      els.liderDrop.hidden = !lideresEnabled || liderLocked;
+      if (lideresEnabled && !liderLocked) {
         const lider = settings.getEffectiveLider(t.id);
         if (lider && lider.member) {
           els.liderName.textContent = lider.member.nombre;
@@ -233,6 +235,9 @@ export default class ByTeamView extends HTMLElement {
           els.liderName.textContent = '';
           els.liderDrop.classList.remove('has-lider');
         }
+      } else if (liderLocked) {
+        els.liderName.textContent = '';
+        els.liderDrop.classList.remove('has-lider');
       }
     });
   }
