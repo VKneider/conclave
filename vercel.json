@@ -2,7 +2,21 @@
   "version": 2,
   "functions": {
     "api/index.js": {
-      "includeFiles": "dist/**"
+      "includeFiles": [
+        "dist/App/**",
+        "dist/bundles/**",
+        "dist/data/**",
+        "dist/Themes/**",
+        "dist/Styles/**",
+        "dist/utils/**",
+        "dist/assets/**",
+        "dist/images/**",
+        "dist/routes.js",
+        "dist/sliceConfig.json",
+        "dist/manifest.json",
+        "dist/robots.txt",
+        "dist/sitemap.xml"
+      ]
     }
   },
   "rewrites": [
