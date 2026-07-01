@@ -1,0 +1,65 @@
+slice-theme-switcher {
+  display: block;
+}
+
+slice-theme-switcher .theme-switcher {
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+slice-theme-switcher .theme-switcher:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Button variant — compact pill for topbars and toolbars. */
+slice-theme-switcher.theme-switcher--button .theme-switcher {
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--disabled-color);
+  border-radius: 8px;
+  background: var(--secondary-background-color);
+  color: var(--font-secondary-color);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+slice-theme-switcher.theme-switcher--button .theme-switcher:hover {
+  border-color: var(--primary-color);
+  color: var(--font-primary-color);
+}
+
+slice-theme-switcher.theme-switcher--button .theme-switcher__label {
+  display: none;
+}
+
+/* Menu-item variant — full-width row for dropdowns and user menus. */
+slice-theme-switcher.theme-switcher--menu {
+  width: 100%;
+}
+
+slice-theme-switcher.theme-switcher--menu .theme-switcher {
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--font-primary-color);
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+slice-theme-switcher.theme-switcher--menu .theme-switcher:hover {
+  background: var(--tertiary-background-color);
+}
+
+slice-theme-switcher .theme-switcher__value {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}

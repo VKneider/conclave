@@ -1,0 +1,16 @@
+slice-dashboardview .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 16px; }
+slice-dashboardview .team-card {
+  background: var(--panel-background-color); border: 2px solid var(--font-primary-color); border-radius: var(--card-border-radius); padding: 16px;
+  box-shadow: var(--box-shadow-primary); position: relative; overflow: hidden;
+}
+slice-dashboardview .team-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--team-color, var(--primary-color)); }
+slice-dashboardview .team-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+slice-dashboardview .team-head h3 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+slice-dashboardview .team-count { font-size: 22px; font-weight: 700; }
+slice-dashboardview .team-count small { font-size: 13px; color: var(--font-secondary-color); font-weight: 500; }
+slice-dashboardview .team-meta { color: var(--font-secondary-color); font-size: 12px; margin: 6px 0 10px; }
+slice-dashboardview .badge-slot { margin-top: 10px; }
+
+@media (max-width: 760px) {
+  slice-dashboardview .stat-grid { grid-template-columns: repeat(2,1fr); }
+}

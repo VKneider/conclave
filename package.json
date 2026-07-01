@@ -1,0 +1,43 @@
+{
+  "name": "teams-organizer",
+  "version": "1.0.0",
+  "description": "Slice.js project",
+  "main": "api/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "node ./node_modules/slicejs-cli/client.js dev",
+    "build": "node ./node_modules/slicejs-cli/client.js build",
+    "start": "node ./node_modules/slicejs-cli/client.js start",
+    "component:create": "node ./node_modules/slicejs-cli/client.js component create",
+    "component:list": "node ./node_modules/slicejs-cli/client.js component list",
+    "component:delete": "node ./node_modules/slicejs-cli/client.js component delete",
+    "get": "node ./node_modules/slicejs-cli/client.js get",
+    "browse": "node ./node_modules/slicejs-cli/client.js browse",
+    "sync": "node ./node_modules/slicejs-cli/client.js sync",
+    "slice:init": "node ./node_modules/slicejs-cli/client.js init",
+    "slice:dev": "node ./node_modules/slicejs-cli/client.js dev",
+    "slice:build": "node ./node_modules/slicejs-cli/client.js build",
+    "slice:start": "node ./node_modules/slicejs-cli/client.js start",
+    "slice:create": "node ./node_modules/slicejs-cli/client.js component create",
+    "slice:list": "node ./node_modules/slicejs-cli/client.js component list",
+    "slice:delete": "node ./node_modules/slicejs-cli/client.js component delete",
+    "slice:get": "node ./node_modules/slicejs-cli/client.js get",
+    "slice:browse": "node ./node_modules/slicejs-cli/client.js browse",
+    "slice:sync": "node ./node_modules/slicejs-cli/client.js sync",
+    "slice:doctor": "node ./node_modules/slicejs-cli/client.js doctor",
+    "slice:version": "node ./node_modules/slicejs-cli/client.js version",
+    "slice:help": "node ./node_modules/slicejs-cli/client.js --help",
+    "slice:types": "node ./node_modules/slicejs-cli/client.js types generate",
+    "run": "node ./node_modules/slicejs-cli/client.js dev"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "dependencies": {
+    "slicejs-web-framework": "3.5.2"
+  },
+  "devDependencies": {
+    "slicejs-cli": "3.7.2"
+  }
+}

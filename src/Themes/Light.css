@@ -1,0 +1,52 @@
+/* "Sticker Book" — warm, playful, hand-labeled. Flat saturated color, bold
+   ink outlines, hard offset shadows instead of soft blurred glows. No
+   gradients, no purple. */
+:root {
+  --font-primary-color: #1a1a2e;
+  --font-secondary-color: #6b7089;
+  /** primary — tomato coral **/
+  --primary-color: #ff6b4a;
+  --primary-color-rgb: rgb(255, 107, 74);
+  --primary-background-color: #fff8ef;
+  --primary-color-contrast: #1a1a2e;
+  --primary-color-shade: #ffe0d6;
+  /** secondary — turquoise, the coral's playful foil **/
+  --secondary-color: #17b8ab;
+  --secondary-color-rgb: rgb(23, 184, 171);
+  --secondary-background-color: #e0f7f4;
+  --secondary-color-contrast: #ffffff;
+  /** tertiary **/
+  --tertiary-background-color: #fdeeda;
+  /** success **/
+  --success-color: #1f9d52;
+  --success-contrast: #ffffff;
+  /** warning **/
+  --warning-color: #e88b12;
+  --warning-contrast: #1a1a2e;
+  /** danger **/
+  --danger-color: #e63950;
+  --danger-contrast: #ffffff;
+  /** medium **/
+  --medium-color: #9297ad;
+  --medium--contrast: #1a1a2e;
+
+  --disabled-color: #d8dae6;
+
+  /** Conclave: elevated panel/card surfaces **/
+  --panel-background-color: #ffffff;
+  --panel-alt-background-color: #fff3e9;
+  --border-color: #e7e1d2;
+
+  /** Conclave: member gender tally (Por equipo view) **/
+  --male-color: #3f66e0;
+  --female-color: #e0398a;
+
+  /** Conclave: card metrics — chunky radius, hard "sticker" offset shadow
+      (no blur) instead of a soft glow. **/
+  --card-border-radius: 18px;
+  --box-shadow-primary: 4px 4px 0 var(--font-primary-color);
+
+  /** Conclave: typography **/
+  --font-display: 'Fredoka', 'Segoe UI', sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}

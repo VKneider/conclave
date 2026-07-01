@@ -1,0 +1,3 @@
+/* Visual styling lives in the shared global .badge utility (Styles/sliceStyles.css) —
+   CompareView's plain-HTML table reuses the same classes, so the rule is defined
+   once, unscoped, rather than duplicated per component. */

@@ -1,0 +1,42 @@
+slice-app-shell .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ---------- Topbar ---------- */
+slice-app-shell .topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; padding: 14px 24px;
+  background: var(--panel-background-color);
+  border-bottom: 2.5px solid var(--font-primary-color); position: sticky; top: 0; z-index: 20;
+}
+slice-app-shell .brand { display: flex; align-items: center; gap: 12px; }
+slice-app-shell .brand-mark {
+  font-size: 24px; display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 12px; background: var(--secondary-background-color);
+  border: 2px solid var(--font-primary-color); transform: rotate(-6deg);
+}
+slice-app-shell .topbar h1 { font-family: var(--font-display); font-size: 20px; margin: 0; letter-spacing: -.01em; }
+slice-app-shell .brand-sub { margin: 1px 0 0; font-size: 12px; color: var(--font-secondary-color); font-weight: 500; }
+slice-app-shell .topbar-right { display: flex; align-items: center; gap: 14px; }
+
+slice-app-shell .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+slice-app-shell .tab {
+  background: transparent; border: 2px solid transparent; color: var(--font-secondary-color); padding: 7px 13px;
+  border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 700; transition: transform .1s ease;
+  text-decoration: none; display: inline-block;
+}
+slice-app-shell .tab:hover { color: var(--font-primary-color); border-color: var(--border-color); }
+slice-app-shell .tab.active { background: var(--primary-color); border-color: var(--font-primary-color); color: var(--primary-color-contrast); transform: rotate(-2deg); }
+
+/* ---------- Footbar ---------- */
+slice-app-shell .footbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px; border-top: 2.5px solid var(--font-primary-color);
+  background: var(--panel-background-color); position: sticky; bottom: 0;
+}
+slice-app-shell .foot-actions { display: flex; gap: 10px; }
+slice-app-shell .save-status { font-size: 12px; color: var(--font-secondary-color); font-weight: 600; }
+
+@media (max-width: 760px) {
+  slice-app-shell .topbar { flex-direction: column; align-items: stretch; }
+  slice-app-shell .topbar-right { flex-direction: column; align-items: stretch; }
+  slice-app-shell .tabs { justify-content: space-between; }
+}

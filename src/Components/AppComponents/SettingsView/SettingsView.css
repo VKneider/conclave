@@ -1,0 +1,11 @@
+slice-settingsview .settings-form {
+  display: flex; flex-direction: column; gap: 18px; max-width: 420px;
+  background: var(--panel-background-color); border: 2.5px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius); padding: 20px 22px; box-shadow: var(--box-shadow-primary);
+}
+slice-settingsview .settings-field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--font-secondary-color); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+slice-settingsview .settings-field input {
+  background: var(--panel-background-color); border: 2px solid var(--border-color); color: var(--font-primary-color);
+  border-radius: 9px; padding: 9px 12px; font-size: 14px; font-family: var(--font-body); font-weight: 500; outline: none;
+}
+slice-settingsview .settings-field input:focus-visible { border-color: var(--primary-color); }

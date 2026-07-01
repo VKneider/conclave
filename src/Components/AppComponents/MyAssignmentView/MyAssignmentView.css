@@ -1,0 +1,54 @@
+slice-myassignmentview .assign-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+slice-myassignmentview .assign-toolbar .spacer { flex: 1; }
+slice-myassignmentview .progress-label { font-size: 13px; color: var(--font-secondary-color); font-weight: 600; white-space: nowrap; }
+
+slice-myassignmentview .carousel-wrap { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; }
+slice-myassignmentview .arrow-btn {
+  flex: none; width: 54px; height: 54px; border-radius: 50%; font-size: 22px;
+  border: 2.5px solid var(--font-primary-color); background: var(--panel-background-color); color: var(--font-primary-color); cursor: pointer;
+  box-shadow: 3px 3px 0 var(--font-primary-color); transition: transform .08s ease, box-shadow .08s ease;
+}
+slice-myassignmentview .arrow-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--font-primary-color); }
+slice-myassignmentview .arrow-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--font-primary-color); }
+slice-myassignmentview .arrow-btn:disabled { opacity: .35; cursor: not-allowed; box-shadow: 2px 2px 0 var(--font-primary-color); }
+
+slice-myassignmentview .person-card {
+  flex: 1; background: var(--panel-background-color);
+  border: 2.5px solid var(--font-primary-color); border-radius: var(--card-border-radius); padding: 24px 28px; box-shadow: var(--box-shadow-primary);
+}
+slice-myassignmentview .person-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+slice-myassignmentview .person-id { font-size: 12px; color: var(--font-secondary-color); letter-spacing: .05em; text-transform: uppercase; font-weight: 600; }
+slice-myassignmentview .person-name { font-family: var(--font-display); font-size: 32px; font-weight: 600; margin: 4px 0 2px; }
+slice-myassignmentview .person-tags { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+slice-myassignmentview .tag { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: var(--secondary-background-color); border: 1.5px solid var(--border-color); color: var(--font-secondary-color); }
+slice-myassignmentview .tag.sexo-M { color: var(--primary-color-contrast); background: var(--male-color); border-color: var(--male-color); }
+slice-myassignmentview .tag.sexo-F { color: var(--primary-color-contrast); background: var(--female-color); border-color: var(--female-color); }
+slice-myassignmentview .current-assign { margin-top: 10px; font-size: 14px; color: var(--font-secondary-color); }
+slice-myassignmentview .current-assign b { color: var(--font-primary-color); }
+
+slice-myassignmentview .team-pills { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px; }
+slice-myassignmentview .pill {
+  border: 2px solid var(--font-primary-color); background: var(--panel-background-color); color: var(--font-primary-color);
+  padding: 9px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px; transition: transform .08s ease;
+}
+slice-myassignmentview .pill:hover { transform: translateY(-1px); }
+slice-myassignmentview .pill.selected { background: var(--primary-color); color: var(--primary-color-contrast); }
+slice-myassignmentview .pill .cap { font-size: 11px; opacity: .75; font-weight: 600; }
+/* Already at/over capacity — still fully clickable (over-assigning is
+   allowed on purpose), flagged with a warning border+cap instead of being
+   grayed out like a disabled control. */
+slice-myassignmentview .pill.at-capacity { border-color: var(--warning-color); }
+slice-myassignmentview .pill.at-capacity .cap { color: var(--warning-color); opacity: 1; font-weight: 700; }
+slice-myassignmentview .pill.at-capacity.selected { border-color: var(--font-primary-color); }
+slice-myassignmentview .pill.at-capacity.selected .cap { color: inherit; }
+slice-myassignmentview .pill-clear { border-style: dashed; color: var(--font-secondary-color); background: transparent; }
+
+slice-myassignmentview .progress-row { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
+slice-myassignmentview .progress-track { flex: 1; height: 10px; background: var(--secondary-background-color); border: 1.5px solid var(--border-color); border-radius: 999px; overflow: hidden; }
+slice-myassignmentview .progress-track > span { display: block; height: 100%; background: var(--primary-color); }
+
+slice-myassignmentview .dots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; justify-content: center; }
+slice-myassignmentview .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--panel-background-color); border: 1.5px solid var(--border-color); cursor: pointer; transition: transform .1s ease; }
+slice-myassignmentview .dot.done { background: var(--success-color); border-color: var(--success-color); }
+slice-myassignmentview .dot.active { border-color: var(--font-primary-color); transform: scale(1.3); }

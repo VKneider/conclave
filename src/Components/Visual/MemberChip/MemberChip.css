@@ -1,0 +1,17 @@
+/* Deliberately NOT scoped under the slice-memberchip tag prefix: the drag
+   ghost is a clone of the .member-chip span appended straight to <body>,
+   outside any <slice-memberchip> ancestor, so a scoped selector would never
+   match it. See the comment in MemberChip.js for why the span (not the
+   custom element) is what gets dragged/cloned.
+   Border stays light at rest — 85 of these sitting side by side with a bold
+   ink outline each reads as noise, especially in dark mode where "ink" is a
+   pale color. The bold sticker outline shows up only on hover/drag instead. */
+.member-chip { background: var(--panel-background-color); border: 1.5px solid var(--border-color); border-radius: 999px; padding: 5px 11px 5px 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: grab; user-select: none; transition: border-color .1s ease, transform .1s ease, box-shadow .1s ease; }
+.member-chip:hover { border-color: var(--font-primary-color); transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--font-primary-color); }
+.member-chip:active { cursor: grabbing; }
+.member-chip.dragging { opacity: .4; }
+.member-chip .grip { color: var(--font-secondary-color); font-size: 11px; letter-spacing: -2px; }
+.member-chip .sx { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.member-chip .sx.M { background: var(--male-color); }
+.member-chip .sx.F { background: var(--female-color); }
+.member-chip .nm { min-width: 0; flex: 1; white-space: normal; word-break: break-word; line-height: 1.25; }
