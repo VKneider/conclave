@@ -135,7 +135,7 @@ app.use('/api', (req, res) => {
 // SPA FALLBACK
 // ==============================================
 
-app.get('*', (req, res) => {
+app.use((req, res) => {
   const indexPath = path.join(__dirname, '..', folderDeployed, 'App', 'index.html');
   res.sendFile(indexPath, err => {
     if (err) res.status(500).send('<h1>500 - Internal Server Error</h1>');
