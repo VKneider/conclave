@@ -206,7 +206,7 @@ export default class ByTeamView extends HTMLElement {
       const isOver = st === 'over';
       const denom = t.max || t.capacidad || Math.max(n, 1);
       const pct = Math.min(100, Math.round((n / denom) * 100));
-      const label = { ok: 'En rango', under: `Faltan ${t.min - n}`, over: `Sobran ${n - t.max}`, empty: 'Vacío' }[st];
+      const label = roster.statusLabel(t, n);
 
       els.n.textContent = n;
       els.m.textContent = people.filter((p) => p.sexo === 'M').length;
@@ -226,7 +226,7 @@ export default class ByTeamView extends HTMLElement {
       els.liderDrop.hidden = !lideresEnabled;
       if (lideresEnabled) {
         const lider = settings.getEffectiveLider(t.id);
-        if (lider) {
+        if (lider && lider.member) {
           els.liderName.textContent = lider.member.nombre;
           els.liderDrop.classList.add('has-lider');
         } else {

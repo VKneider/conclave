@@ -50,6 +50,17 @@ slice-compareview .team-table td { vertical-align: top; font-size: 12.5px; line-
 slice-compareview .team-table .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
 slice-compareview .team-table .muted { color: var(--font-secondary-color); }
 
+/* View mode tabs */
+slice-compareview .cmp-mode-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+slice-compareview .cmp-mode-tab {
+  font-size: 13px; font-weight: 700; padding: 7px 18px; border-radius: 999px; cursor: pointer;
+  border: 2px solid var(--border-color); background: transparent; color: var(--font-secondary-color);
+  transition: transform .08s, box-shadow .08s, border-color .15s, background .15s, color .15s;
+}
+slice-compareview .cmp-mode-tab:hover { border-color: var(--font-primary-color); color: var(--font-primary-color); }
+slice-compareview .cmp-mode-tab.active { border-color: var(--primary-color); background: var(--primary-color); color: var(--primary-color-contrast); }
+slice-compareview .cmp-mode-tab:active { transform: translate(1px, 1px); }
+
 @media (max-width: 760px) {
   slice-compareview .cmp-summary { grid-template-columns: 1fr; }
   slice-compareview .cmp-filters .btn { font-size: 11px; padding: 5px 10px; }

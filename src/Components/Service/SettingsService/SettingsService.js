@@ -1,33 +1,30 @@
+import { ensureContext } from '/utils/context.js';
+
 // Owns the `settings` context: { autor, nombreOrganizacion, lideres } — the
 // user's own identity, org/event branding, and per-team leaders set via UI.
 // Leaders set in the data file (equipos.json → RosterService.getLiderName)
 // take precedence and are read-only.
 const CONTEXT = 'settings';
 const STORAGE_KEY = 'conclave-settings-v3';
+const INITIAL_STATE = { autor: '', nombreOrganizacion: '', lideres: {}, lideresEnabled: false };
 
 export default class SettingsService {
   init() {
-    this._ensureContext();
-  }
-
-  _ensureContext() {
-    if (!slice.context.has(CONTEXT)) {
-      slice.context.create(CONTEXT, { autor: '', nombreOrganizacion: '', lideres: {}, lideresEnabled: false }, { persist: true, storageKey: STORAGE_KEY });
-    }
+    ensureContext(CONTEXT, INITIAL_STATE, STORAGE_KEY);
   }
 
   getState() {
-    this._ensureContext();
+    ensureContext(CONTEXT, INITIAL_STATE, STORAGE_KEY);
     return slice.context.getState(CONTEXT);
   }
 
   setAutor(name) {
-    this._ensureContext();
+    ensureContext(CONTEXT, INITIAL_STATE, STORAGE_KEY);
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, autor: name || '' }));
   }
 
   setNombreOrganizacion(name) {
-    this._ensureContext();
+    ensureContext(CONTEXT, INITIAL_STATE, STORAGE_KEY);
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, nombreOrganizacion: name || '' }));
   }
 
@@ -37,7 +34,7 @@ export default class SettingsService {
   }
 
   setLider(teamId, memberId) {
-    this._ensureContext();
+    ensureContext(CONTEXT, INITIAL_STATE, STORAGE_KEY);
     slice.context.setState(CONTEXT, (prev) => ({
       ...prev,
       lideres: { ...prev.lideres, [teamId]: memberId },
@@ -45,7 +42,7 @@ export default class SettingsService {
   }
 
   clearLider(teamId) {
-    this._ensureContext();
+    ensureContext(CONTEXT, INITIAL_STATE, STORAGE_KEY);
     slice.context.setState(CONTEXT, (prev) => {
       const lideres = { ...prev.lideres };
       delete lideres[teamId];
@@ -58,7 +55,7 @@ export default class SettingsService {
   }
 
   setLideresEnabled(enabled) {
-    this._ensureContext();
+    ensureContext(CONTEXT, INITIAL_STATE, STORAGE_KEY);
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, lideresEnabled: enabled === true }));
   }
 

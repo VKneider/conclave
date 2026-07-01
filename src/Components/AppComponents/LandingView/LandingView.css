@@ -1,0 +1,85 @@
+slice-landingview .landing-view { display: flex; flex-direction: column; align-items: center; padding: 48px 20px 80px; }
+
+/* ── Hero ────────────────────────────────────────── */
+
+slice-landingview .landing-hero { text-align: center; max-width: 520px; }
+
+slice-landingview .landing-brandmark {
+  width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 18px;
+  background: var(--primary-color); border: 3px solid var(--font-primary-color);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34px; transform: rotate(-5deg); box-shadow: var(--box-shadow-primary);
+}
+
+slice-landingview .landing-title { font-family: var(--font-display); font-size: 40px; font-weight: 700; margin: 0 0 8px; }
+
+slice-landingview .landing-org { font-size: 18px; font-weight: 600; color: var(--primary-color); margin: 0 0 6px; }
+slice-landingview .landing-sub { font-size: 16px; color: var(--font-secondary-color); margin: 0 0 6px; }
+
+slice-landingview .landing-desc { font-size: 15px; color: var(--font-secondary-color); line-height: 1.55; margin: 12px 0 28px; }
+
+slice-landingview .landing-cta { font-size: 16px; padding: 12px 32px; }
+
+/* ── Stats row ───────────────────────────────────── */
+
+slice-landingview .landing-stats {
+  display: flex; gap: 14px; justify-content: center; margin-top: 36px; flex-wrap: wrap;
+}
+
+slice-landingview .landing-stats .stat-card {
+  flex: 1; min-width: 120px; max-width: 180px;
+  background: var(--panel-background-color);
+  border: 2px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius);
+  padding: 16px 20px; text-align: center;
+  box-shadow: var(--box-shadow-primary);
+}
+
+slice-landingview .landing-stats .stat-card .k {
+  font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--font-secondary-color); margin-bottom: 6px;
+}
+
+slice-landingview .landing-stats .stat-card .v {
+  font-size: 28px; font-weight: 700; line-height: 1;
+}
+
+slice-landingview .landing-stats .stat-card .v small {
+  font-size: 14px; font-weight: 500; color: var(--font-secondary-color);
+  margin-left: 2px;
+}
+
+/* ── Quick actions ───────────────────────────────── */
+
+slice-landingview .landing-actions {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px; margin-top: 36px; width: 100%; max-width: 650px;
+}
+
+slice-landingview .la-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 22px 14px 18px;
+  background: var(--panel-background-color);
+  border: 2px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--box-shadow-primary);
+  cursor: pointer; font-family: inherit; font-size: inherit;
+  transition: transform .08s, box-shadow .08s;
+  text-align: center;
+}
+
+slice-landingview .la-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--font-primary-color);
+}
+
+slice-landingview .la-card:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--font-primary-color);
+}
+
+slice-landingview .la-icon { font-size: 28px; line-height: 1; margin-bottom: 2px; }
+
+slice-landingview .la-label { font-size: 14px; font-weight: 700; }
+
+slice-landingview .la-sub { font-size: 11px; font-weight: 500; color: var(--font-secondary-color); }

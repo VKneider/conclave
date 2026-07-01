@@ -53,6 +53,49 @@ slice-myassignmentview .pill.at-capacity.selected { border-color: var(--font-pri
 slice-myassignmentview .pill.at-capacity.selected .cap { color: inherit; }
 slice-myassignmentview .pill-clear { border-style: dashed; color: var(--font-secondary-color); background: transparent; }
 
+/* ── Just-assigned feedback ───────────────────── */
+
+slice-myassignmentview .pill-just-assigned {
+  background: var(--success-color) !important; color: white !important;
+  border-color: var(--success-color) !important; pointer-events: none;
+  position: relative; padding-right: 38px !important;
+  animation: pillAssignPop .5s ease;
+}
+slice-myassignmentview .pill-just-assigned .cap { color: white !important; opacity: 1 !important; }
+slice-myassignmentview .pill-just-assigned::after {
+  content: '✓'; position: absolute; right: 14px; top: 50%;
+  transform: translateY(-50%); font-size: 17px; font-weight: 700; line-height: 1;
+  animation: checkBounce .5s ease;
+}
+
+@keyframes pillAssignPop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.14); }
+  65% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+@keyframes checkBounce {
+  0% { opacity: 0; transform: translateY(-50%) scale(0); }
+  45% { opacity: 1; transform: translateY(-50%) scale(1.4); }
+  70% { transform: translateY(-50%) scale(0.8); }
+  100% { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+
+slice-myassignmentview .assign-summary {
+  font-size: 14px; font-weight: 600; color: var(--success-color);
+  margin-top: 8px; min-height: 22px; opacity: 0;
+}
+slice-myassignmentview .assign-summary.visible {
+  opacity: 1;
+  animation: summarySlideIn .3s ease forwards;
+}
+
+@keyframes summarySlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 760px) {
   slice-myassignmentview .carousel-wrap { gap: 8px; margin-bottom: 14px; }
   slice-myassignmentview .arrow-btn { width: 38px; height: 38px; font-size: 16px; box-shadow: 2px 2px 0 var(--font-primary-color); }

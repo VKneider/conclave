@@ -1,6 +1,6 @@
 /**
  * Slice.js Bundle Configuration
- * Generated: 2026-07-01T17:05:53.697Z
+ * Generated: 2026-07-01T19:59:34.833Z
  * Strategy: hybrid
  */
 
@@ -13,21 +13,21 @@ export const SLICE_BUNDLE_CONFIG = {
   "minified": true,
   "obfuscated": true,
   "production": true,
-  "generated": "2026-07-01T17:05:53.695Z",
+  "generated": "2026-07-01T19:59:34.831Z",
   "stats": {
     "totalComponents": 45,
     "totalRoutes": 6,
     "sharedComponents": 1,
     "sharedPercentage": "2.2",
-    "totalSize": 284860,
+    "totalSize": 285967,
     "criticalSize": 41711
   },
   "bundles": {
     "framework": {
       "file": "slice-bundle.framework.js",
       "size": 203040,
-      "hash": "816801a573e2b042b9fc107c8390d928f39ab0898577caa4116afb2cce4fb25c",
-      "integrity": "sha256:816801a573e2b042b9fc107c8390d928f39ab0898577caa4116afb2cce4fb25c",
+      "hash": "1fb388ee326cb2b0386383e993e2c3607451eca429dcaa05af891790c78e8f98",
+      "integrity": "sha256:1fb388ee326cb2b0386383e993e2c3607451eca429dcaa05af891790c78e8f98",
       "components": [
         "Framework/Structural/ContextManager",
         "Framework/Structural/Controller",
@@ -77,9 +77,9 @@ export const SLICE_BUNDLE_CONFIG = {
           "/configuracion"
         ],
         "file": "slice-bundle.multiroute-appshell--p1.js",
-        "size": 119118,
-        "hash": "30fc9a5cd4047432ff9b910953acaa7294edf46c82bc091234a847c3d538a4e0",
-        "integrity": "sha256:30fc9a5cd4047432ff9b910953acaa7294edf46c82bc091234a847c3d538a4e0",
+        "size": 120225,
+        "hash": "d6375a68118198b6e2fe68ea62a2ed817ca97972a8c692367015cc8d6d13d9a0",
+        "integrity": "sha256:d6375a68118198b6e2fe68ea62a2ed817ca97972a8c692367015cc8d6d13d9a0",
         "components": [
           "AppShell",
           "AssignmentService",

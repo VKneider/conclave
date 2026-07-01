@@ -1,5 +1,5 @@
 const TABS = [
-  { path: '/', label: 'Dashboard' },
+  { path: '/dashboard', label: 'Dashboard' },
   { path: '/mi-asignacion', label: 'Mi asignación' },
   { path: '/comparar', label: 'Comparar' },
   { path: '/ayuda', label: 'Ayuda' },
@@ -16,6 +16,12 @@ export default class TopBar extends HTMLElement {
     this.$themeSlot = this.querySelector('.theme-switcher-slot');
     this.$tabs = this.querySelector('.tabs');
     this.$hamburger = this.querySelector('.hamburger');
+    this.$brand = this.querySelector('.brand');
+
+    this.$brand.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;
+      slice.router.navigate('/');
+    });
 
     this._renderTabs();
 

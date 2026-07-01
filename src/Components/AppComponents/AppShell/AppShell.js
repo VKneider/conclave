@@ -1,5 +1,6 @@
 const ROUTES = [
-  { path: '/', component: 'DashboardView' },
+  { path: '/', component: 'LandingView' },
+  { path: '/dashboard', component: 'DashboardView' },
   { path: '/mi-asignacion', component: 'AssignmentView' },
   { path: '/comparar', component: 'CompareView' },
   { path: '/ayuda', component: 'HelpView' },
@@ -52,7 +53,7 @@ export default class AppShell extends HTMLElement {
   }
 
   _hideFooterOnInactiveViews() {
-    const noFooter = ['/ayuda', '/configuracion'];
+    const noFooter = ['/', '/ayuda', '/configuracion'];
     this.$btnExport.closest('.footbar').hidden = noFooter.includes(window.location.pathname);
   }
 

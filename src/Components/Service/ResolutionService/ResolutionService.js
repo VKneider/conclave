@@ -1,3 +1,5 @@
+import { ensureContext } from '/utils/context.js';
+
 // Owns the `resolutions` context: { [memberId]: teamId } — the manually
 // overridden "Final" decisions in Comparar, kept separate from the user's own
 // `assignment` context. Rows come from CompareView: { member, vals: teamId[] }.
@@ -6,17 +8,11 @@ const STORAGE_KEY = 'conclave-resolutions-v1';
 
 export default class ResolutionService {
   init() {
-    this._ensureContext();
-  }
-
-  _ensureContext() {
-    if (!slice.context.has(CONTEXT)) {
-      slice.context.create(CONTEXT, {}, { persist: true, storageKey: STORAGE_KEY });
-    }
+    ensureContext(CONTEXT, {}, STORAGE_KEY);
   }
 
   getState() {
-    this._ensureContext();
+    ensureContext(CONTEXT, {}, STORAGE_KEY);
     return slice.context.getState(CONTEXT);
   }
 
@@ -40,12 +36,12 @@ export default class ResolutionService {
   }
 
   setResolution(memberId, teamId) {
-    this._ensureContext();
+    ensureContext(CONTEXT, {}, STORAGE_KEY);
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, [memberId]: teamId }));
   }
 
   fillAllWithSuggestion(rows) {
-    this._ensureContext();
+    ensureContext(CONTEXT, {}, STORAGE_KEY);
     const updates = {};
     rows.forEach((row) => {
       const f = this.finalFor(row);
@@ -55,7 +51,7 @@ export default class ResolutionService {
   }
 
   clearAll() {
-    this._ensureContext();
+    ensureContext(CONTEXT, {}, STORAGE_KEY);
     slice.context.setState(CONTEXT, () => ({}));
   }
 
@@ -66,18 +62,6 @@ export default class ResolutionService {
       if (f) asignaciones[row.member.id] = f;
     });
     const autor = slice.getComponent('SettingsService').getState().autor || 'Consenso';
-    const payload = {
-      app: 'conclave',
-      version: 1,
-      tipo: 'lista-final',
-      autor: `${autor} — lista final`,
-      fecha: new Date().toISOString(),
-      asignaciones,
-    };
-    slice.getComponent('FileDownloadService').download(
-      'lista_final_equipos.json',
-      JSON.stringify(payload, null, 2),
-      'application/json'
-    );
+    slice.getComponent('ExportService').downloadFinalList(autor, asignaciones);
   }
 }

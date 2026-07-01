@@ -14,6 +14,14 @@ slice-dashboardview .team-meta { color: var(--font-secondary-color); font-size: 
 slice-dashboardview .badge-slot { margin-top: 10px; }
 slice-dashboardview .team-lider { font-size: 12px; color: var(--font-secondary-color); margin-top: 6px; font-weight: 600; }
 
+slice-dashboardview .gender-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle;
+}
+slice-dashboardview .gender-dot.M { background: var(--male-color); }
+slice-dashboardview .gender-dot.F { background: var(--female-color); }
+slice-dashboardview .stat-grid .stat-card:nth-child(5)::before { background: var(--male-color); }
+slice-dashboardview .stat-grid .stat-card:nth-child(6)::before { background: var(--female-color); }
+
 @media (max-width: 760px) {
   slice-dashboardview .stat-grid { grid-template-columns: repeat(2,1fr); }
 }

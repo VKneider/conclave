@@ -50,6 +50,8 @@ export default class DashboardView extends HTMLElement {
         <div class="stat-card"><div class="k">Asignados</div><div class="v" data-el="assigned"></div></div>
         <div class="stat-card"><div class="k">Equipos en rango</div><div class="v" data-el="enRango"></div></div>
         <div class="stat-card"><div class="k">Fuera de rango</div><div class="v" data-el="conProblema"></div></div>
+        <div class="stat-card"><div class="k"><span class="gender-dot M"></span> Hombres</div><div class="v" data-el="hombres"></div></div>
+        <div class="stat-card"><div class="k"><span class="gender-dot F"></span> Mujeres</div><div class="v" data-el="mujeres"></div></div>
       </div>
       <h3 class="view-title" style="font-size:16px">Equipos</h3>
       <p class="view-sub">Cada barra muestra los asignados frente al mínimo y máximo recomendado.</p>
@@ -76,6 +78,8 @@ export default class DashboardView extends HTMLElement {
       sub: this.$root.querySelector('[data-el="sub"]'),
       total: this.$root.querySelector('[data-el="total"]'),
       assigned: this.$root.querySelector('[data-el="assigned"]'),
+      hombres: this.$root.querySelector('[data-el="hombres"]'),
+      mujeres: this.$root.querySelector('[data-el="mujeres"]'),
       enRango: this.$root.querySelector('[data-el="enRango"]'),
       conProblema: this.$root.querySelector('[data-el="conProblema"]'),
     };
@@ -112,15 +116,21 @@ export default class DashboardView extends HTMLElement {
     const teams = roster.getAssignableTeams();
     const asignaciones = slice.getComponent('AssignmentService').getState();
     const counts = roster.countByTeam(asignaciones);
-    const totalMembers = roster.getAssignableMembers().length;
-    const assigned = roster.getAssignableMembers().filter((m) => asignaciones[m.id]).length;
+    const members = roster.getAssignableMembers();
+    const totalMembers = members.length;
+    const assigned = members.filter((m) => asignaciones[m.id]).length;
     const enRango = teams.filter((t) => roster.statusOf(t, counts[t.id]) === 'ok').length;
     const conProblema = teams.filter((t) => ['under', 'over'].includes(roster.statusOf(t, counts[t.id]))).length;
     const autor = slice.getComponent('SettingsService').getState().autor;
 
     this._els.sub.textContent = `Resumen de tus asignaciones${autor ? ' — ' + autor : ''}.`;
+    const hombres = members.filter((m) => m.sexo === 'M').length;
+    const mujeres = members.filter((m) => m.sexo === 'F').length;
+
     this._els.total.textContent = totalMembers;
     this._els.assigned.innerHTML = `${assigned} <small>/ ${totalMembers}</small>`;
+    this._els.hombres.textContent = hombres;
+    this._els.mujeres.textContent = mujeres;
     this._els.enRango.innerHTML = `${enRango} <small>/ ${teams.length}</small>`;
     this._els.conProblema.textContent = conProblema;
 
@@ -129,14 +139,14 @@ export default class DashboardView extends HTMLElement {
       const st = roster.statusOf(t, n);
       const denom = t.max || t.capacidad || Math.max(n, 1);
       const pct = Math.min(100, Math.round((n / denom) * 100));
-      const label = { ok: 'En rango', under: `Faltan ${t.min - n}`, over: `Sobran ${n - t.max}`, empty: 'Vacío' }[st];
+      const label = roster.statusLabel(t, n);
 
       this._teamEls[t.id].n.textContent = n;
       this._teamEls[t.id].bar.style.width = `${pct}%`;
       slice.setComponentProps(this._badges[t.id], { status: st, label });
 
       const lider = slice.getComponent('SettingsService').getEffectiveLider(t.id);
-      this._teamEls[t.id].lider.textContent = lider ? `👑 ${lider.member.nombre}` : '';
+      this._teamEls[t.id].lider.textContent = lider && lider.member ? `👑 ${lider.member.nombre}` : '';
     });
   }
 

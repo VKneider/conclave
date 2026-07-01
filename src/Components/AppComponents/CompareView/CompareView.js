@@ -16,12 +16,15 @@ export default class CompareView extends HTMLElement {
     this.cmpFilter = 'all';
     this.cmpService = '';
     this.cmpQuery = '';
+    this.cmpMode = 'table';
     this.cmpView = 'member';
     slice.controller.setComponentProps(this, props);
   }
 
   async init() {
     this._roster = slice.getComponent('RosterService');
+    this._imports = slice.getComponent('ImportService');
+    this.sources = this._imports.getSources();
 
     const importDrop = await slice.build('ImportDrop', { sliceId: 'cmp-import' });
     importDrop.onFiles = (files) => this._handleFiles(files);
@@ -30,10 +33,22 @@ export default class CompareView extends HTMLElement {
     this._finalTally = await slice.build('FinalTally', { sliceId: 'cmp-finaltally' });
     this.querySelector('.cmp-finaltally-slot').appendChild(this._finalTally);
 
+    this._carousel = await slice.build('CompareCarousel', { sliceId: 'cmp-carousel' });
+    this.$root.querySelector('.cmp-carousel-mount').appendChild(this._carousel);
+    this._bindModeTabs();
     await this._paint();
     slice.context.watch('assignment', this, () => this._paint());
     slice.context.watch('resolutions', this, () => this._paint());
     slice.events.subscribe('roster:changed', () => this._paint());
+  }
+
+  _bindModeTabs() {
+    this.$root.querySelectorAll('.cmp-mode-tab').forEach((btn) => {
+      btn.onclick = () => {
+        this.cmpMode = btn.dataset.mode;
+        this._paint();
+      };
+    });
   }
 
   update() {
@@ -98,6 +113,10 @@ export default class CompareView extends HTMLElement {
   }
 
   async _paint() {
+    this.$root.querySelectorAll('.cmp-mode-tab').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.mode === this.cmpMode);
+    });
+
     const all = this._buildComparisonSources();
     this._renderSourceTags(all);
     if (all.length < 2) {
@@ -107,14 +126,23 @@ export default class CompareView extends HTMLElement {
     }
     const rows = this._buildRows(all);
     const prevScrollTop = this.$root.querySelector('.cmp-table-wrap')?.scrollTop;
-    const isTeam = this.cmpView === 'team';
-    this.$root.querySelector('.cmp-final-heading').hidden = isTeam;
-    this.$root.querySelector('.cmp-final-heading + .view-sub').hidden = isTeam;
-    this.$root.querySelector('.cmp-finaltally-slot').hidden = isTeam;
-    if (isTeam) {
+
+    const isCarousel = this.cmpMode === 'carousel';
+    this.$root.querySelector('.cmp-dynamic').hidden = isCarousel;
+    this.$root.querySelector('.cmp-carousel-mount').hidden = !isCarousel;
+
+    if (isCarousel) {
+      this._renderCarouselView(all, rows);
+    } else if (this.cmpView === 'team') {
+      this.$root.querySelector('.cmp-final-heading').hidden = true;
+      this.$root.querySelector('.cmp-final-heading + .view-sub').hidden = true;
+      this.$root.querySelector('.cmp-finaltally-slot').hidden = true;
       this._renderTeamView(all, prevScrollTop);
       this._finalTally.items = [];
     } else {
+      this.$root.querySelector('.cmp-final-heading').hidden = false;
+      this.$root.querySelector('.cmp-final-heading + .view-sub').hidden = false;
+      this.$root.querySelector('.cmp-finaltally-slot').hidden = false;
       this._renderMemberView(all, rows, prevScrollTop);
     }
   }
@@ -128,7 +156,8 @@ export default class CompareView extends HTMLElement {
     }).join('');
     container.querySelectorAll('[data-rm]').forEach((b) => {
       b.onclick = () => {
-        this.sources = this.sources.filter((s) => s.autor !== b.dataset.rm);
+        this._imports.remove(b.dataset.rm);
+        this.sources = this._imports.getSources();
         this._paint();
       };
     });
@@ -251,7 +280,7 @@ export default class CompareView extends HTMLElement {
         count: n,
         max: t.max,
         status: st,
-        badgeText: { ok: 'En rango', under: `Faltan ${t.min - n}`, over: `Sobran ${n - t.max}`, empty: 'Vacío' }[st],
+        badgeText: roster.statusLabel(t, n),
       };
     });
   }
@@ -314,11 +343,36 @@ export default class CompareView extends HTMLElement {
     this._bindTeamInteractions();
   }
 
+  async _renderCarouselView(all, rows) {
+    const roster = this._roster;
+    const resolution = slice.getComponent('ResolutionService');
+
+    this.$root.querySelector('.cmp-final-heading').hidden = false;
+    this.$root.querySelector('.cmp-final-heading + .view-sub').hidden = false;
+    this.$root.querySelector('.cmp-finaltally-slot').hidden = false;
+
+    this._carousel.sources = all;
+
+    this._finalTally.items = roster.getAssignableTeams().map((t) => {
+      const n = rows.filter((r) => resolution.finalFor(r) === t.id).length;
+      const st = roster.statusOf(t, n);
+      return {
+        nombre: t.nombre,
+        color: roster.colorFor(t.id),
+        count: n,
+        max: t.max,
+        status: st,
+        badgeText: roster.statusLabel(t, n),
+      };
+    });
+  }
+
   _handleFiles(fileList) {
     const files = Array.from(fileList || []);
     let pending = files.length;
     let totalRecognized = 0;
-    let totalIgnored = 0;
+    let totalMemberIgnored = 0;
+    let totalTeamIgnored = 0;
     let dupesSkipped = 0;
     if (!pending) return;
     files.forEach((file) => {
@@ -326,26 +380,29 @@ export default class CompareView extends HTMLElement {
       reader.onload = () => {
         try {
           const data = JSON.parse(reader.result);
-          if (this._isDuplicate(data)) {
+          if (this._imports.isDuplicate(data)) {
             dupesSkipped++;
             slice.events.emit('toast:show', { message: `${file.name}: ya importado (mismo autor y asignaciones).`, type: 'warn' });
           } else {
-            const stats = this._ingestSource(data, file.name);
+            const stats = this._imports.import(data, file.name);
             totalRecognized += stats.recognized;
-            totalIgnored += stats.ignored;
+            totalMemberIgnored += stats.memberIgnored;
+            totalTeamIgnored += stats.teamIgnored;
           }
         } catch (e) {
           slice.events.emit('toast:show', { message: `No se pudo leer ${file.name}: JSON inválido.`, type: 'error' });
         }
         if (--pending === 0) {
+          this.sources = this._imports.getSources();
           const all = this._buildComparisonSources();
           const rows = this._buildRows(all);
           this._autoResolveAgreed(rows);
+          const totalIgnored = totalMemberIgnored + totalTeamIgnored;
           if (totalIgnored > 0) {
-            slice.events.emit('toast:show', {
-              message: `Importados ${totalRecognized} miembros de ${files.length - dupesSkipped} archivo(s). ${totalIgnored} ignorados (no existen en el roster actual).`,
-              type: 'warn',
-            });
+            const parts = [`Importados ${totalRecognized} miembros de ${files.length - dupesSkipped} archivo(s).`];
+            if (totalMemberIgnored > 0) parts.push(`${totalMemberIgnored} ignorados (miembros no existen en el roster actual).`);
+            if (totalTeamIgnored > 0) parts.push(`${totalTeamIgnored} ignorados (equipos no existen en el roster actual).`);
+            slice.events.emit('toast:show', { message: parts.join(' '), type: 'warn' });
           }
           this._paint();
         }
@@ -354,36 +411,7 @@ export default class CompareView extends HTMLElement {
     });
   }
 
-  _isDuplicate(data) {
-    const autor = data?.autor || '';
-    const asignaciones = data?.asignaciones || {};
-    return this.sources.some(
-      (s) => s.autor === autor && JSON.stringify(s.asignaciones) === JSON.stringify(asignaciones)
-    );
-  }
 
-  _ingestSource(data, filename) {
-    const autorBase = data?.autor ? String(data.autor) : filename.replace(/\.json$/i, '');
-    const asignaciones = data?.asignaciones || {};
-    const roster = this._roster;
-    const norm = {};
-    let recognized = 0;
-    let ignored = 0;
-    Object.keys(asignaciones).forEach((k) => {
-      const teamId = asignaciones[k];
-      if (teamId && roster.getTeamById(teamId)) {
-        norm[k] = teamId;
-        recognized++;
-      } else {
-        ignored++;
-      }
-    });
-    let autor = autorBase;
-    let n = 2;
-    while (this.sources.some((s) => s.autor === autor)) autor = `${autorBase} (${n++})`;
-    this.sources.push({ autor, asignaciones: norm });
-    return { recognized, ignored };
-  }
 
   _bindTableInteractions(all, rows) {
     const resolution = slice.getComponent('ResolutionService');
@@ -406,9 +434,16 @@ export default class CompareView extends HTMLElement {
     if (ef) ef.onclick = () => resolution.exportFinalList(rows);
     const fs = this.$root.querySelector('#btnFillSug');
     if (fs) fs.onclick = () => {
-      resolution.fillAllWithSuggestion(rows);
-      slice.events.emit('toast:show', { message: 'Sugerencias fijadas como decisión' });
-      this._paint();
+      slice.events.emit('confirm:request', {
+        title: '¿Autocompletar con sugerencias?',
+        message: 'Fija como decisión final la sugerencia (consenso o mayoría) para todos los miembros que aún no tienen una decisión tomada.',
+        confirmLabel: 'Autocompletar',
+        onConfirm: () => {
+          resolution.fillAllWithSuggestion(rows);
+          slice.events.emit('toast:show', { message: 'Sugerencias fijadas como decisión final' });
+          this._paint();
+        },
+      });
     };
     const cr = this.$root.querySelector('#btnClearRes');
     if (cr) cr.onclick = () => {

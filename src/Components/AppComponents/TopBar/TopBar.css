@@ -9,7 +9,8 @@ slice-topbar .topbar-left {
   gap: 20px; padding: 14px 24px;
 }
 
-slice-topbar .brand { display: flex; align-items: center; gap: 12px; }
+slice-topbar .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+slice-topbar .brand:hover { opacity: .72; }
 slice-topbar .brand-mark {
   font-size: 24px; display: flex; align-items: center; justify-content: center;
   width: 42px; height: 42px; border-radius: 12px; background: var(--secondary-background-color);

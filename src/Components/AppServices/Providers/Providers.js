@@ -2,6 +2,14 @@
 // Boots every singleton in order, then steps back. After init(), recover
 // any service by name:  slice.getComponent('AssignmentService').assign(...)
 //
+// ── Services without context ─────────────────────────────────────────
+//   RosterService       In-memory cache (localStorage + seed fallback)
+//   DataParserService   CSV/TSV/JSON parser for teams & members
+//   FileDownloadService Stateless Blob download helper
+//   ExportService       JSON envelope builder for exports
+//   ImportService       In-memory cache + localStorage (imported JSON sources)
+//   DragDropService     Pointer-event DnD (registry component)
+//
 // ── Context catalog (all persist: true → localStorage) ────────────────
 //   settings      { autor, nombreOrganizacion, lideres, lideresEnabled }
 //                 Created by  SettingsService     Watched by  AppShell,
@@ -61,13 +69,16 @@ export default class Providers {
     });
 
     // RosterService must finish loading before any view reads team/member
-    // data, so it's awaited first and on its own.
+    // data — it reads from localStorage or falls back to bundled seed.
     await slice.build('RosterService', { singleton: true });
 
+    await slice.build('DataParserService', { singleton: true });
     await slice.build('FileDownloadService', { singleton: true });
     await slice.build('SettingsService', { singleton: true });
     await slice.build('AssignmentService', { singleton: true });
     await slice.build('ResolutionService', { singleton: true });
+    await slice.build('ExportService', { singleton: true });
+    await slice.build('ImportService', { singleton: true });
     await slice.build('DragDropService', { singleton: true });
 
     const toasts = await slice.build('ToastProvider', { singleton: true });

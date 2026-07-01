@@ -10,6 +10,7 @@ export default class MyAssignmentView extends HTMLElement {
     this.$root = this.querySelector('.my-assignment-view');
     this.carouselIndex = 0;
     this.searchQuery = '';
+    this._advancePending = false;
     this._onKeydown = this._onKeydown.bind(this);
     slice.controller.setComponentProps(this, props);
   }
@@ -107,8 +108,9 @@ export default class MyAssignmentView extends HTMLElement {
             </div>
           </div>
           <div class="current-assign">Asignado a: <b>${esc(roster.getTeamById(sel)?.nombre || '—')}</b>
-            ${sel && slice.getComponent('SettingsService').isLideresEnabled() ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.member?.id === member.id ? ' is-lider' : ''}" data-lider-toggle="${member.id}" type="button">👑</button>` : ''}
-          </div>
+          ${sel && slice.getComponent('SettingsService').isLideresEnabled() ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.member?.id === member.id ? ' is-lider' : ''}" data-lider-toggle="${member.id}" type="button">👑</button>` : ''}
+           </div>
+          <div class="assign-summary" id="assignSummary"></div>
           <div class="team-pills">`;
 
     teams.forEach((t) => {
@@ -145,6 +147,12 @@ export default class MyAssignmentView extends HTMLElement {
     this.$root.innerHTML = html;
     this._bindToolbar();
     this._bindInteractions(list, member);
+
+    if (this._pendingAdvance) {
+      const teamId = this._pendingAdvance;
+      this._pendingAdvance = null;
+      this._showAdvanceFeedback(member, teamId, list);
+    }
   }
 
   _bindToolbar() {
@@ -168,11 +176,12 @@ export default class MyAssignmentView extends HTMLElement {
 
     this.$root.querySelectorAll('.pill').forEach((btn) => {
       btn.onclick = () => {
+        if (this._advancePending) return;
         const teamId = btn.dataset.team;
         const assignment = slice.getComponent('AssignmentService');
         if (teamId) {
           assignment.assign(member.id, teamId);
-          if (this.carouselIndex < list.length - 1) this.carouselIndex++;
+          this._pendingAdvance = teamId;
         } else {
           assignment.unassign(member.id);
         }
@@ -199,6 +208,30 @@ export default class MyAssignmentView extends HTMLElement {
         this.update();
       };
     }
+  }
+
+  _showAdvanceFeedback(member, teamId, list) {
+    const roster = this._roster;
+    const team = roster.getTeamById(teamId);
+    const teamName = team?.nombre || teamId;
+    this._advancePending = true;
+
+    const pill = this.$root.querySelector(`.pill[data-team="${teamId}"]`);
+    if (pill) {
+      pill.classList.add('pill-just-assigned');
+    }
+
+    const summaryEl = this.$root.querySelector('.assign-summary');
+    if (summaryEl) {
+      summaryEl.textContent = `${member.nombre} → ${teamName}`;
+      summaryEl.classList.add('visible');
+    }
+
+    setTimeout(() => {
+      this._advancePending = false;
+      if (this.carouselIndex < list.length - 1) this.carouselIndex++;
+      this.update();
+    }, 500);
   }
 }
 
