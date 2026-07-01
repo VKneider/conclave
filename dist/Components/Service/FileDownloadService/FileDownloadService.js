@@ -1,1 +1,0 @@
-export default class FileDownloadService{download(e,o,t="text/plain"){const n=new Blob([o],{type:t}),d=URL.createObjectURL(n),l=document.createElement("a");l.href=d,l.download=e,document.body.appendChild(l),l.click(),setTimeout(()=>{document.body.removeChild(l),URL.revokeObjectURL(d)},100)}}

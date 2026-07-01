@@ -167,6 +167,7 @@ export default class ByTeamView extends HTMLElement {
     const asignaciones = slice.getComponent('AssignmentService').getState();
     const counts = roster.countByTeam(asignaciones);
     const members = roster.getAssignableMembers();
+    const settings = slice.getComponent('SettingsService');
 
     const grouped = {};
     teams.forEach((t) => { grouped[t.id] = []; });
@@ -221,8 +222,6 @@ export default class ByTeamView extends HTMLElement {
       els.square.classList.toggle('is-over', isOver);
       slice.setComponentProps(this._badges[t.id], { status: st, label });
 
-      const settings = slice.getComponent('SettingsService');
-      const roster = slice.getComponent('RosterService');
       const lideresEnabled = settings.isLideresEnabled();
       const liderLocked = roster.isLiderLocked(t.id);
       els.liderDrop.hidden = !lideresEnabled || liderLocked;

@@ -18,10 +18,10 @@ export default class AssignmentView extends HTMLElement {
     this._buildTabs();
 
     this._carouselView = await slice.build('MyAssignmentView', { sliceId: 'assignment-carousel' });
-    this.$carouselSlot.appendChild(this._carouselView);
+    if (this._carouselView instanceof Node) this.$carouselSlot.appendChild(this._carouselView);
 
     this._boardView = await slice.build('ByTeamView', { sliceId: 'assignment-board' });
-    this.$boardSlot.appendChild(this._boardView);
+    if (this._boardView instanceof Node) this.$boardSlot.appendChild(this._boardView);
 
     this._showView(this._activeView);
 
