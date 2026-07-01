@@ -1,10 +1,10 @@
 {
-  "name": "Slice.js Web Framework",
-  "short_name": "Slice.js",
+  "name": "Conclave — Organizador de equipos",
+  "short_name": "Conclave",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F8F4FF",
-  "theme_color": "#F8F4FF",
+  "background_color": "#FFF8F0",
+  "theme_color": "#FF6B5B",
   "icons": [
     {
       "src": "/images/favicon.ico",
