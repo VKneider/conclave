@@ -26,6 +26,9 @@ export default class AppShell extends HTMLElement {
     // here must also exist in routes.js (the Router's source of truth).
     const content = await slice.build('MultiRoute', { sliceId: 'app-content', routes: ROUTES });
     this.$content.appendChild(content);
+
+    const bubble = await slice.build('ProfileBubble', { sliceId: 'app-profile-bubble' });
+    document.body.appendChild(bubble);
   }
 }
 

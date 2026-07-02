@@ -21,6 +21,7 @@ const components = {
   "MultiRoute": "Visual",
   "Navbar": "Visual",
   "NotFound": "Visual",
+  "ProfileBubble": "Visual",
   "OpcionChip": "Visual",
   "OpcionRow": "Visual",
   "Route": "Visual",

@@ -1,0 +1,87 @@
+slice-profile-bubble {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  cursor: pointer;
+  line-height: 0;
+}
+
+slice-profile-bubble[hidden] {
+  display: none;
+}
+
+slice-profile-bubble .bubble {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: transparent;
+  object-fit: cover;
+}
+
+/* ── Modal content ────────────────────────────────────── */
+
+.profile-bubble__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-bubble__greeting {
+  font-family: var(--font-display, Fredoka, sans-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--font-primary-color);
+  margin: 0;
+}
+
+.profile-bubble__text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--font-secondary-color);
+  margin: 0;
+}
+
+.profile-bubble__links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.profile-bubble__link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+  width: fit-content;
+}
+
+.profile-bubble__link:hover {
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  text-decoration: underline;
+}
+
+.profile-bubble__link-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.profile-bubble__footer-text {
+  font-size: 0.8rem;
+  color: var(--font-secondary-color);
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  slice-profile-bubble .bubble {
+    transition: none;
+  }
+}
