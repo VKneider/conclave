@@ -1,3 +1,11 @@
+// Display icon/label per known theme name — falls back to a generic swatch
+// icon and the raw theme name for anything not in this map, so a custom
+// theme never renders blank.
+const THEME_DISPLAY = {
+   light: { icon: '☀️', label: 'Claro' },
+   dark: { icon: '🌙', label: 'Oscuro' },
+};
+
 export default class ThemeSwitcher extends HTMLElement {
    static props = {
       themes: { type: 'array', default: ['LIGHT', 'DARK'] },
@@ -11,23 +19,17 @@ export default class ThemeSwitcher extends HTMLElement {
       slice.attachTemplate(this);
 
       this.$btn = this.querySelector('.theme-switcher');
+      this.$icon = this.querySelector('.theme-switcher__icon');
       this.$label = this.querySelector('.theme-switcher__label');
       this.$value = this.querySelector('.theme-switcher__value');
 
-      // Keep every theme control in the app (selector, switcher, menus) in sync.
-      this._onThemeChanged = (e) => this._sync(e.detail?.themeName);
       this.$btn.addEventListener('click', () => this.cycle());
 
       slice.controller.setComponentProps(this, props);
    }
 
    init() {
-      document.addEventListener('themeChanged', this._onThemeChanged);
       this._sync();
-   }
-
-   beforeDestroy() {
-      document.removeEventListener('themeChanged', this._onThemeChanged);
    }
 
    /** Advance to the next theme in `themes`, wrapping around at the end. */
@@ -38,11 +40,10 @@ export default class ThemeSwitcher extends HTMLElement {
       await this.setTheme(next);
    }
 
-   /** Apply a theme by name and notify every other theme control. */
+   /** Apply a theme by name. */
    async setTheme(name) {
       try {
          await slice.setTheme(name);
-         document.dispatchEvent(new CustomEvent('themeChanged', { detail: { themeName: name } }));
          if (typeof this._onChange === 'function') this._onChange(name);
       } catch (error) {
          slice.logger.logError('ThemeSwitcher', `Could not switch to theme "${name}"`, error);
@@ -50,17 +51,20 @@ export default class ThemeSwitcher extends HTMLElement {
       this._sync(name);
    }
 
+   // slice.theme is the framework's own current-theme getter — no need to
+   // track it ourselves via a broadcast event. This app only ever builds one
+   // ThemeSwitcher instance (in UserMenu), so there's nothing else to keep
+   // in sync with anyway; setTheme() already calls _sync() on itself right
+   // after applying the change.
    _currentTheme() {
-      return (
-         slice.stylesManager?.themeManager?.currentTheme ||
-         slice.theme ||
-         this._themes[0]
-      );
+      return slice.theme || this._themes[0];
    }
 
    _sync(name) {
       const current = name || this._currentTheme();
-      if (this.$value) this.$value.textContent = current;
+      const display = THEME_DISPLAY[String(current).toLowerCase()];
+      if (this.$icon) this.$icon.textContent = display?.icon || '🎨';
+      if (this.$value) this.$value.textContent = display?.label || current;
    }
 
    set themes(value) {

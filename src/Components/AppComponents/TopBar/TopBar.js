@@ -1,9 +1,8 @@
 const TABS = [
   { path: '/dashboard', label: 'Dashboard' },
-  { path: '/mi-asignacion', label: 'Mi asignación' },
+  { path: '/mis-respuestas', label: 'Mis respuestas' },
   { path: '/comparar', label: 'Comparar' },
-  { path: '/ayuda', label: 'Ayuda' },
-  { path: '/configuracion', label: 'Configuración' },
+  { path: '/plantilla', label: 'Plantilla' },
 ];
 
 export default class TopBar extends HTMLElement {
@@ -13,7 +12,7 @@ export default class TopBar extends HTMLElement {
 
     this.$topbar = this.querySelector('.topbar');
     this.$sub = this.querySelector('.brand-sub');
-    this.$themeSlot = this.querySelector('.theme-switcher-slot');
+    this.$userMenuSlot = this.querySelector('.user-menu-slot');
     this.$tabs = this.querySelector('.tabs');
     this.$hamburger = this.querySelector('.hamburger');
     this.$brand = this.querySelector('.brand');
@@ -41,16 +40,11 @@ export default class TopBar extends HTMLElement {
   }
 
   async init() {
-    const themeSwitcher = await slice.build('ThemeSwitcher', {
-      sliceId: 'app-theme-switcher',
-      themes: ['Light', 'Dark'],
-      variant: 'button',
-      label: 'Tema',
-    });
-    this.$themeSlot.appendChild(themeSwitcher);
+    const userMenu = await slice.build('UserMenu', { sliceId: 'app-user-menu' });
+    this.$userMenuSlot.appendChild(userMenu);
 
     this.events = slice.events.bind(this);
-    slice.context.watch('settings', this, (s) => this._renderBrandSub(s.nombreOrganizacion));
+    slice.context.watch('plantilla', this, (p) => this._renderBrandSub(p.nombre));
 
     this.events.subscribe('router:change', () => this._updateActiveTab());
     window.addEventListener('popstate', () => this._updateActiveTab());
@@ -71,7 +65,7 @@ export default class TopBar extends HTMLElement {
   }
 
   _renderBrandSub(name) {
-    this.$sub.textContent = name || 'Configura el nombre de tu organización en Configuración';
+    this.$sub.textContent = name || 'Configura el nombre de tu Plantilla en Plantilla';
   }
 }
 

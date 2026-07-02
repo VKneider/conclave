@@ -4,7 +4,7 @@ Project-specific knowledge for anyone (human or agent) picking up work on this c
 
 ## What this is
 
-Conclave is a Slice.js (`slicejs-web-framework` v3.x) app for assigning people ("miembros") to teams/roles ("equipos") for an event, comparing several organizers' proposals, and settling on a final list. Frontend-only — all data lives in localStorage + bundled seed data.
+Conclave is a Slice.js (`slicejs-web-framework` v3.x) app for structured group decision-making: a leader builds a shared **Plantilla** (Categorías + Opciones — teams and members, exposiciones and ponentes, or open-ended discussion topics), each person fills in their own **Respuestas** independently, then everyone imports each other's Respuestas to compare and settle on a final answer. The original single use case (assign people to teams) still works exactly as before — it's now one instance of a more general Categoría (modo `seleccion`) / Opción model that also covers speaker assignment and free-text idea generation (modo `texto_libre`). Frontend-only — all data lives in localStorage + bundled seed data; there is no server-side data layer and no plan to add one (`api/` is a static/SPA-fallback server only).
 
 ## Documentation — read the right file for your task
 
@@ -21,10 +21,10 @@ Conclave is a Slice.js (`slicejs-web-framework` v3.x) app for assigning people (
 |---|---|
 | Adding/modifying a service | `docs/ARCHITECTURE.md` §Services, §Boot order, §Data flow |
 | Adding/modifying a view | `docs/ARCHITECTURE.md` §Views, §Data flow |
-| Changing data format (CSV, JSON, IDs) | `docs/DATA.md` |
+| Changing data format (Plantilla/Respuestas JSON, IDs) | `docs/DATA.md` |
 | Modifying carousel or assignment flow | `docs/FEATURES.md` §Carousel feedback + `docs/UX.md` §Animation |
-| Modifying HelpView | `docs/FEATURES.md` §HelpView + `docs/DATA.md` §CSV format |
-| Working on ByTeamView drag-and-drop | `docs/FEATURES.md` §ByTeamView + `DESIGN.md` §Drag and drop |
+| Modifying PlantillaBuilderView (Categoría/Opción CRUD) | `docs/FEATURES.md` §PlantillaBuilderView + `docs/DATA.md` §Editing Categorías/Opciones |
+| Working on PorCategoriaView drag-and-drop | `docs/FEATURES.md` §PorCategoriaView + `DESIGN.md` §Drag and drop |
 | Changing how data is saved/loaded | `docs/DATA.md` §Storage + §Data flow on replacement |
 | Modifying CompareView | `docs/FEATURES.md` §CompareView |
 | Adding animations or visual feedback | `docs/UX.md` §Animation standards |
@@ -34,10 +34,11 @@ Conclave is a Slice.js (`slicejs-web-framework` v3.x) app for assigning people (
 
 ## Product decisions (not obvious from the code)
 
-- **Over-capacity assignment is allowed on purpose.** `AssignmentService.assign()` always succeeds. The persistent signal is the `over`/danger badge, computed live from state. See `DESIGN.md` §Capacity alerts.
+- **Over-capacity assignment is allowed on purpose.** `RespuestasService.assignOpcion()` always succeeds. The persistent signal is the `over`/danger badge, computed live from state. See `DESIGN.md` §Capacity alerts.
 - **Confirmation dialogs use the `confirm:request` event**, never native `confirm()`/`prompt()`/`alert()`. Error notifications use `toast:show` with `type: 'error'`.
-- **The "Tu nombre" field lives only in SettingsView**, not the topbar. `AppShell._exportMine()` prompts for it via `ConfirmActionModal`'s `inputLabel` when empty at export time.
-- **All data is fictional** (team names, member names were replaced for public demo). Structure is preserved exactly from the original retreat data. Generic names are intentional, not bugs.
+- **The "Tu nombre" field lives in the topbar's `UserMenu`** (SettingsView is retired). `UserMenu._exportMine()` also prompts for it via `ConfirmActionModal`'s `inputLabel` when empty at export time.
+- **All seed data is fictional** (Categoría/Opción names were replaced for public demo). Structure is preserved exactly from the original retreat data. Generic names are intentional, not bugs.
+- **Plantilla data lives entirely in the browser.** There is no server-side storage for Categorías/Opciones and no plan to add any — sharing a Plantilla is exporting/importing its JSON file, same as Respuestas.
 
 ## Running it
 

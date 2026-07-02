@@ -1,10 +1,10 @@
-import { esc } from '/utils/format.js';
-
 export default class CompareCarousel extends HTMLElement {
   constructor(props) {
     super();
     slice.attachTemplate(this);
     this.$root = this.querySelector('.cmp-carousel');
+    this.$searchSlot = this.querySelector('.cc-search-slot');
+    this.$dynamic = this.querySelector('.cc-dynamic');
     this._sources = [];
     this._index = 0;
     this._query = '';
@@ -15,9 +15,23 @@ export default class CompareCarousel extends HTMLElement {
     slice.controller.setComponentProps(this, props);
   }
 
-  init() {
+  async init() {
+    this._esc = slice.getComponent('FormatService').esc;
+    this._sanitize = slice.getComponent('SanitizeService').sanitize.bind(slice.getComponent('SanitizeService'));
     document.addEventListener('keydown', this._onKeydown);
-    slice.context.watch('resolutions', this, this._boundPaint);
+
+    // Built once, unlike everything else here (rebuilt in full on every
+    // _paint()) — survives filter/data changes without a focus-restore hack.
+    this.$searchInput = await slice.build('Input', { sliceId: 'cc-search', placeholder: 'Buscar…' });
+    this.$searchSlot.appendChild(this.$searchInput);
+    this.$searchInput.addEventListener('input', () => {
+      this._query = this.$searchInput.value;
+      this._index = 0;
+      this._paint();
+    });
+
+    slice.context.watch('decisionFinal', this, this._boundPaint);
+    slice.context.watch('settings', this, this._boundPaint);
     this._paint();
   }
 
@@ -46,20 +60,20 @@ export default class CompareCarousel extends HTMLElement {
   }
 
   _roster() {
-    return slice.getComponent('RosterService');
+    return slice.getComponent('PlantillaService');
   }
 
   _resolution() {
-    return slice.getComponent('ResolutionService');
+    return slice.getComponent('ConsensoService');
   }
 
   _svcName(id) {
-    return id ? this._roster().getTeamById(id)?.nombre || id : '—';
+    return id ? this._roster().getCategoriaById(id)?.nombre || id : '—';
   }
 
   _visibleMembers() {
     const roster = this._roster();
-    let list = roster.getAssignableMembers();
+    let list = roster.getOpcionesDisponibles();
     const q = this._query.trim().toLowerCase();
     if (q) list = list.filter((m) => m.nombre.toLowerCase().includes(q));
     const all = this._sources;
@@ -84,7 +98,7 @@ export default class CompareCarousel extends HTMLElement {
   _rows() {
     const roster = this._roster();
     const all = this._sources;
-    return roster.getAssignableMembers().map((member) => {
+    return roster.getOpcionesDisponibles().map((member) => {
       const vals = all.map((src) => src.asignaciones[member.id] || null);
       const nonNull = vals.filter(Boolean);
       const uniq = new Set(nonNull);
@@ -101,12 +115,15 @@ export default class CompareCarousel extends HTMLElement {
     const all = this._sources;
     const roster = this._roster();
     const resolution = this._resolution();
-    const teams = roster.getAssignableTeams();
+    const settings = slice.getComponent('SettingsService');
+    const teams = roster.getCategoriasParticipables();
 
     if (all.length < 2) {
-      this.$root.innerHTML = '';
+      this.$searchSlot.hidden = true;
+      this.$dynamic.innerHTML = '';
       return;
     }
+    this.$searchSlot.hidden = false;
 
     const rows = this._rows();
     const members = this._visibleMembers();
@@ -141,22 +158,22 @@ export default class CompareCarousel extends HTMLElement {
         </div>
       </div>`;
 
-    // Filters — always render so the user can change/search even in empty state
+    // Filters — always render so the user can change even in empty state
+    // (the search field itself lives in .cc-search-slot, built once in init())
     html += `<div class="cc-filters">
-      <input class="mini-input cc-search" type="text" placeholder="Buscar miembro…" value="${esc(this._query)}" autocomplete="off" />
       <button class="cc-filter-btn ${this._filter === 'all' ? 'active' : ''}" data-ccf="all">Todos (${members.length})</button>
       <button class="cc-filter-btn ${this._filter === 'disagree' ? 'active' : ''}" data-ccf="disagree">Diferencias</button>
       <button class="cc-filter-btn ${this._filter === 'agree' ? 'active' : ''}" data-ccf="agree">Coincidencias</button>
       <button class="cc-filter-btn ${this._filter === 'pending' ? 'active' : ''}" data-ccf="pending">Por revisar</button>
       <select class="cc-filter-select" id="ccTeamFilter">
-        <option value="">Todos los equipos</option>
-        ${teams.map((t) => `<option value="${t.id}" ${this._teamFilter === t.id ? 'selected' : ''}>${esc(t.nombre)}</option>`).join('')}
+        <option value="">Todas las categorías</option>
+        ${teams.map((t) => `<option value="${t.id}" ${this._teamFilter === t.id ? 'selected' : ''}>${this._esc(t.nombre)}</option>`).join('')}
       </select>
     </div>`;
 
     if (!members.length) {
-      html += `<div class="cc-empty">No hay miembros que coincidan con los filtros.</div>`;
-      this.$root.innerHTML = html;
+      html += `<div class="cc-empty">No hay opciones que coincidan con los filtros.</div>`;
+      this.$dynamic.innerHTML = this._sanitize(html);
       return;
     }
 
@@ -176,12 +193,12 @@ export default class CompareCarousel extends HTMLElement {
       <div class="cc-card">
         <div class="cc-card-top">
           <div>
-            <div class="cc-id">Miembro ${this._index + 1} de ${members.length} · #${member.id}</div>
-            <div class="cc-name">${esc(member.nombre)}</div>
+            <div class="cc-id">Opción ${this._index + 1} de ${members.length} · #${member.id}</div>
+            <div class="cc-name">${this._esc(member.nombre)}</div>
           </div>
           <div class="cc-tags">
-            ${member.sexo ? `<span class="cc-tag sexo-${esc(member.sexo)}">${member.sexo === 'M' ? 'Masculino' : member.sexo === 'F' ? 'Femenino' : esc(member.sexo)}</span>` : ''}
-            ${member.edad != null ? `<span class="cc-tag">${member.edad} años</span>` : ''}
+            ${settings.isSexoEnabled() && member.meta?.sexo ? `<span class="cc-tag sexo-${this._esc(member.meta.sexo)}">${member.meta.sexo === 'M' ? 'Masculino' : member.meta.sexo === 'F' ? 'Femenino' : this._esc(member.meta.sexo)}</span>` : ''}
+            ${settings.isEdadEnabled() && member.meta?.edad != null ? `<span class="cc-tag">${member.meta.edad} años</span>` : ''}
             <span class="cc-status ${status}">${stTxt}</span>
           </div>
         </div>
@@ -192,8 +209,8 @@ export default class CompareCarousel extends HTMLElement {
       const teamId = vals[i];
       html += `<div class="cc-source-row">
         <span class="cc-swatch" style="background:${src.color}"></span>
-        <span class="cc-source-label">${esc(src.autor)}</span>
-        <span class="cc-source-team ${!teamId ? 'none' : ''}">${teamId ? esc(this._svcName(teamId)) : '—'}</span>
+        <span class="cc-source-label">${this._esc(src.autor)}</span>
+        <span class="cc-source-team ${!teamId ? 'none' : ''}">${teamId ? this._esc(this._svcName(teamId)) : '—'}</span>
       </div>`;
     });
 
@@ -207,10 +224,10 @@ export default class CompareCarousel extends HTMLElement {
         <div class="cc-final">
           <span class="cc-final-label">Decisión final</span>
           <select class="cc-final-select ${needsReview ? 'suggested' : ''}" data-ccmember="${member.id}" style="border-left:4px solid ${col}">
-            <option value="">${needsReview && suggestion ? `↳ Sugerencia: ${esc(this._svcName(suggestion))}` : '— sin decidir'}</option>
-            ${teams.map((t) => `<option value="${t.id}" ${f === t.id ? 'selected' : ''}>${esc(t.nombre)}</option>`).join('')}
+            <option value="">${needsReview && suggestion ? `↳ Sugerencia: ${this._esc(this._svcName(suggestion))}` : '— sin decidir'}</option>
+            ${teams.map((t) => `<option value="${t.id}" ${f === t.id ? 'selected' : ''}>${this._esc(t.nombre)}</option>`).join('')}
           </select>
-          ${needsReview && suggestion ? `<span class="cc-suggestion-hint">↳ ${esc(this._svcName(suggestion))}</span>` : ''}
+          ${needsReview && suggestion ? `<span class="cc-suggestion-hint">↳ ${this._esc(this._svcName(suggestion))}</span>` : ''}
         </div>
       </div>
       <button class="cc-arrow" data-ccact="next" ${this._index === members.length - 1 ? 'disabled' : ''}>›</button>
@@ -222,27 +239,17 @@ export default class CompareCarousel extends HTMLElement {
       const cls = ['cc-dot'];
       if (resolution.hasResolution(m.id)) cls.push('done');
       if (i === this._index) cls.push('active');
-      html += `<span class="${cls.join(' ')}" data-ccidx="${i}" title="${esc(m.nombre)}"></span>`;
+      html += `<span class="${cls.join(' ')}" data-ccidx="${i}" title="${this._esc(m.nombre)}"></span>`;
     });
     html += `</div>`;
 
-    this.$root.innerHTML = html;
+    this.$dynamic.innerHTML = this._sanitize(html);
     this._bindInteractions(members);
   }
 
   _bindInteractions(members) {
     const roster = this._roster();
     const resolution = this._resolution();
-
-    // Search
-    const search = this.$root.querySelector('.cc-search');
-    if (search) {
-      search.oninput = () => {
-        this._query = search.value;
-        this._index = 0;
-        this._paint();
-      };
-    }
 
     // Filter buttons
     this.$root.querySelectorAll('.cc-filter-btn').forEach((b) => {

@@ -2,7 +2,7 @@
 
 ## App Shell + MultiRoute
 
-Every route in `src/routes.js` points to `AppShell`; `AppShell` builds its own internal `MultiRoute` mapping the same six paths to the six view components. `AppShell` itself persists across navigation (see GOTCHAS.md §2) — it's where the topbar, tabs, and footer live.
+Every route in `src/routes.js` points to `AppShell`; `AppShell` builds its own internal `MultiRoute` mapping the same five paths to the five view components. `AppShell` itself persists across navigation (see GOTCHAS.md §2) — it's where the persistent `TopBar` (tabs + `UserMenu`) lives. There's no footer — every session-level action (exportar/importar/reiniciar mis Respuestas, tu nombre, tema) lives in `UserMenu` instead, reachable from any route.
 
 ## Composition root
 
@@ -14,90 +14,111 @@ Every route in `src/routes.js` points to `AppShell`; `AppShell` builds its own i
 AppShell.init() → slice.build('Providers')
   → Providers.init():
       1. slice.events.register() — declares toast:show, confirm:request
-      2. RosterService — loads localStorage → seed fallback
-      3. AssignmentService — ensures assignment context
-      4. ResolutionService — ensures resolutions context
-      5. SettingsService — ensures settings context
-      6. DataParserService — stateless, parse methods only
-      7. ExportService — stateless, download helpers
-      8. ConfirmActionModal — lazy (builds <slice-modal> on first use)
-      9. ToastProvider — lazy (builds container on first .show())
-     10. DragDropService — registered after the above
+      2. PlantillaService — ensures `plantilla` context, seed fallback
+      3. FormatService — stateless, HTML-escaping helper (esc)
+      4. SanitizeService — wraps vendored DOMPurify, final innerHTML safety net
+      5. FileDownloadService — stateless, download helper
+      6. SettingsService — ensures `settings` context
+      7. RespuestasService — ensures `respuestas` context
+      8. ConsensoService — ensures `decisionFinal` context
+      9. ExportService — stateless, download helpers
+     10. RespuestasImportService — ensures `respuestasImportadas` context, normalizes against plantilla
+     11. DragDropService — registered after the above
+     12. ChartService — wraps vendored Chart.js
+     13. ToastProvider — lazy (builds container on first .show())
+     14. ConfirmActionModal — lazy (builds <slice-modal> on first use)
 ```
+
+`PlantillaService` must finish before anything else reads categoría/opción data — every other Service/view assumes it's already loaded.
 
 ## Services (`Components/Service/`)
 
 | Service | Role |
 |---|---|
-| `RosterService` | Owns teams + members in-memory. Loads from localStorage keys `conclave-teams-v1` / `conclave-members-v1`; falls back to bundled `seedData.js`. Provides query methods (`getTeams()`, `getMembers()`, `getTeamById()`, `getMemberById()`, `statusOf()`, `statusLabel()`, `countByTeam()`, `isFull()`, `isLiderLocked()`, `getLiderName()`). `loadFromData()` replaces both datasets and runs `_cleanupOrphaned()`. Emits `roster:changed`. |
-| `AssignmentService` | Owns `assignment` context (`{[memberId]: teamId}`). `assign()` always succeeds (over-capacity allowed). `exportMine()` delegates to ExportService. |
-| `ResolutionService` | Owns `resolutions` context (`{[memberId]: teamId}`). The "Final" decisions in CompareView. |
-| `SettingsService` | Owns `settings` context (`{autor, nombreOrganizacion, lideres, lideresEnabled}`). `getEffectiveLider(teamId)` returns `{ member, source }` where source is `'rostro'` (from CSV lider column) or `'ui'` (from the carousel crown toggle). |
-| `DataParserService` | Stateless singleton. `parseTeams()` / `parseMembers()` accept raw text + format (`csv`, `tsv`, `json`), return `{ teams/members, errors }`. `validateTeams()` / `validateMembers()` return field-level errors. |
-| `ExportService` | `downloadAsignaciones(autor, asignaciones)` and `downloadFinalList(autor, resoluciones)` — builds JSON envelope with `{ app, version, fecha, autor, asignaciones }` and delegates Blob download to `FileDownloadService`. |
-| `ImportService` | Manages imported comparison sources (CompareView). `addSource(name, data)`, `removeOrphaned(removedMemberIds, removedTeamIds)` — cleans references when roster data is replaced. |
+| `PlantillaService` | Owns the `plantilla` context: `{ categorias, opciones }`. Falls back to bundled `seedData.js` if localStorage is empty/invalid on first boot. Full CRUD: `addCategoria`/`removeCategoria`/`updateCategoria`, `addOpcion`/`removeOpcion`/`updateOpcion`, plus bulk `loadFromData(categorias, opciones)` (used by Plantilla import) and `resetToSeed()`. Query helpers: `getCategorias()`, `getCategoriasParticipables()` (modo `seleccion` + `participable`), `getCategoriasTexto()` (modo `texto_libre`), `getOpciones()`, `getOpcionesDisponibles()`, `getCategoriaById()`, `getOpcionById()`, `colorFor()`, `statusOf()`, `statusLabel()`, `countByCategoria()`, `isFull()`, `isLiderLocked()`, `getLiderName()`. `_cleanupOrphaned()` scrubs `respuestas`, `decisionFinal`, `settings.lideres`, and `respuestasImportadas` whenever a Categoría/Opción is deleted. |
+| `RespuestasService` | Owns the `respuestas` context: `{ seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: string} }`. `seleccion` is indexed by Opción (many Opciones can share a Categoría, no array needed); `texto` is indexed by Categoría (one free-text answer per question). `assignOpcion()`/`unassignOpcion()` for modo `seleccion` (always succeeds — over-capacity allowed). `setTexto()`/`clearTexto()` for modo `texto_libre`. `exportMine()` delegates to `ExportService`. `importMine(data)` wholesale-replaces the context ("continue on another device", see DATA.md). |
+| `ConsensoService` | Owns the `decisionFinal` context: `{ seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: {autor, texto}} }` — same seleccion/texto split as `respuestas`, for the same reason. `hasResolution`/`finalFor`/`setResolution`/`fillAllWithSuggestion`/`clearAll` for modo `seleccion` (majority-vote suggestion with manual override, unchanged logic from before the rename). `finalTextoFor`/`setResolutionTexto`/`clearResolutionTexto` for modo `texto_libre` (adopt one author's exact proposal as the chosen answer — no merge/synthesis editor). `exportFinal()` builds the combined final Respuestas JSON. |
+| `SettingsService` | Owns `settings` context (`{autor, lideres, lideresEnabled, sexoEnabled, edadEnabled}`). `getEffectiveLider(categoriaId)` returns `{ member, locked }` where `locked: true` means the leader came from the Categoría's `meta.lider` (Plantilla-authored, read-only) rather than the UI-set `lideres` map. `isSexoEnabled()`/`isEdadEnabled()` (both default `true`) gate whether `OpcionRow` and every downstream display show those two Opción fields — see FEATURES.md's Opciones list section. |
+| `ExportService` | `downloadRespuestas(autor, respuestas)`, `downloadRespuestasFinal(autor, respuestas)`, and `downloadPlantilla(plantilla)` — build the versioned JSON envelope (`{ app, version: 2, tipo, ... }`) and delegate Blob download to `FileDownloadService`. |
+| `RespuestasImportService` | Owns the `respuestasImportadas` context: `[{ autor, respuestas: { seleccion, texto } }]` — comparison sources imported in CompareView. Migrated to Context (from a plain in-memory array) because several components (`CompareCarousel`, `FinalTally`, `TextCompareCards`) read and react to this same list — see GOTCHAS.md §11. `import(data, filename)` normalizes/dedupes against the current Plantilla; `removeOrphaned()` cleans references when Categorías/Opciones are deleted. |
 | `ConfirmActionModal` | Provider-Service owning one `<slice-modal>` instance lazily. Driven by `confirm:request` event. |
 | `ToastProvider` | Official Slice.js registry component. Lazy container. |
-| `DragDropService` | Official Slice.js registry component + visual. Pointer-based drag-and-drop for ByTeamView. |
+| `DragDropService` | Official Slice.js registry component + visual. Pointer-based drag-and-drop for `PorCategoriaView`. |
 | `FileDownloadService` | Generic Blob download helper. |
+| `ChartService` | Wraps the vendored Chart.js UMD bundle (`src/libs/chartjs/chart.umd.js`) — `create(canvas, config)`/`destroy(chart)`/`themeColor(varName)` (resolves a CSS custom property to a literal color string, since `<canvas>` can't read `var(--x)` directly). Consumers never import Chart.js themselves. First usage: `DashboardView`'s completion doughnut. |
+
+`DataParserService` (CSV/TSV/JSON parsing for the old textarea-based roster editor) was deleted along with `HelpView` in the CRUD-builder rewrite — Categorías/Opciones are edited through real forms now, no bulk text parsing.
 
 ## Views (`Components/AppComponents/`)
 
 | View | Route | Key behavior |
 |---|---|---|
-| `LandingView` | `/` | Stats row (members/teams/assigned counts) + four quick-action cards. |
-| `DashboardView` | `/dashboard` | Team cards with bars + status badges. Reads `assignment` context. Watches `assignment` + `roster:changed`. |
-| `MyAssignmentView` | `/mi-asignacion` | Carousel: one member at a time, pick a team pill. Auto-advances after 500ms with animated feedback (bounce + checkmark). Reads/writes `assignment`. Watches `assignment` + `roster:changed`. |
-| `ByTeamView` | `/por-equipo` | Drag-and-drop member chips between sidebar and team squares. Reads `assignment`. |
-| `CompareView` | `/comparar` | Table comparing multiple imported sources + "Final" column. Reads `resolutions`. |
-| `HelpView` | `/ayuda` | CSV/JSON data generator. Two textareas (teams + members), diff preview, ConfirmActionModal on destructive save. |
-| `SettingsView` | `/configuracion` | Autor name + organization name. |
+| `LandingView` | `/` | Stats row (opciones/categorías/respondidas counts), quick-action cards, "Cómo funciona" 3-step flow, and "Para qué podés usarla" use-case cards. |
+| `DashboardView` | `/dashboard` | Categoría cards (modo `seleccion`) with bars + status badges, plus a "Texto libre" section showing per-Categoría answered/pending badges (modo `texto_libre`). Reads `respuestas`. Watches `respuestas` + `settings` + `plantilla`. |
+| `RespuestasView` | `/mis-respuestas` | Tab shell composing `MisRespuestasView` (carousel), `PorCategoriaView` (drag-and-drop board), and `RespuestasTextoView` (free-text answers). Carrusel/Por categoría only offered when the Plantilla has ≥1 Opción; Texto libre only when it has ≥1 Categoría in modo `texto_libre`. If neither is true, shows an empty-state pointing to `/plantilla` instead of empty tabs. |
+| `MisRespuestasView` | (sub-tab) | Carousel: one Opción at a time, pick a Categoría pill. Auto-advances after 500ms with animated feedback (bounce + checkmark). Reads/writes `respuestas.seleccion`. |
+| `PorCategoriaView` | (sub-tab) | Drag-and-drop `OpcionChip`s between sidebar and Categoría squares. Reads/writes `respuestas.seleccion`. |
+| `RespuestasTextoView` | (sub-tab) | One textarea per modo `texto_libre` Categoría, saved on blur. Reads/writes `respuestas.texto`. |
+| `CompareView` | `/comparar` | Imports Respuestas from other people (existing `ImportDrop`) plus an optional Plantilla import (collapsible, bulk-replaces Categorías/Opciones with a confirm-of-impact dialog, via `PlantillaService.prepareImport()`). Shows a "Selección"/"Texto libre" kind-tab pair when the Plantilla mixes both modos — Selección keeps the existing table/carousel/team views and the "Final" decision column; Texto libre delegates to `TextCompareCards`. |
+| `PlantillaBuilderView` | `/plantilla` | Real CRUD for Categorías and Opciones — replaces the old CSV/JSON textarea editor entirely. Detalles section (nombre de la Plantilla, líder toggle). Inline "escribir + Enter" add row per list (no modal). Per-row inline edit, modo toggle (seleccion ⇄ texto_libre) with conditional capacidad/min/max fields, per-action delete confirm naming the impact count. Hosts "Exportar Plantilla" and "Importar Plantilla" (same `prepareImport()` path as CompareView's). |
+
+`SettingsView`/`/configuracion` no longer exist — identity (tu nombre), tema, and every "mis Respuestas" action (exportar/importar/reiniciar) moved to `UserMenu`, built once from `TopBar` and reachable from any route (see below).
 
 ## Contexts
 
-All three are `{ persist: true }` (localStorage):
+All `{ persist: true }` (localStorage):
 
 | Context | Key | Shape |
 |---|---|---|
-| `assignment` | `conclave-assignment-v1` | `{ [memberId]: teamId }` |
-| `resolutions` | `conclave-resolutions-v1` | `{ [memberId]: teamId }` |
-| `settings` | `conclave-settings-v1` | `{ autor, nombreOrganizacion, lideres, lideresEnabled }` |
+| `settings` | `conclave-settings-v3` | `{ autor, lideres, lideresEnabled, sexoEnabled, edadEnabled }` |
+| `plantilla` | `conclave-plantilla-v1` | `{ categorias: Categoria[], opciones: Opcion[] }` |
+| `respuestas` | `conclave-respuestas-v1` | `{ seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: string} }` |
+| `decisionFinal` | `conclave-decision-final-v1` | `{ seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: {autor, texto}} }` |
+| `respuestasImportadas` | `conclave-respuestas-importadas-v1` | `[{ autor, respuestas: { seleccion, texto } }]` |
 
-There's deliberately no `roster` context — RosterService is a plain in-memory cache (its own `_saveToStorage()` writes to `conclave-teams-v1` / `conclave-members-v1` directly). CompareView's imported sources are also not context — they live as a plain instance field on ImportService (session-only by design).
+Every piece of shared, cross-component state now lives in a real `slice.context` — `plantilla` and `respuestasImportadas` were migrated from ad-hoc in-memory caches + a custom `roster:changed` event to this pattern, per the framework's own guidance (`context-vs-events.md`: "several components read and react to this state" → Context). There is no custom app event left besides `toast:show` and `confirm:request` — reactivity is entirely `slice.context.watch()`.
 
 ## Data flow
 
-### Roster replacement (HelpView → RosterService)
+### Plantilla replacement (PlantillaBuilderView / CompareView import → PlantillaService)
 
 ```
-HelpView textareas → DataParserService.parseTeams/Members
-  → computeDiff() (old vs new)
-  → if conflicts → ConfirmActionModal
-  → RosterService.loadFromData(teams, members)
-    → _rebuild() (re-indexes by ID, assigns colors)
-    → _cleanupOrphaned() (cleans assignment, resolutions, settings.lideres, ImportService)
-    → _saveToStorage() (writes localStorage)
-    → emit('roster:changed')
-      → DashboardView, MyAssignmentView, ByTeamView, CompareView repaint
+PlantillaBuilderView per-row edit → PlantillaService.updateCategoria/updateOpcion (patch, never a raw replace)
+PlantillaBuilderView per-row delete → confirm:request (impact count) → PlantillaService.removeCategoria/removeOpcion
+CompareView Plantilla import → confirm:request (impact count) → PlantillaService.loadFromData(categorias, opciones)
+  → slice.context.setState('plantilla', ...)
+    → _cleanupOrphaned() (cleans respuestas, decisionFinal, settings.lideres, respuestasImportadas)
+      → every view watching 'plantilla' repaints automatically (no event needed)
 ```
 
-### Assignment flow (MyAssignmentView carousel)
+### Respuestas flow (MisRespuestasView carousel)
 
 ```
-User clicks pill → AssignmentService.assign(memberId, teamId)
+User clicks pill → RespuestasService.assignOpcion(opcionId, categoriaId)
   → _advancePending = true
   → update() → _paint()
   → _showAdvanceFeedback():
       • pill gets .pill-just-assigned (green + scale bounce + ::after checkmark)
-      • .assign-summary shows "Member → Team" (slide-in animation)
+      • .assign-summary shows "Opción → Categoría" (slide-in animation)
   → setTimeout(500ms):
       • _advancePending = false
       • carouselIndex++
-      • update() → fresh paint of next member
+      • update() → fresh paint of next Opción
+```
+
+### Texto libre flow (RespuestasTextoView → CompareView's TextCompareCards)
+
+```
+User types in a Categoría's textarea, blurs → RespuestasService.setTexto(categoriaId, texto)
+  → exported via ExportService.downloadRespuestas() alongside seleccion
+Someone else's exported Respuestas JSON is imported in CompareView
+  → RespuestasImportService.import() stores { seleccion, texto } per source
+CompareView's "Texto libre" kind-tab → TextCompareCards renders one big card
+per source for the active Categoría → "Marcar como elegida" → ConsensoService.setResolutionTexto()
 ```
 
 ## Naming conventions
 
 - **Repaint methods**: Every view uses a private repaint method. Names vary (`_paint()`, `_refresh()`, `_layout()`, `_render()`) — grep the view for which it uses. The public `update()` (called by MultiRoute on revisit) always delegates to the private method.
-- **ensureContext()**: Shared utility at `src/utils/context.js` — used by AssignmentService, ResolutionService, SettingsService instead of three identical `_ensureContext()` methods.
+- **ensureContext()**: Shared utility at `src/utils/context.js` — used by every context-owning Service instead of duplicating a `_ensureContext()` method (`PlantillaService`, `RespuestasService`, `ConsensoService`, `SettingsService`, `RespuestasImportService`).
 - **esc()**: HTML-escaping utility at `src/utils/format.js` — wrap any user-provided string in it.

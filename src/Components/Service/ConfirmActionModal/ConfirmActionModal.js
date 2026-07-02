@@ -18,7 +18,7 @@
 //     message: 'No afecta los JSON ya exportados.',
 //     confirmLabel: 'Reiniciar',
 //     danger: true,
-//     onConfirm: () => assignmentService.reset(),
+//     onConfirm: () => respuestasService.reset(),
 //   });
 //
 // Pass inputLabel to also collect a single text value — onConfirm then
@@ -41,9 +41,19 @@ export default class ConfirmActionModal {
     slice.events.subscribe('confirm:request', (payload) => this._open(payload));
   }
 
+  // Guarded by an in-flight PROMISE, not a `this.$modal` truthiness check —
+  // two confirm:request events arriving before the first build resolves
+  // would otherwise both pass a flag check and both call slice.build with
+  // the same fixed sliceId, and the second throws ("already registered").
+  // Assigning the promise is synchronous (no await between the check and
+  // the assignment), so this is race-safe even though _buildModal itself
+  // awaits internally.
   async _ensureModal() {
-    if (this.$modal) return;
+    if (!this._modalPromise) this._modalPromise = this._buildModal();
+    await this._modalPromise;
+  }
 
+  async _buildModal() {
     this.$modal = await slice.build('Modal', {
       sliceId: 'confirm-action-dialog',
       dismissable: true,
@@ -67,6 +77,26 @@ export default class ConfirmActionModal {
 
     this.$modal.appendFooter(this.$cancelBtn);
     this.$modal.appendFooter(this.$confirmBtn);
+  }
+
+  // Same in-flight-promise guard as _ensureModal, and for the same reason —
+  // built lazily on the first confirm:request that actually asks for input.
+  async _ensureInput() {
+    if (!this._inputPromise) this._inputPromise = this._buildInput();
+    await this._inputPromise;
+  }
+
+  async _buildInput() {
+    this.$inputLabel = document.createElement('label');
+    this.$inputLabel.className = 'confirm-modal__field';
+    this.$inputSpan = document.createElement('span');
+    this.$inputLabel.appendChild(this.$inputSpan);
+    this.$modal.appendBody(this.$inputLabel);
+    this.$input = await slice.build('Input', { sliceId: 'confirm-action-input' });
+    this.$input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') this._resolve(true);
+    });
+    this.$inputLabel.appendChild(this.$input);
   }
 
   async _open({
@@ -96,19 +126,7 @@ export default class ConfirmActionModal {
     this.$confirmBtn.className = danger ? 'btn btn-danger' : 'btn btn-primary';
 
     if (this._hasInput) {
-      if (!this.$inputLabel) {
-        this.$inputLabel = document.createElement('label');
-        this.$inputLabel.className = 'confirm-modal__field';
-        this.$inputSpan = document.createElement('span');
-        this.$input = document.createElement('input');
-        this.$input.type = 'text';
-        this.$input.autocomplete = 'off';
-        this.$input.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') this._resolve(true);
-        });
-        this.$inputLabel.append(this.$inputSpan, this.$input);
-        this.$modal.appendBody(this.$inputLabel);
-      }
+      await this._ensureInput();
       this.$inputLabel.hidden = false;
       this.$inputSpan.textContent = inputLabel;
       this.$input.placeholder = inputPlaceholder;
@@ -119,7 +137,7 @@ export default class ConfirmActionModal {
 
     this.$modal.open = true;
     if (this._hasInput) {
-      requestAnimationFrame(() => this.$input.focus());
+      requestAnimationFrame(() => this.$input.querySelector('input').focus());
     }
   }
 

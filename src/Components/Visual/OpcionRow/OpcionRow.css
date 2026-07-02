@@ -1,0 +1,58 @@
+slice-opcionrow { display: block; }
+/* PATCHED: same bug as CategoriaRow.css (see its comment) — an unconditional
+   author-level `display` always beats the browser's `[hidden]` UA rule. Not
+   currently exploited (nothing hides an OpcionRow's outer tag today), but
+   fixed proactively so it doesn't silently break the next thing that does. */
+slice-opcionrow[hidden] { display: none; }
+slice-opcionrow .opc-row {
+  border: 1.5px solid var(--border-color); border-radius: 10px; padding: 10px 12px;
+  transition: border-color .12s, box-shadow .12s;
+}
+slice-opcionrow .opc-row:hover,
+slice-opcionrow .opc-row:focus-within {
+  border-color: var(--font-primary-color);
+  box-shadow: 2px 2px 0 var(--font-primary-color);
+}
+
+slice-opcionrow .opc-row__main { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+slice-opcionrow .opc-row__fijo-tag { flex: none; font-size: 14px; }
+slice-opcionrow .opc-row__name-slot { flex: 1; min-width: 140px; }
+slice-opcionrow .opc-row__toggle,
+slice-opcionrow .opc-row__remove { flex: none; font-size: 12px; padding: 6px 10px; white-space: nowrap; }
+slice-opcionrow .opc-row__remove { width: 30px; height: 30px; padding: 0; font-size: 13px; border-radius: 50%; }
+
+slice-opcionrow .opc-row__extra {
+  display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
+  margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);
+}
+/* Same [hidden]-losing-to-author-display bug — the "▸ Detalles" toggle
+   (_setExpanded) sets this element's .hidden directly. */
+slice-opcionrow .opc-row__extra[hidden] { display: none; }
+slice-opcionrow .opc-row__mini-field {
+  display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: var(--font-secondary-color);
+  font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+}
+/* This is the actual bug the "Habilitar edad" toggle hit — same class as
+   above: OpcionRow._syncToggles() sets this element's .hidden, which the
+   unconditional display:flex above silently ignored. (.opc-row__sexo-slot
+   never had this problem — it only sets flex/width, no competing display.) */
+slice-opcionrow .opc-row__mini-field[hidden] { display: none; }
+slice-opcionrow .opc-row__mini-field input {
+  width: 74px; background: var(--panel-background-color); border: 1.5px solid var(--border-color); color: var(--font-primary-color);
+  border-radius: 7px; padding: 6px 9px; font-size: 13px; font-family: var(--font-body); font-weight: 500; outline: none;
+}
+slice-opcionrow .opc-row__mini-field input:focus-visible { border-color: var(--primary-color); }
+slice-opcionrow .opc-row__sexo-slot { flex: none; width: 80px; }
+slice-opcionrow .opc-row__rolfijo-slot { flex: 1; min-width: 160px; }
+
+/* Compact sizing only for this dense-row context — the actual skin lives
+   directly in Input.css/Select.css/Checkbox.css now (patched for Sticker
+   Book, per their own header comments). See CategoriaRow.css for the full
+   explanation of this narrower, size-only override. */
+slice-opcionrow slice-input .slice_input,
+slice-opcionrow slice-select .slice_select_container {
+  padding: 7px 10px; border-radius: 7px; border-width: 1.5px;
+}
+slice-opcionrow slice-select .slice_select { font-size: 12.5px; }
+slice-opcionrow slice-checkbox .slice_checkbox_container { padding: 4px; }
+slice-opcionrow slice-checkbox .checkbox_label { font-size: 12px; }

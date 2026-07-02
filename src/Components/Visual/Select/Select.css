@@ -1,0 +1,183 @@
+/* Encapsulated under the custom element so the select styles never leak.
+   PATCHED for Sticker Book (see DESIGN.md): thin border at rest instead of
+   --slice-border, no focus glow ring, no 25px stacked-form spacing (fights
+   dense-row/flex-gap layouts), and the open menu gets the bold-ink-plus-
+   hard-shadow "hero" treatment (DESIGN.md's rule for a prominent, one-at-a-
+   time overlay) instead of the stock soft blur shadow. If Select is ever
+   re-synced from the registry (`slice sync`), re-check this file survived
+   the overwrite — same caveat as the documented Modal.css patch (see
+   GOTCHAS.md). */
+
+slice-select {
+  display: block;
+}
+
+slice-select .slice_select_dropdown {
+  font-family: var(--font-body, var(--font-family));
+  max-width: 100%;
+  margin: 0;
+  position: relative;
+}
+
+slice-select .slice_select_container {
+  cursor: pointer;
+  display: flex;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-background-color, var(--primary-background-color));
+  justify-content: space-between;
+  align-items: center;
+}
+
+slice-select .slice_select_container:focus-visible {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: none;
+}
+
+slice-select .slice_select {
+  pointer-events: none;
+  color: var(--font-primary-color);
+  width: 100%;
+  background: none;
+  outline: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+slice-select .slice_select_label {
+  color: var(--font-secondary-color);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  position: absolute;
+  transition: all 0.5s;
+  user-select: none;
+}
+
+slice-select .slice_select_value {
+  scale: 0.8;
+  transform: translateY(-200%);
+  transition: all 0.5s;
+}
+
+slice-select .slice_select_menu {
+  display: none;
+  border: 2px solid var(--font-primary-color);
+  list-style: none;
+  font-family: var(--font-body, var(--font-family));
+  visibility: hidden;
+  overflow: hidden;
+  position: absolute;
+  opacity: 0;
+  transition: 0s, opacity 0.3s;
+  top: 100%;
+  margin-top: 6px;
+  width: 100%;
+  z-index: 50;
+  background-color: var(--panel-background-color, var(--primary-background-color));
+  border-radius: 9px;
+  box-shadow: 3px 3px 0 var(--font-primary-color);
+}
+
+slice-select .slice_select_menu div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--font-primary-color);
+  cursor: pointer;
+  padding: 10px;
+}
+
+/* Checkmark on the right, shown only on selected options — makes the selected
+   state obvious, especially in multi-select. */
+slice-select .slice_select_menu div::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 6px;
+  height: 11px;
+  margin: 0 2px 3px 0;
+  border: solid var(--primary-color);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0.5);
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+slice-select .slice_select_menu div:hover {
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
+}
+
+slice-select .menu_open {
+  display: block;
+  overflow-y: auto;
+  min-height: min-content;
+  max-height: 240px;
+  visibility: visible;
+  opacity: 1;
+}
+
+slice-select .menu_open::-webkit-scrollbar {
+  width: 6px;
+}
+
+slice-select .menu_open::-webkit-scrollbar-thumb {
+  background: var(--secondary-color);
+  border-radius: var(--border-radius-slice);
+}
+
+slice-select .slice_select_menu div.active {
+  color: var(--primary-color);
+  font-weight: 600;
+  background-color: color-mix(in srgb, var(--primary-color) 18%, transparent);
+}
+
+slice-select .slice_select_menu div.active::after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
+}
+
+slice-select .slice_select_container .caret {
+  border-top-color: var(--primary-color);
+}
+
+/* Keyboard-navigation highlight — mirrors the hover affordance. */
+slice-select .slice_select_menu div.highlighted {
+  background-color: color-mix(in srgb, var(--primary-color) 14%, transparent);
+}
+
+/* "No results" row: not an option — strip the option affordances. */
+slice-select .slice_select_no_results {
+  cursor: default;
+  opacity: 0.6;
+  font-style: italic;
+  justify-content: flex-start;
+}
+slice-select .slice_select_no_results::after {
+  content: none;
+}
+slice-select .slice_select_no_results:hover {
+  background-color: transparent;
+}
+
+/* Clear button. */
+slice-select .slice_select_clear {
+  flex: 0 0 auto;
+  border: none;
+  background: none;
+  color: var(--font-primary-color);
+  opacity: 0.55;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0 4px;
+  margin-left: 4px;
+  transition: opacity 0.15s ease;
+}
+slice-select .slice_select_clear:hover {
+  opacity: 1;
+}

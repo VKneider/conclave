@@ -1,0 +1,15 @@
+slice-respuestastextoview .rt-card {
+  background: var(--panel-background-color); border: 2.5px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius); padding: 18px 20px; box-shadow: var(--box-shadow-primary);
+  margin-bottom: 16px;
+}
+slice-respuestastextoview .rt-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0 0 10px; }
+slice-respuestastextoview .rt-textarea {
+  width: 100%; box-sizing: border-box; min-height: 110px;
+  padding: 12px 14px; border: 2px solid var(--border-color); border-radius: 10px;
+  background: var(--panel-alt-background-color); color: var(--font-primary-color);
+  font-family: var(--font-body); font-size: 14px; line-height: 1.55; resize: vertical; outline: none;
+  transition: border-color .15s;
+}
+slice-respuestastextoview .rt-textarea:focus { border-color: var(--primary-color); }
+slice-respuestastextoview .rt-status { min-height: 18px; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--success-color); }

@@ -31,11 +31,6 @@ export default class ToastProvider {
     })();
   }
 
-  static getInstance() {
-    if (!this._instance) this._instance = new this();
-    return this._instance;
-  }
-
   async show(message, config = {}) {
     if (!message) return '';
 
@@ -84,7 +79,10 @@ export default class ToastProvider {
     return this;
   }
 
-  destroy() {
+  // PATCHED: was named destroy() — the framework only ever calls
+  // beforeDestroy(). If ToastProvider is ever re-synced from the registry
+  // (`slice sync --service`), re-check this rename survived.
+  beforeDestroy() {
     this.clear();
     if (this._container && this._container.parentNode) {
       this._container.parentNode.removeChild(this._container);

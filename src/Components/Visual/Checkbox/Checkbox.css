@@ -1,0 +1,106 @@
+/* Encapsulated under the custom element so the checkbox styles never leak.
+   PATCHED for Sticker Book (see DESIGN.md): dropped the stock tinted pill
+   container and --slice-border square in favor of a plain thin-bordered
+   checkmark — dense/repeated controls get a thin border at rest per
+   DESIGN.md, not their own background chip. If Checkbox is ever re-synced
+   from the registry (`slice sync`), re-check this file survived the
+   overwrite — same caveat as the documented Modal.css patch (see
+   GOTCHAS.md). */
+
+slice-checkbox {
+  display: inline-block;
+}
+
+slice-checkbox .slice_checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+slice-checkbox .slice_checkbox_container {
+  width: fit-content;
+  padding: 6px 4px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  margin: 0;
+}
+
+slice-checkbox .slice_checkbox {
+  display: flex;
+  align-items: center;
+  user-select: none;
+  margin-top: 0;
+  margin-bottom: 0;
+  position: relative;
+}
+
+slice-checkbox .checkbox_label {
+  margin: 5px 5px 5px 5px;
+  cursor: pointer;
+  font-family: var(--font-body, var(--font-family));
+  color: var(--font-primary-color);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+slice-checkbox .checkmark {
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 1.3em;
+  width: 1.3em;
+  background-color: var(--panel-background-color, var(--secondary-background-color));
+  border: 1.5px solid var(--border-color);
+  transition: all 0.3s;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+slice-checkbox .slice_checkbox input:checked ~ .checkmark {
+  border: 1.5px solid var(--success-color);
+  background-color: var(--success-color);
+  animation: slice_checkbox_pop 0.5s;
+  animation-direction: alternate;
+}
+
+slice-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+slice-checkbox .slice_checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+slice-checkbox .slice_checkbox .checkmark:after {
+  left: 0.45em;
+  top: 0.25em;
+  width: 0.25em;
+  height: 0.5em;
+  border: solid var(--success-contrast, #ffffff);
+  border-width: 0 0.15em 0.15em 0;
+  transform: rotate(45deg);
+}
+
+slice-checkbox .disabled {
+  border-color: var(--disabled-color);
+  background-color: var(--primary-color-shade);
+  color: var(--disabled-color);
+  cursor: not-allowed;
+}
+
+@keyframes slice_checkbox_pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

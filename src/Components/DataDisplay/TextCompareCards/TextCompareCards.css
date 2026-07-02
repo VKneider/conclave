@@ -1,0 +1,49 @@
+slice-textcomparecards .tcc-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 18px;
+}
+slice-textcomparecards .tcc-nav-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; text-align: center; }
+slice-textcomparecards .tcc-nav-count { font-family: var(--font-body); font-size: 13px; color: var(--font-secondary-color); font-weight: 500; }
+slice-textcomparecards .tcc-solo-title { font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0 0 16px; }
+
+slice-textcomparecards .tcc-final-banner {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  padding: 10px 14px; background: var(--success-color); color: var(--success-contrast);
+  border-radius: var(--card-border-radius); font-size: 13px; font-weight: 700;
+}
+slice-textcomparecards .tcc-final-banner .linkish { background: transparent; border: 0; color: inherit; opacity: .85; cursor: pointer; font-size: 12px; font-weight: 700; }
+slice-textcomparecards .tcc-final-banner .linkish:hover { opacity: 1; }
+
+/* "Cards grandes, texto grande" per spec — big, hero-styled, one or two per
+   row so proposals stay readable at a glance during a live discussion. */
+slice-textcomparecards .tcc-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;
+}
+slice-textcomparecards .tcc-card {
+  background: var(--panel-background-color); border: 3px solid var(--font-primary-color);
+  border-top: 8px solid var(--tcc-color, var(--primary-color));
+  border-radius: var(--card-border-radius); padding: 22px 24px;
+  box-shadow: 5px 5px 0 var(--font-primary-color);
+  display: flex; flex-direction: column; gap: 14px;
+}
+slice-textcomparecards .tcc-card.is-final { box-shadow: 5px 5px 0 var(--success-color); border-color: var(--success-color); }
+
+slice-textcomparecards .tcc-card-head { display: flex; align-items: center; gap: 8px; }
+slice-textcomparecards .tcc-swatch { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--font-primary-color); flex: none; }
+slice-textcomparecards .tcc-autor { font-weight: 700; font-size: 15px; flex: 1; }
+slice-textcomparecards .tcc-final-tag {
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+  background: var(--success-color); color: var(--success-contrast); padding: 3px 10px; border-radius: 999px;
+}
+
+slice-textcomparecards .tcc-text {
+  font-family: var(--font-body); font-size: 17px; line-height: 1.6; color: var(--font-primary-color);
+  margin: 0; white-space: pre-wrap; word-break: break-word; flex: 1;
+}
+
+slice-textcomparecards .tcc-pick { align-self: flex-start; }
+
+@media (max-width: 700px) {
+  slice-textcomparecards .tcc-grid { grid-template-columns: 1fr; }
+  slice-textcomparecards .tcc-text { font-size: 15px; }
+}
