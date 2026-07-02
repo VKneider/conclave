@@ -9,6 +9,10 @@ function deprecate(oldName, newName) {
 
 export default class Loading extends HTMLElement {
 
+   static FIRST_RUN_MIN_VISIBLE_MS = 2000;
+   static _startupDelayConsumed = false;
+   static OVERLAY_Z_INDEX = 2147483000;
+
    static props = {
       // Canonical busy-state flag. `isActive` is kept as a deprecated alias.
       active: {
@@ -41,6 +45,9 @@ export default class Loading extends HTMLElement {
       this._container = null;
       this._isActive = false;
       this._currentContainer = null;
+      this._introTimeout = null;
+      this._pendingStopTimeout = null;
+      this._minimumVisibleUntil = 0;
       slice.controller.setComponentProps(this, props);
    }
 
@@ -64,6 +71,21 @@ export default class Loading extends HTMLElement {
       if (this._isActive) {
          this.stop();
       }
+
+      if (this._pendingStopTimeout) {
+         clearTimeout(this._pendingStopTimeout);
+         this._pendingStopTimeout = null;
+      }
+
+      const playIntro = !Loading._startupDelayConsumed;
+      this.classList.toggle('loading--intro', playIntro);
+      this.classList.toggle('loading--welcome-only', playIntro);
+      if (!Loading._startupDelayConsumed) {
+         this._minimumVisibleUntil = Date.now() + Loading.FIRST_RUN_MIN_VISIBLE_MS;
+         Loading._startupDelayConsumed = true;
+      } else {
+         this._minimumVisibleUntil = 0;
+      }
       
       // Configurar estilos según el contenedor
       if (targetContainer !== document.body) {
@@ -83,6 +105,7 @@ export default class Loading extends HTMLElement {
          
          // Configurar el loading como absolute para que llene el container
          this.style.position = 'absolute';
+         this.style.zIndex = String(Loading.OVERLAY_Z_INDEX);
          this.style.top = '0';
          this.style.left = '0';
          this.style.right = '0';
@@ -92,6 +115,7 @@ export default class Loading extends HTMLElement {
       } else {
          // Para document.body (fullscreen)
          this.style.position = 'fixed';
+         this.style.zIndex = String(Loading.OVERLAY_Z_INDEX);
          this.style.top = '0';
          this.style.left = '0';
          this.style.right = '0';
@@ -113,6 +137,28 @@ export default class Loading extends HTMLElement {
       if (!this._isActive) {
          return;
       }
+
+      const remaining = this._minimumVisibleUntil - Date.now();
+      if (remaining > 0) {
+         if (!this._pendingStopTimeout) {
+            this._pendingStopTimeout = setTimeout(() => {
+               this._pendingStopTimeout = null;
+               this.stop();
+            }, remaining);
+         }
+         return;
+      }
+
+      if (this._introTimeout) {
+         clearTimeout(this._introTimeout);
+         this._introTimeout = null;
+      }
+      if (this._pendingStopTimeout) {
+         clearTimeout(this._pendingStopTimeout);
+         this._pendingStopTimeout = null;
+      }
+      this.classList.remove('loading--intro');
+      this.classList.remove('loading--welcome-only');
       
       // Restaurar estilos originales del container si los modificamos
       if (this._currentContainer && 
@@ -134,6 +180,7 @@ export default class Loading extends HTMLElement {
       this._currentContainer = null;
       this._originalPosition = undefined;
       this._originalOverflow = undefined;
+      this._minimumVisibleUntil = 0;
    }
 
    // Canonical busy-state flag. Toggling it shows/hides the spinner.
