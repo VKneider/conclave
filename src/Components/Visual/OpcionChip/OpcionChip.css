@@ -1,0 +1,17 @@
+/* Deliberately NOT scoped under the slice-opcionchip tag prefix: the drag
+   ghost is a clone of the .opcion-chip span appended straight to <body>,
+   outside any <slice-opcionchip> ancestor, so a scoped selector would never
+   match it. See the comment in OpcionChip.js for why the span (not the
+   custom element) is what gets dragged/cloned.
+   Border stays light at rest — 85 of these sitting side by side with a bold
+   ink outline each reads as noise, especially in dark mode where "ink" is a
+   pale color. The bold sticker outline shows up only on hover/drag instead. */
+.opcion-chip { background: var(--panel-background-color); border: 1.5px solid var(--border-color); border-radius: 999px; padding: 5px 11px 5px 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: grab; user-select: none; transition: border-color .1s ease, transform .1s ease, box-shadow .1s ease; }
+.opcion-chip:hover { border-color: var(--font-primary-color); transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--font-primary-color); }
+.opcion-chip:active { cursor: grabbing; }
+.opcion-chip.dragging { opacity: .4; }
+.opcion-chip .grip { color: var(--font-secondary-color); font-size: 11px; letter-spacing: -2px; }
+.opcion-chip .sx { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.opcion-chip .sx.M { background: var(--male-color); }
+.opcion-chip .sx.F { background: var(--female-color); }
+.opcion-chip .nm { min-width: 0; flex: 1; white-space: normal; word-break: break-word; line-height: 1.25; }

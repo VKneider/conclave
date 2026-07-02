@@ -208,7 +208,12 @@ export default class Modal extends HTMLElement {
 
     this._inited = true;
     if (this._dndEnabled()) {
-      this._dnd = await slice.build('DragDropService', { singleton: true });
+      // DragDropService is already booted once by this app's composition
+      // root (Providers.js), before any Modal is ever built — recover the
+      // existing singleton instead of routing back through slice.build,
+      // which would just return the same instance anyway (singleton:true
+      // is get-or-create) at the cost of an unnecessary async round-trip.
+      this._dnd = slice.getComponent('DragDropService');
       this._applyDnD();
     }
 
@@ -259,14 +264,8 @@ export default class Modal extends HTMLElement {
   _syncDnD() {
     if (!this._inited) return;   // init() wires from the stored flags
     if (this._dndEnabled()) {
-      if (this._dnd) {
-        this._applyDnD();
-      } else {
-        slice.build('DragDropService', { singleton: true }).then((s) => {
-          this._dnd = s;
-          this._applyDnD();
-        });
-      }
+      if (!this._dnd) this._dnd = slice.getComponent('DragDropService');
+      this._applyDnD();
     } else if (this._dnd) {
       this._dnd.detach(this.$dialog);
     }

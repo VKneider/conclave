@@ -1,0 +1,123 @@
+slice-misrespuestasview .assign-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+slice-misrespuestasview .assign-toolbar .spacer { flex: 1; }
+slice-misrespuestasview .mrv-search-slot { width: 220px; max-width: 100%; }
+slice-misrespuestasview .progress-label { font-size: 13px; color: var(--font-secondary-color); font-weight: 600; white-space: nowrap; }
+
+slice-misrespuestasview .carousel-wrap { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; }
+slice-misrespuestasview .arrow-btn {
+  flex: none; width: 54px; height: 54px; border-radius: 50%; font-size: 22px;
+  border: 2.5px solid var(--font-primary-color); background: var(--panel-background-color); color: var(--font-primary-color); cursor: pointer;
+  box-shadow: 3px 3px 0 var(--font-primary-color); transition: transform .08s ease, box-shadow .08s ease;
+}
+slice-misrespuestasview .arrow-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--font-primary-color); }
+slice-misrespuestasview .arrow-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--font-primary-color); }
+slice-misrespuestasview .arrow-btn:disabled { opacity: .35; cursor: not-allowed; box-shadow: 2px 2px 0 var(--font-primary-color); }
+
+slice-misrespuestasview .person-card {
+  flex: 1; background: var(--panel-background-color);
+  border: 2.5px solid var(--font-primary-color); border-radius: var(--card-border-radius); padding: 24px 28px; box-shadow: var(--box-shadow-primary);
+}
+slice-misrespuestasview .person-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+slice-misrespuestasview .person-id { font-size: 12px; color: var(--font-secondary-color); letter-spacing: .05em; text-transform: uppercase; font-weight: 600; }
+slice-misrespuestasview .person-name { font-family: var(--font-display); font-size: 32px; font-weight: 600; margin: 4px 0 2px; }
+slice-misrespuestasview .person-tags { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+slice-misrespuestasview .tag { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: var(--secondary-background-color); border: 1.5px solid var(--border-color); color: var(--font-secondary-color); }
+slice-misrespuestasview .tag.sexo-M { color: var(--primary-color-contrast); background: var(--male-color); border-color: var(--male-color); }
+slice-misrespuestasview .tag.sexo-F { color: var(--primary-color-contrast); background: var(--female-color); border-color: var(--female-color); }
+slice-misrespuestasview .tag-lider { background: var(--primary-color); color: var(--primary-color-contrast); border-color: var(--primary-color); }
+slice-misrespuestasview .current-assign { margin-top: 10px; font-size: 14px; color: var(--font-secondary-color); display: flex; align-items: center; gap: 8px; }
+slice-misrespuestasview .current-assign b { color: var(--font-primary-color); }
+slice-misrespuestasview .lider-toggle {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; padding: 0;
+  border: 2px solid var(--border-color); background: transparent; cursor: pointer; line-height: 1;
+  transition: transform .08s, box-shadow .08s, border-color .15s; margin-left: auto;
+}
+slice-misrespuestasview .lider-toggle:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--font-primary-color); border-color: var(--font-primary-color); }
+slice-misrespuestasview .lider-toggle:active { transform: translate(1px, 1px); box-shadow: none; }
+slice-misrespuestasview .lider-toggle.is-lider { border-color: var(--font-primary-color); background: var(--primary-color); box-shadow: 2px 2px 0 var(--font-primary-color); }
+
+slice-misrespuestasview .team-pills { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px; }
+slice-misrespuestasview .pill {
+  border: 2px solid var(--font-primary-color); background: var(--panel-background-color); color: var(--font-primary-color);
+  padding: 9px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px; transition: transform .08s ease;
+}
+slice-misrespuestasview .pill:hover { transform: translateY(-1px); }
+slice-misrespuestasview .pill.selected { background: var(--primary-color); color: var(--primary-color-contrast); }
+slice-misrespuestasview .pill .cap { font-size: 11px; opacity: .75; font-weight: 600; }
+/* Already at/over capacity — still fully clickable (over-assigning is
+   allowed on purpose), flagged with a warning border+cap instead of being
+   grayed out like a disabled control. */
+slice-misrespuestasview .pill.at-capacity { border-color: var(--warning-color); }
+slice-misrespuestasview .pill.at-capacity .cap { color: var(--warning-color); opacity: 1; font-weight: 700; }
+slice-misrespuestasview .pill.at-capacity.selected { border-color: var(--font-primary-color); }
+slice-misrespuestasview .pill.at-capacity.selected .cap { color: inherit; }
+slice-misrespuestasview .pill-clear { border-style: dashed; color: var(--font-secondary-color); background: transparent; }
+
+/* ── Just-assigned feedback ───────────────────── */
+
+slice-misrespuestasview .pill-just-assigned {
+  background: var(--success-color) !important; color: var(--success-contrast) !important;
+  border-color: var(--success-color) !important; pointer-events: none;
+  position: relative; padding-right: 38px !important;
+  animation: pillAssignPop .5s ease;
+}
+slice-misrespuestasview .pill-just-assigned .cap { color: var(--success-contrast) !important; opacity: 1 !important; }
+slice-misrespuestasview .pill-just-assigned::after {
+  content: '✓'; position: absolute; right: 14px; top: 50%;
+  transform: translateY(-50%); font-size: 17px; font-weight: 700; line-height: 1;
+  animation: checkBounce .5s ease;
+}
+
+@keyframes pillAssignPop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.14); }
+  65% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+@keyframes checkBounce {
+  0% { opacity: 0; transform: translateY(-50%) scale(0); }
+  45% { opacity: 1; transform: translateY(-50%) scale(1.4); }
+  70% { transform: translateY(-50%) scale(0.8); }
+  100% { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+
+slice-misrespuestasview .assign-summary {
+  font-size: 14px; font-weight: 600; color: var(--success-color);
+  margin-top: 8px; min-height: 22px; opacity: 0;
+}
+slice-misrespuestasview .assign-summary.visible {
+  opacity: 1;
+  animation: summarySlideIn .3s ease forwards;
+}
+
+@keyframes summarySlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  slice-misrespuestasview .carousel-wrap { gap: 8px; margin-bottom: 14px; }
+  slice-misrespuestasview .arrow-btn { width: 38px; height: 38px; font-size: 16px; box-shadow: 2px 2px 0 var(--font-primary-color); }
+  slice-misrespuestasview .arrow-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
+  slice-misrespuestasview .arrow-btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--font-primary-color); }
+  slice-misrespuestasview .person-card { padding: 14px 16px; }
+  slice-misrespuestasview .person-name { font-size: 22px; }
+  slice-misrespuestasview .person-top { flex-direction: column; align-items: flex-start; }
+  slice-misrespuestasview .assign-toolbar { margin-bottom: 10px; }
+  slice-misrespuestasview .mrv-search-slot { width: 140px; }
+  slice-misrespuestasview .team-pills { margin-top: 12px; gap: 6px; }
+  slice-misrespuestasview .pill { padding: 6px 10px; font-size: 12px; }
+  slice-misrespuestasview .dots { margin-top: 12px; gap: 4px; }
+  slice-misrespuestasview .dot { width: 9px; height: 9px; }
+}
+
+slice-misrespuestasview .progress-row { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
+slice-misrespuestasview .progress-track { flex: 1; height: 10px; background: var(--secondary-background-color); border: 1.5px solid var(--border-color); border-radius: 999px; overflow: hidden; }
+slice-misrespuestasview .progress-track > span { display: block; height: 100%; background: var(--primary-color); }
+
+slice-misrespuestasview .dots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; justify-content: center; }
+slice-misrespuestasview .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--panel-background-color); border: 1.5px solid var(--border-color); cursor: pointer; transition: transform .1s ease; }
+slice-misrespuestasview .dot.done { background: var(--success-color); border-color: var(--success-color); }
+slice-misrespuestasview .dot.active { border-color: var(--font-primary-color); transform: scale(1.3); }

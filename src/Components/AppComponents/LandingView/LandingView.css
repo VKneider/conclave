@@ -83,3 +83,97 @@ slice-landingview .la-icon { font-size: 28px; line-height: 1; margin-bottom: 2px
 slice-landingview .la-label { font-size: 14px; font-weight: 700; }
 
 slice-landingview .la-sub { font-size: 11px; font-weight: 500; color: var(--font-secondary-color); }
+
+/* ── Section titles, shared by "Cómo funciona" and "Casos de uso" ── */
+
+slice-landingview .landing-section-title {
+  font-family: var(--font-display); font-size: 24px; font-weight: 600;
+  text-align: center; margin: 0 0 28px;
+}
+
+slice-landingview .landing-howto,
+slice-landingview .landing-usecases {
+  width: 100%; max-width: 900px; margin-top: 64px;
+}
+
+/* ── "Cómo funciona" — 3-step flow ──────────────────── */
+
+slice-landingview .howto-steps {
+  display: flex; align-items: flex-start; justify-content: center; gap: 18px; flex-wrap: wrap;
+}
+
+slice-landingview .howto-step {
+  flex: 1; min-width: 200px; max-width: 240px; text-align: center;
+  background: var(--panel-background-color);
+  border: 2px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius);
+  padding: 24px 18px 20px;
+  box-shadow: var(--box-shadow-primary);
+  position: relative;
+}
+
+slice-landingview .howto-num {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%) rotate(-4deg);
+  width: 30px; height: 30px; border-radius: 9px;
+  background: var(--primary-color); color: var(--primary-color-contrast);
+  border: 2px solid var(--font-primary-color);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 15px; font-weight: 700;
+  box-shadow: 2px 2px 0 var(--font-primary-color);
+}
+
+slice-landingview .howto-icon { display: block; font-size: 30px; margin: 10px 0 10px; }
+
+slice-landingview .howto-step h3 { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+slice-landingview .howto-step p { font-size: 12.5px; line-height: 1.5; color: var(--font-secondary-color); margin: 0; }
+
+slice-landingview .howto-arrow {
+  font-size: 22px; color: var(--font-secondary-color); font-weight: 700;
+  align-self: center; margin-top: 34px;
+}
+
+@media (max-width: 720px) {
+  slice-landingview .howto-arrow { display: none; }
+}
+
+/* ── "Casos de uso" — the hero exception: bold outline, larger type, one
+   of three per screen. Each gets a distinct accent (coral/turquoise/green)
+   for rhythm, same trick as .stat-grid's cycling top bars. ── */
+
+slice-landingview .usecases-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;
+}
+
+slice-landingview .usecase-card {
+  background: var(--panel-background-color);
+  border: 2.5px solid var(--font-primary-color);
+  border-top: 7px solid var(--usecase-color, var(--primary-color));
+  border-radius: var(--card-border-radius);
+  padding: 26px 22px;
+  box-shadow: var(--box-shadow-primary);
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+slice-landingview .usecase-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--font-primary-color);
+}
+
+slice-landingview .usecase-card--primary { --usecase-color: var(--primary-color); }
+slice-landingview .usecase-card--secondary { --usecase-color: var(--secondary-color); }
+slice-landingview .usecase-card--success { --usecase-color: var(--success-color); }
+
+slice-landingview .usecase-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px; border-radius: 14px; font-size: 26px;
+  background: var(--secondary-background-color); border: 2px solid var(--font-primary-color);
+  transform: rotate(-5deg); margin-bottom: 14px;
+}
+
+slice-landingview .usecase-card h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0 0 8px; }
+slice-landingview .usecase-card p { font-size: 13.5px; line-height: 1.55; color: var(--font-secondary-color); margin: 0; }
+
+@media (max-width: 480px) {
+  slice-landingview .landing-section-title { font-size: 20px; }
+  slice-landingview .landing-howto,
+  slice-landingview .landing-usecases { margin-top: 48px; }
+}

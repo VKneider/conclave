@@ -31,10 +31,17 @@ export default class Loading extends HTMLElement {
    constructor(props) {
       super();
       slice.attachTemplate(this);
-      slice.controller.setComponentProps(this, props);
-      this._container = this.container || null;
+      // PATCHED: setComponentProps must be LAST — it fires the `active`
+      // setter, which calls start()/stop() and mutates _isActive/
+      // _currentContainer. Running it before those fields were initialized
+      // meant an `active: true` build-time prop got silently clobbered back
+      // to false right after start() ran (stop() then became a no-op and
+      // the spinner leaked in the DOM). If Loading is ever re-synced from
+      // the registry (`slice sync`), re-check this ordering survived.
+      this._container = null;
       this._isActive = false;
       this._currentContainer = null;
+      slice.controller.setComponentProps(this, props);
    }
 
    init() {}

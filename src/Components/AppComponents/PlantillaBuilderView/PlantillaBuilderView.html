@@ -1,0 +1,51 @@
+<div class="plantilla-builder-view">
+  <h2 class="view-title">Plantilla</h2>
+  <p class="view-sub">Una Plantilla tiene <b>Categorías</b> (los ejes de decisión: un equipo, una charla, una pregunta) y <b>Opciones</b> (lo que se ubica dentro de una Categoría en modo Selección: personas, temas). Ejemplos: <i>Equipos</i> + <i>Miembros</i> para asignar personas a equipos, <i>Exposiciones</i> + <i>Ponentes</i> para asignar quién expone qué, o solo Categorías en modo <i>Texto libre</i> — sin Opciones — para que cada quien escriba su propia idea frente a una pregunta abierta.</p>
+
+  <div class="section-card">
+    <h3 class="section-card__title">Detalles</h3>
+    <div class="pb-name-slot" id="plantillaNombreSlot"></div>
+  </div>
+
+  <div class="section-card">
+    <div class="pb-section-head">
+      <h3 class="section-card__title">Categorías</h3>
+      <span class="gen-badge" id="catCount">0</span>
+    </div>
+    <p class="view-sub">Cada Categoría elige su propio modo: <b>Selección</b> (asigna Opciones acá dentro, con un máximo opcional — equipos, charlas, turnos) o <b>Texto libre</b> (una pregunta abierta que cada persona responde con su propia idea, sin Opciones). Podés mezclar los dos modos en la misma Plantilla — el filtro de abajo solo ordena la vista, no restringe qué podés crear.</p>
+    <div class="pb-cat-filters">
+      <button class="pb-filter-btn active" data-filter="all" type="button">Todas</button>
+      <button class="pb-filter-btn" data-filter="seleccion" type="button">🎯 Selección</button>
+      <button class="pb-filter-btn" data-filter="texto_libre" type="button">📝 Texto libre</button>
+    </div>
+    <div class="pb-lideres-slot" id="lideresToggleSlot"></div>
+    <p class="pb-modo-hint pb-lideres-hint">Solo aplica a Categorías en modo Selección — cada una puede tener un responsable fijo (ver "Detalles" en su fila) o uno elegido desde "Mis respuestas".</p>
+    <div class="pb-add-row" id="addCatSlot"></div>
+    <div class="empty-state" id="catEmpty" hidden>Todavía no hay categorías. Escribí un nombre arriba y presioná Enter.</div>
+    <div class="empty-state" id="catFilterEmpty" hidden>No hay categorías de este tipo con el filtro actual.</div>
+    <div class="pb-list" id="catList"></div>
+  </div>
+
+  <div class="section-card">
+    <div class="pb-section-head">
+      <h3 class="section-card__title">Opciones</h3>
+      <span class="gen-badge" id="opcCount">0</span>
+    </div>
+    <p class="view-sub">Lo que se ubica dentro de una Categoría en modo Selección — las personas o temas que estés organizando. No hace falta cargar Opciones si tu Plantilla es solo de Texto libre.</p>
+    <div class="pb-opc-toggles">
+      <div class="pb-sexo-slot" id="sexoToggleSlot"></div>
+      <div class="pb-edad-slot" id="edadToggleSlot"></div>
+    </div>
+    <p class="pb-modo-hint">Desactivalos si no te importan para esta Plantilla — por ejemplo, para asignar ponentes a charlas en vez de personas a equipos.</p>
+    <div class="pb-add-row" id="addOpcSlot"></div>
+    <div class="empty-state" id="opcEmpty" hidden>Todavía no hay opciones. Escribí un nombre arriba y presioná Enter.</div>
+    <div class="pb-list" id="opcList"></div>
+  </div>
+
+  <div class="gen-main-actions">
+    <button class="btn btn-primary" id="exportPlantillaBtn">⬇ Exportar Plantilla</button>
+    <button class="btn btn-ghost" id="importPlantillaBtn">📂 Importar Plantilla</button>
+    <input type="file" id="importPlantillaFile" accept="application/json,.json" hidden />
+    <button class="btn btn-danger" id="resetBtn">🔄 Restaurar ejemplo</button>
+  </div>
+</div>

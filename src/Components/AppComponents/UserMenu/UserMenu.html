@@ -1,0 +1,17 @@
+<div class="user-menu">
+  <button class="user-menu__trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Tu cuenta">
+    <span class="user-menu__avatar" data-el="avatar">👤</span>
+  </button>
+  <div class="user-menu__panel" data-el="panel" hidden>
+    <div class="user-menu__field-slot" data-el="autorFieldSlot"></div>
+    <div class="user-menu__divider"></div>
+    <div class="user-menu__theme-slot" data-el="themeSlot"></div>
+    <div class="user-menu__divider"></div>
+    <p class="user-menu__section-label">Mis Respuestas</p>
+    <button class="user-menu__action" type="button" data-el="exportBtn">⬇ Exportar mis Respuestas</button>
+    <button class="user-menu__action" type="button" data-el="importBtn">📂 Importar mis Respuestas</button>
+    <input type="file" class="user-menu__file" data-el="importFile" accept="application/json,.json" hidden />
+    <button class="user-menu__action user-menu__action--danger" type="button" data-el="resetBtn">🗑 Reiniciar mis Respuestas</button>
+    <p class="user-menu__hint">Exportá para compartir o respaldar, importá para continuar en otro dispositivo.</p>
+  </div>
+</div>

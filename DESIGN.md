@@ -47,12 +47,12 @@ color that only exists in one.
 | `--font-primary-color` / `--font-secondary-color` | Body text / muted text. In light mode this is near-black ink; **in dark mode it's a pale off-white** — remember this before using it as a border color (see "Hero vs. dense elements"). |
 | `--panel-background-color` / `--panel-alt-background-color` | Card / elevated surface backgrounds. |
 | `--border-color` | Soft, low-contrast hairline — for dense/repeated UI, not for "hero" outlines. |
-| `--male-color` / `--female-color` | Fixed semantic colors for the member gender tally in "Por equipo" — not part of the brand palette, kept distinct on purpose. |
+| `--male-color` / `--female-color` | Fixed semantic colors for the member gender tally in "Por categoría" — not part of the brand palette, kept distinct on purpose. |
 | `--card-border-radius` | `18px`. The chunky, playful corner radius used on cards. |
 | `--box-shadow-primary` | The hard offset "sticker" shadow. |
 
 Per-team colors (the distinct hue assigned to each team/role) are generated
-separately in `RosterService.colorFor()` from a fixed 12-color palette — that
+separately in `PlantillaService.colorFor()` from a fixed 12-color palette — that
 palette is orthogonal to the theme tokens above and doesn't need to match them.
 
 ## Shape & borders — hero vs. dense elements
@@ -68,7 +68,7 @@ with a bold ink border reads as noise, not personality, and in dark mode
 small repeated element shows up as a wall of white flecks rather than a subtle
 accent.
 
-The resolved pattern (see `MemberChip.css`):
+The resolved pattern (see `OpcionChip.css`):
 - **Resting state** of a small/repeated element: thin `var(--border-color)`.
 - **Interactive state** (hover, active, dragging) — that's where the bold ink
   border / hard shadow shows up, as feedback rather than baseline decoration.
@@ -77,7 +77,7 @@ Large, few-in-number containers (the "Sin asignar" sidebar, a big empty-state
 panel) should generally use `var(--border-color)`, not
 `var(--font-primary-color)`, for the same reason — reserve the loud ink border
 for things that are meant to visually anchor the page (team squares, stat
-cards, the person card in "Mi asignación").
+cards, the person card in "Mis respuestas").
 
 ## Shadows
 
@@ -114,21 +114,21 @@ still fine for things like drag-over/hover backgrounds elsewhere).
 Product rule: organizers are allowed to assign a member to a team that's
 already at its maximum. It's easier to move or remove the excess person
 afterward than to leave someone unassigned while hunting for room elsewhere.
-`AssignmentService.assign()` never blocks — there is no "team is full,
+`RespuestasService.assignOpcion()` never blocks — there is no "team is full,
 rejected" path anymore.
 
 What replaces the block is a **persistent, always-visible alert**, not a
-toast: `RosterService.statusOf(team, count)` already returns `'over'` when a
+toast: `PlantillaService.statusOf(team, count)` already returns `'over'` when a
 team exceeds its max, and that status feeds the `over`/`danger`-colored badge
-everywhere a team's status is shown — Dashboard's team cards, "Por equipo"'s
+everywhere a team's status is shown — Dashboard's team cards, "Por categoría"'s
 squares, and Comparar's final tally. Because it's computed live from state
 (not a dismissible notification), it simply disappears once the team is back
 at/under its max — nothing to acknowledge or clear by hand.
 
-"Por equipo" additionally gives the over-capacity square a **pulsing outline**
-(`.ps-square.is-over`, see `ByTeamView.css`) since that's the view where
+"Por categoría" additionally gives the over-capacity square a **pulsing outline**
+(`.ps-square.is-over`, see `PorCategoriaView.css`) since that's the view where
 organizers actively resolve conflicts — the pulse is slow (2.4s) and disabled
-under `prefers-reduced-motion`. Team pills in "Mi asignación" that are already
+under `prefers-reduced-motion`. Team pills in "Mis respuestas" that are already
 at capacity get a warning-colored border instead of being grayed out /
 `cursor: not-allowed` — they must stay visibly *clickable*, since blocking the
 click is exactly the behavior this feature removed. A one-time toast
@@ -147,8 +147,8 @@ playful; more reads as broken.
 
 ## Drag and drop: DragDropService
 
-**Yes, it's used, and yes, it was worth it.** "Por equipo" is the one view
-with real drag-and-drop (dragging a `MemberChip` between the "Sin asignar"
+**Yes, it's used, and yes, it was worth it.** "Por categoría" is the one view
+with real drag-and-drop (dragging a `OpcionChip` between the "Sin asignar"
 sidebar and team squares), and it's built entirely on the official
 `DragDropService` Visual/Service pair from the Slice.js component registry
 (`slicejs-cli get DragDropService`) rather than hand-rolled HTML5 drag events.
@@ -170,28 +170,28 @@ sidebar and team squares), and it's built entirely on the official
   instead of manually tracking "which zone is the pointer currently over"
   across `dragenter`/`dragleave` bubbling quirks.
 
-**How we use the API** (see `ByTeamView.js`): dropzones are the sidebar
+**How we use the API** (see `PorCategoriaView.js`): dropzones are the sidebar
 (`.ps-sidebar`) and every team square (`.ps-square`) — their DOM nodes are
 built once in `_buildShell()` and never rebuilt, so `makeDroppable()` is
-called exactly once per zone and never re-registered. Each `MemberChip`
+called exactly once per zone and never re-registered. Each `OpcionChip`
 registers itself as draggable (`makeDraggable`, with `{ memberId }` as the
 drop payload) inside its own `_registerDraggable()` — the chip, not the view,
 owns its own drag registration. Moving a chip between zones on drop is a
 plain `container.appendChild(existingChipNode)` — no destroy/rebuild, see the
-lifecycle notes in `ByTeamView.js` itself for why.
+lifecycle notes in `PorCategoriaView.js` itself for why.
 
 **The one gotcha it cost us**, because `DragDropService` clones the dragged
 DOM node for the drag-ghost:
 
-1. The ghost is a clone of the **plain `.member-chip` span**, not the
-   `<slice-memberchip>` custom element — cloning a custom element re-runs its
+1. The ghost is a clone of the **plain `.opcion-chip` span**, not the
+   `<slice-opcionchip>` custom element — cloning a custom element re-runs its
    constructor (re-attaching a blank template with no props), which silently
    empties the ghost's text. Only clone plain elements you want a drag ghost
    of, never the custom element wrapper itself.
 2. Because the ghost is a bare clone appended straight to `<body>`, it's
-   **outside any `<slice-memberchip>` ancestor** — so `MemberChip.css`'s
-   `.member-chip` rules are deliberately **not** scoped under the
-   `slice-memberchip` tag prefix (unlike every other component's CSS, which
+   **outside any `<slice-opcionchip>` ancestor** — so `OpcionChip.css`'s
+   `.opcion-chip` rules are deliberately **not** scoped under the
+   `slice-opcionchip` tag prefix (unlike every other component's CSS, which
    does use that convention). If you add a new draggable component, either
    follow this same unscoped pattern or accept that its drag ghost will
    render unstyled.
@@ -199,6 +199,34 @@ DOM node for the drag-ghost:
 Net assessment: one non-obvious gotcha (now documented, one-time cost) versus
 not having to write pointer tracking, ghost rendering, auto-scroll, or
 touch-vs-mouse handling by hand. Worth it.
+
+## CRUD forms (PlantillaBuilderView)
+
+The Categoría/Opción editor follows the "dense/repeated" rule from Shape &
+borders above, not the hero treatment: each row (the `CategoriaRow`/
+`OpcionRow` Visual components) rests at a thin `var(--border-color)` and
+only picks up the bold ink border + hard offset shadow on hover/
+focus-within — the same resolved pattern as `OpcionChip`, extended from
+"chip" to "form row." Fields inside a row use the registry `Input`/
+`Select`/`Checkbox` components, reskinned to the same small, dense field
+style directly in their own vendored CSS (see GOTCHAS.md's registry-reskin
+entry) plus a size-only override local to the row — reserve the loud
+outline for the `.section-card` containers around the whole list, not each
+editable field. Destructive actions (deleting a Categoría/Opción) go
+through the same `confirm:request` + impact-count pattern as the old
+HelpView's bulk save, just triggered per-row instead of per bulk-save.
+
+## Large comparison cards (texto_libre)
+
+The "tercera vista" for free-text proposals (`TextCompareCards`) is a
+deliberate hero exception to the dense-chip rule: since there are only ever
+as many cards as there are imported sources (typically single digits, not
+dozens), every card gets the full bold-outline + hard-offset treatment
+(`3px` border, `5px 5px 0` shadow) plus noticeably larger type (`17px` body
+text vs. the app's normal `13–14px`) — "cards grandes, texto grande" is the
+literal product ask, not just a suggestion. The chosen/"final" card gets its
+outline and shadow recolored to `--success-color` instead of ink, matching
+the same "solid, unmistakable" language `.badge.ok` already uses elsewhere.
 
 ## File map
 
@@ -210,4 +238,4 @@ touch-vs-mouse handling by hand. Worth it.
   Reach for a shared class here before writing a per-component duplicate.
 - `src/Components/**/*.css` — per-view/per-component styling, scoped under
   that component's custom-element tag (e.g. `slice-dashboardview .team-card`)
-  except `MemberChip.css` (see the gotcha above).
+  except `OpcionChip.css` (see the gotcha above).

@@ -1,34 +1,44 @@
 // ── Composition root ──────────────────────────────────────────────────
 // Boots every singleton in order, then steps back. After init(), recover
-// any service by name:  slice.getComponent('AssignmentService').assign(...)
+// any service by name:  slice.getComponent('RespuestasService').assignOpcion(...)
 //
 // ── Services without context ─────────────────────────────────────────
-//   RosterService       In-memory cache (localStorage + seed fallback)
-//   DataParserService   CSV/TSV/JSON parser for teams & members
+//   FormatService       Stateless string helpers (esc) — the getComponent()
+//                        substitute for importing /utils/format.js directly
+//   SanitizeService     Wraps vendored DOMPurify (src/libs/DOMpurify) —
+//                        sanitizes a fully-assembled HTML string right
+//                        before innerHTML assignment, on top of esc()
 //   FileDownloadService Stateless Blob download helper
 //   ExportService       JSON envelope builder for exports
-//   ImportService       In-memory cache + localStorage (imported JSON sources)
 //   DragDropService     Pointer-event DnD (registry component)
+//   ChartService        Wraps vendored Chart.js (src/libs/chartjs) — create/destroy
+//                        canvas charts without any consumer importing the lib directly
 //
 // ── Context catalog (all persist: true → localStorage) ────────────────
-//   settings      { autor, nombreOrganizacion, lideres, lideresEnabled }
-//                 Created by  SettingsService     Watched by  AppShell,
-//                 DashboardView, ByTeamView, SettingsView, TopBar
-//   assignment    { [memberId]: teamId }
-//                 Created by  AssignmentService   Watched by  AppShell,
-//                 DashboardView, MyAssignmentView, ByTeamView, CompareView
-//   resolutions   { [memberId]: teamId }
-//                 Created by  ResolutionService   Watched by  AppShell,
-//                 CompareView
+//   settings              { autor, lideres, lideresEnabled }
+//                         Created by  SettingsService         Watched by  AppShell,
+//                         DashboardView, PorCategoriaView, UserMenu, TopBar
+//   plantilla              { nombre, categorias, opciones }
+//                         Created by  PlantillaService         Watched by  AppShell,
+//                         DashboardView, MisRespuestasView, PorCategoriaView, RespuestasView,
+//                         RespuestasTextoView, CompareView, CompareCarousel, TextCompareCards,
+//                         PlantillaBuilderView, LandingView, TopBar
+//   respuestas             { seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: string} }
+//                         Created by  RespuestasService         Watched by  AppShell,
+//                         DashboardView, MisRespuestasView, PorCategoriaView, RespuestasTextoView,
+//                         CompareView, LandingView
+//   decisionFinal          { seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: {autor, texto}} }
+//                         Created by  ConsensoService           Watched by  AppShell,
+//                         CompareView, CompareCarousel, TextCompareCards
+//   respuestasImportadas   [{ autor, respuestas: { seleccion, texto } }]
+//                         Created by  RespuestasImportService   Watched by  CompareView,
+//                         CompareCarousel, FinalTally, TextCompareCards
 //
 // ── Event catalog ─────────────────────────────────────────────────────
 //   toast:show          → Providers →  ToastProvider.show()
-//   roster:changed      → DashboardView._refresh, MyAssignmentView._paint,
-//                         ByTeamView._layout, CompareView._paint,
-//                         SettingsView._rebuildDataLists
-//   confirm:request     → ConfirmActionModal._open()
-//   router:change       → auto-declared by framework (not listed here)
-//   context:*           → auto-declared by framework (not listed here)
+//   confirm:request      → ConfirmActionModal._open()
+//   router:change        → auto-declared by framework (not listed here)
+//   context:*            → auto-declared by framework (not listed here)
 // ──────────────────────────────────────────────────────────────────────
 export default class Providers {
   constructor() {
@@ -49,12 +59,6 @@ export default class Providers {
         payload: { message: 'string', type: 'string', duration: 'number' },
       },
     });
-    slice.events.register('roster', {
-      changed: {
-        description: 'Roster data was replaced or edited — views should repaint.',
-        payload: {},
-      },
-    });
     slice.events.register('confirm', {
       request: {
         description: 'Open the app-wide confirm/cancel dialog (ConfirmActionModal). '
@@ -68,18 +72,21 @@ export default class Providers {
       },
     });
 
-    // RosterService must finish loading before any view reads team/member
-    // data — it reads from localStorage or falls back to bundled seed.
-    await slice.build('RosterService', { singleton: true });
+    // PlantillaService must finish loading before any view reads
+    // categoría/opción data — it reads from localStorage (the `plantilla`
+    // context) or falls back to the bundled seed.
+    await slice.build('PlantillaService', { singleton: true });
 
-    await slice.build('DataParserService', { singleton: true });
+    await slice.build('FormatService', { singleton: true });
+    await slice.build('SanitizeService', { singleton: true });
     await slice.build('FileDownloadService', { singleton: true });
     await slice.build('SettingsService', { singleton: true });
-    await slice.build('AssignmentService', { singleton: true });
-    await slice.build('ResolutionService', { singleton: true });
+    await slice.build('RespuestasService', { singleton: true });
+    await slice.build('ConsensoService', { singleton: true });
     await slice.build('ExportService', { singleton: true });
-    await slice.build('ImportService', { singleton: true });
+    await slice.build('RespuestasImportService', { singleton: true });
     await slice.build('DragDropService', { singleton: true });
+    await slice.build('ChartService', { singleton: true });
 
     const toasts = await slice.build('ToastProvider', { singleton: true });
     toasts.setPosition('bottom-right');

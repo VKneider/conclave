@@ -93,7 +93,7 @@ main.app-shell__content { flex: 1; padding: 32px 28px; max-width: 1200px; width:
 .stat-card .v small { font-family: var(--font-body); font-size: 15px; color: var(--font-secondary-color); font-weight: 500; }
 .stat-card .pct { font-size: 12px; color: var(--font-secondary-color); margin-top: 4px; font-weight: 600; }
 
-/* Shared progress bar, reused by DashboardView and ByTeamView — solid fill. */
+/* Shared progress bar, reused by DashboardView and PorCategoriaView — solid fill. */
 .bar { height: 8px; background: var(--secondary-background-color); border-radius: 999px; overflow: hidden; position: relative; border: 1px solid var(--border-color); }
 .bar > span { display: block; height: 100%; }
 
@@ -114,34 +114,17 @@ main.app-shell__content { flex: 1; padding: 32px 28px; max-width: 1200px; width:
 .badge.over { background: var(--danger-color); color: var(--danger-contrast); }
 .badge.empty { background: var(--secondary-background-color); color: var(--font-secondary-color); }
 
-/* Shared empty-state message, reused by MyAssignmentView and CompareView. */
+/* Shared empty-state message, reused by MisRespuestasView and CompareView. */
 .empty-state { color: var(--font-secondary-color); text-align: center; padding: 40px; font-size: 13.5px; }
 
-/* Shared compact text input, reused by MyAssignmentView's search and CompareView's filters. */
-.mini-input { background: var(--panel-background-color); border: 2px solid var(--border-color); color: var(--font-primary-color); border-radius: 9px; padding: 7px 10px; font-family: var(--font-body); font-size: 13px; outline: none; }
-.mini-input:focus-visible { border-color: var(--primary-color); outline: none; }
-
-/* ConfirmActionModal (Service, no .css of its own) overrides the registry
-   Modal's default soft-blur look to match Sticker Book — bold ink outline,
-   hard offset shadow, no gradient/glow. The extra .confirm-modal class (set
-   in JS right after building it) guarantees this wins over Modal.css's own
-   `slice-modal .slice-modal` rule regardless of CSS load order. */
-slice-modal.confirm-modal .slice-modal {
-  border: 2.5px solid var(--font-primary-color);
-  border-radius: var(--card-border-radius);
-  box-shadow: 6px 6px 0 var(--font-primary-color);
-  background: var(--panel-background-color);
-  animation: none;
-}
-slice-modal.confirm-modal .slice-modal__header {
-  font-family: var(--font-display); font-size: 19px; font-weight: 600;
-  border-bottom: 2px solid var(--border-color);
-}
-slice-modal.confirm-modal .slice-modal__footer { border-top: 2px solid var(--border-color); gap: 10px; }
+/* ConfirmActionModal-specific extras — the base Sticker Book skin (border,
+   shadow, header/footer) is now Modal's own default (see Modal.css), so
+   nothing to override here beyond this dialog's particular content. */
 slice-modal.confirm-modal .confirm-modal__message { margin: 0 0 4px; color: var(--font-secondary-color); line-height: 1.55; }
+/* The field's own input is a built registry Input (see ConfirmActionModal.js)
+   — its Sticker Book skin lives in Input.css now, nothing to override here.
+   This just spaces the caption span above it. */
 slice-modal.confirm-modal .confirm-modal__field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--font-secondary-color); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
-slice-modal.confirm-modal .confirm-modal__field input {
-  background: var(--panel-background-color); border: 2px solid var(--border-color); color: var(--font-primary-color);
-  border-radius: 9px; padding: 9px 12px; font-size: 14px; font-family: var(--font-body); font-weight: 500; outline: none;
-}
-slice-modal.confirm-modal .confirm-modal__field input:focus-visible { border-color: var(--primary-color); }
+/* See GOTCHAS.md §18 — .hidden is toggled on this element (shown only for
+   confirm:request calls that pass inputLabel). */
+slice-modal.confirm-modal .confirm-modal__field[hidden] { display: none; }

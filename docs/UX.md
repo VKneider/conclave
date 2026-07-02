@@ -29,8 +29,8 @@ Scale the offsets to match the element's shadow at rest (e.g., pills use 2px off
 | Checkmark appear (carousel) | 500ms | ease | `checkBounce` keyframes: scale 0 → 1.4 → 0.8 → 1. Plays on `.pill-just-assigned::after`. |
 | Summary slide-in (carousel) | 300ms | ease | `summarySlideIn`: translateY(-6px) + opacity 0 → translateY(0) + opacity 1. |
 | Context watcher repaint | 0ms | — | Synchronous, no animation. Views repaint instantly on context change. |
-| Drag ghost (ByTeamView) | real-time | — | Pointer follows finger. No easing — direct 1:1. |
-| Pulsing outline (over-capacity) | 2.4s | ease-in-out | `.ps-square.is-over` in ByTeamView. Disabled under `prefers-reduced-motion`. |
+| Drag ghost (PorCategoriaView) | real-time | — | Pointer follows finger. No easing — direct 1:1. |
+| Pulsing outline (over-capacity) | 2.4s | ease-in-out | `.ps-square.is-over` in PorCategoriaView. Disabled under `prefers-reduced-motion`. |
 
 ### CSS animation patterns used
 
@@ -70,7 +70,7 @@ Every animation must be disabled under `prefers-reduced-motion`. The pulse on `.
 }
 ```
 
-## Carousel assignment feedback (MyAssignmentView)
+## Carousel assignment feedback (MisRespuestasView)
 
 ### Flow
 
@@ -90,42 +90,59 @@ Every animation must be disabled under `prefers-reduced-motion`. The pulse on `.
 ### CSS
 
 ```css
-slice-myassignmentview .pill-just-assigned {
+slice-misrespuestasview .pill-just-assigned {
   background: var(--success-color) !important; color: white !important;
   border-color: var(--success-color) !important; pointer-events: none;
   position: relative; padding-right: 38px !important;
   animation: pillAssignPop .5s ease;
 }
-slice-myassignmentview .pill-just-assigned::after {
+slice-misrespuestasview .pill-just-assigned::after {
   content: '✓'; position: absolute; right: 14px; top: 50%;
   transform: translateY(-50%); font-size: 17px; font-weight: 700; line-height: 1;
   animation: checkBounce .5s ease;
 }
-slice-myassignmentview .assign-summary {
+slice-misrespuestasview .assign-summary {
   font-size: 14px; font-weight: 600; color: var(--success-color);
   margin-top: 8px; min-height: 22px; opacity: 0;
 }
-slice-myassignmentview .assign-summary.visible {
+slice-misrespuestasview .assign-summary.visible {
   opacity: 1; animation: summarySlideIn .3s ease forwards;
 }
 ```
 
-## HelpView diff display
+## PlantillaBuilderView CRUD rows
 
-The diff bar appears in the preview when parsing data before saving:
+Replaced the old CSV/JSON textarea + bulk diff-bar preview entirely — Categorías
+and Opciones are now edited as individual `.pb-row` rows, each with its own
+inline fields and an immediate per-action confirm (see DESIGN.md §CRUD forms
+for the visual rule). No bulk "preview before save" step exists anymore:
+editing a field commits on `change` (blur/Enter), and deleting a row goes
+straight to a `confirm:request` naming the exact impact count (`"Se
+limpiarán N respuestas que apuntaban a ella"`) — the same information the old
+diff bar used to summarize in aggregate, just computed per single deletion
+instead of per bulk save.
 
 ```css
-slice-helpview .diff-bar {
-  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
-  padding: 10px 14px; border-radius: 8px;
-  background: var(--secondary-background-color);
-  border: 1.5px solid var(--border-color);
-  font-size: 13px; font-weight: 700;
+slice-plantillabuilderview .pb-row {
+  border: 1.5px solid var(--border-color); border-radius: 10px; padding: 10px 12px;
+  transition: border-color .12s, box-shadow .12s;
 }
-slice-helpview .diff-add    { color: var(--success-color, #3fb964); }
-slice-helpview .diff-remove { color: var(--danger-color); }
-slice-helpview .diff-modify { color: var(--warning-color, #e2a13a); }
+slice-plantillabuilderview .pb-row:hover,
+slice-plantillabuilderview .pb-row:focus-within {
+  border-color: var(--font-primary-color);
+  box-shadow: 2px 2px 0 var(--font-primary-color);
+}
 ```
+
+## Large text-comparison cards (TextCompareCards)
+
+The `modo: 'texto_libre'` counterpart to `CompareCarousel` — see DESIGN.md
+§Large comparison cards for the "why hero treatment here" rationale. One big
+card per author for the active Categoría, `17px` line-height-1.6 body text,
+`5px 5px 0` shadow. Navigation is by Categoría (prev/next), not by author —
+all authors' proposals for the current question are visible at once, since
+"ver todas las ideas de los demás" (see everyone's ideas at once) is the
+literal point of this view, unlike the one-Opción-at-a-time carousel.
 
 ## Status badges
 
@@ -135,16 +152,16 @@ Badges are solid-filled pills (`.badge` in `sliceStyles.css`), not soft tints. T
 
 - Over-capacity assignment is allowed (never blocked).
 - The persistent signal: `status: 'over'` → danger-colored badge.
-- ByTeamView: pulsing outline (2.4s) on `.is-over` squares.
-- MyAssignmentView: warning-colored border on `.at-capacity` pills (not grayed out — must stay clickable).
+- PorCategoriaView: pulsing outline (2.4s) on `.is-over` squares.
+- MisRespuestasView: warning-colored border on `.at-capacity` pills (not grayed out — must stay clickable).
 - A one-time toast fires when a push goes over capacity ("«Team» quedó con exceso de personas"). The toast is an immediate heads-up; the badge is the source of truth.
 
-## Drag and drop (ByTeamView)
+## Drag and drop (PorCategoriaView)
 
 See DESIGN.md §Drag and drop: DragDropService for the full API description. Key points:
 
-- Only plain DOM elements should be registered as draggable, not the `<slice-memberchip>` custom element wrapper (clone re-runs constructor, loses props).
-- `MemberChip.css` is deliberately NOT tag-scoped (`.member-chip` rules are under `slice-byteamview`, not under `slice-memberchip`) because the drag ghost is a bare clone appended to `<body>`.
+- Only plain DOM elements should be registered as draggable, not the `<slice-opcionchip>` custom element wrapper (clone re-runs constructor, loses props).
+- `OpcionChip.css` is deliberately NOT tag-scoped (`.opcion-chip` rules are under `slice-porcategoriaview`, not under `slice-opcionchip`) because the drag ghost is a bare clone appended to `<body>`.
 
 ## Iconography
 

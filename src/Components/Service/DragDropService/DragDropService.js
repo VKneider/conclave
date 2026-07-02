@@ -54,11 +54,6 @@ export default class DragDropService {
     document.head.appendChild(style);
   }
 
-  static getInstance() {
-    if (!this._instance) this._instance = new this();
-    return this._instance;
-  }
-
   // ─── Draggable ───────────────────────────────────────────────
 
   makeDraggable(node, config = {}) {
@@ -162,7 +157,12 @@ export default class DragDropService {
     return this;
   }
 
-  destroy() {
+  // PATCHED: was named destroy() — the framework only ever calls
+  // beforeDestroy(), so this cleanup (removing the document-level
+  // pointerdown listener, among other things) could never actually run.
+  // If DragDropService is ever re-synced from the registry
+  // (`slice sync --service`), re-check this rename survived.
+  beforeDestroy() {
     document.removeEventListener('pointerdown', this._onPointerDown);
     if (this._activeDrag) this._endDrag(null);
     if (this._activeSortable) this._endSortable(null);

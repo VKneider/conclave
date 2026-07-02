@@ -1,8 +1,13 @@
 slice-comparecarousel .cmp-carousel { display: flex; flex-direction: column; gap: 14px; }
+slice-comparecarousel .cc-dynamic { display: flex; flex-direction: column; gap: 14px; }
+
+/* Search field — a built registry Input (see CompareCarousel.js), lives in
+   .cc-search-slot outside .cc-dynamic so it's never rebuilt/re-templated
+   like everything else here. */
+slice-comparecarousel .cc-search-slot { max-width: 220px; }
 
 /* Filters */
 slice-comparecarousel .cc-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-slice-comparecarousel .cc-search { width: 160px; }
 slice-comparecarousel .cc-filter-btn { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px; cursor: pointer; border: 2px solid var(--border-color); background: transparent; color: var(--font-secondary-color); text-transform: uppercase; letter-spacing: .03em; transition: transform .08s, box-shadow .08s, border-color .15s; }
 slice-comparecarousel .cc-filter-btn:hover { border-color: var(--font-primary-color); color: var(--font-primary-color); }
 slice-comparecarousel .cc-filter-btn.active { background: var(--primary-color); color: var(--primary-color-contrast); border-color: var(--primary-color); }
@@ -13,7 +18,7 @@ slice-comparecarousel .cc-spacer { flex: 1; }
 /* Carousel body */
 slice-comparecarousel .cc-body { display: flex; align-items: center; gap: 18px; margin-bottom: 0; }
 
-/* Arrow buttons — same pattern as MyAssignmentView */
+/* Arrow buttons — same pattern as MisRespuestasView */
 slice-comparecarousel .cc-arrow { flex: none; width: 54px; height: 54px; border-radius: 50%; font-size: 22px; border: 2.5px solid var(--font-primary-color); background: var(--panel-background-color); color: var(--font-primary-color); cursor: pointer; box-shadow: 3px 3px 0 var(--font-primary-color); transition: transform .08s ease, box-shadow .08s ease; }
 slice-comparecarousel .cc-arrow:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--font-primary-color); }
 slice-comparecarousel .cc-arrow:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--font-primary-color); }
@@ -74,7 +79,7 @@ slice-comparecarousel .cc-empty { text-align: center; padding: 40px 20px; color:
   slice-comparecarousel .cc-name { font-size: 20px; }
   slice-comparecarousel .cc-source-label { min-width: 80px; font-size: 12px; }
   slice-comparecarousel .cc-source-row { font-size: 12px; }
-  slice-comparecarousel .cc-search { width: 120px; }
+  slice-comparecarousel .cc-search-slot { max-width: 160px; }
   slice-comparecarousel .cc-dots { gap: 4px; }
   slice-comparecarousel .cc-dot { width: 9px; height: 9px; }
 }

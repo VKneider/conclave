@@ -1,3 +1,26 @@
+/* Plantilla identity line — no rigid "tipo" field exists (a Plantilla can
+   mix modo Selección/Texto libre freely), so this shows the actual name +
+   a live composition summary instead of forcing an artificial category. */
+slice-dashboardview .dash-plantilla { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 2px 0 10px; }
+slice-dashboardview .dash-plantilla__name {
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  padding: 4px 12px; border-radius: 999px;
+  background: var(--panel-background-color); border: 2px solid var(--font-primary-color);
+}
+slice-dashboardview .dash-plantilla__meta { font-size: 12px; color: var(--font-secondary-color); font-weight: 600; }
+
+/* Completion doughnut — built once via ChartService (wraps vendored
+   Chart.js), updated in place on every _refresh(). The canvas can't read
+   var(--x) tokens directly (see ChartService.themeColor), so its colors
+   are baked in at build time from the resolved theme values. */
+slice-dashboardview .stat-card--chart { display: flex; flex-direction: column; }
+slice-dashboardview .dash-chart-wrap { position: relative; flex: 1; min-height: 84px; margin-top: 4px; }
+slice-dashboardview .dash-chart-pct {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--font-primary-color);
+  pointer-events: none;
+}
+
 slice-dashboardview .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 16px; }
 slice-dashboardview .team-card {
   background: var(--panel-background-color); border: 2px solid var(--font-primary-color); border-radius: var(--card-border-radius); padding: 16px;
@@ -19,12 +42,31 @@ slice-dashboardview .gender-dot {
 }
 slice-dashboardview .gender-dot.M { background: var(--male-color); }
 slice-dashboardview .gender-dot.F { background: var(--female-color); }
-slice-dashboardview .stat-grid .stat-card:nth-child(5)::before { background: var(--male-color); }
-slice-dashboardview .stat-grid .stat-card:nth-child(6)::before { background: var(--female-color); }
+
+/* This view's stat-grid has 7 cards (the completion chart + 6 data cards) —
+   sliceStyles.css's shared .stat-grid nth-child rule only accounts for 4 and
+   is also used by CompareCarousel/CompareView/LandingView, so it can't just
+   be edited there. Override explicitly here instead of relying on position
+   math matching across two files. */
+slice-dashboardview .stat-grid .stat-card:nth-child(1)::before,
+slice-dashboardview .stat-grid .stat-card:nth-child(2)::before { background: var(--primary-color); }
+slice-dashboardview .stat-grid .stat-card:nth-child(3)::before { background: var(--success-color); }
+slice-dashboardview .stat-grid .stat-card:nth-child(4)::before { background: var(--secondary-color); }
+slice-dashboardview .stat-grid .stat-card:nth-child(5)::before { background: var(--warning-color); }
+slice-dashboardview .stat-grid .stat-card:nth-child(6)::before { background: var(--male-color); }
+slice-dashboardview .stat-grid .stat-card:nth-child(7)::before { background: var(--female-color); }
 
 @media (max-width: 760px) {
   slice-dashboardview .stat-grid { grid-template-columns: repeat(2,1fr); }
 }
+
+slice-dashboardview .texto-list { display: flex; flex-direction: column; gap: 8px; }
+slice-dashboardview .texto-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--panel-background-color); border: 1.5px solid var(--border-color); border-radius: 10px;
+  padding: 10px 14px;
+}
+slice-dashboardview .texto-row__name { font-size: 13px; font-weight: 600; }
 
 /* Team members modal — lives in <body> so NOT scoped under slice-dashboardview */
 .team-member-list {
