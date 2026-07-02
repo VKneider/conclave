@@ -16,6 +16,39 @@
     <meta property="og:description" content="Asigna personas a equipos, compara propuestas y define la lista final." />
     <meta property="og:url" content="https://conclave.vkneider.dev" />
     <meta property="og:image" content="https://conclave.vkneider.dev/images/og-image.png" />
+    <script>
+      (() => {
+        const defaultTheme = 'Light';
+        let themeName = defaultTheme;
+        try {
+          const savedTheme = localStorage.getItem('sliceTheme');
+          if (savedTheme) themeName = savedTheme;
+        } catch (_) {
+          themeName = defaultTheme;
+        }
+
+        document.documentElement.setAttribute('data-slice-theme', themeName);
+
+        try {
+          const cachedThemeCss = localStorage.getItem(`sliceTheme-${themeName}`);
+          if (cachedThemeCss) {
+            const style = document.createElement('style');
+            style.id = 'slice-theme-boot';
+            style.textContent = cachedThemeCss;
+            document.head.appendChild(style);
+            return;
+          }
+        } catch (_) {
+          // Ignore storage errors and fall back to direct theme stylesheet load.
+        }
+
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `/Themes/${themeName}.css`;
+        link.setAttribute('data-slice-theme-boot', 'true');
+        document.head.appendChild(link);
+      })();
+    </script>
     <link rel="stylesheet" type="text/css" href="/App/style.css" />
   </head>
 

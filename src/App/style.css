@@ -6,6 +6,10 @@
 
 body {
   margin: 0;
-  background: var(--primary-background-color);
-  color: var(--font-primary-color);
+  background: var(--primary-background-color, #fff8ef);
+  color: var(--font-primary-color, #1a1a2e);
+}
+
+html {
+  background: var(--primary-background-color, #fff8ef);
 }
