@@ -184,11 +184,14 @@ export default class PlantillaBuilderView extends HTMLElement {
   }
 
   // Shared "reuse by stable id" list sync: builds a row component for every
-  // new item (first-then-Promise.all(rest), so slice.build('X', ...) stays a
-  // literal call site the bundle analyzer can see — see GOTCHAS.md §5),
-  // updates existing rows via their setter (cheap, idempotent), destroys
-  // rows for items that no longer exist, and reorders the DOM to match.
-  // Never rebuilds a survivor.
+  // new item (first-then-Promise.all(rest)), updates existing rows via their
+  // setter (cheap, idempotent), destroys rows for items that no longer exist,
+  // and reorders the DOM to match. Never rebuilds a survivor.
+  //
+  // IMPORTANT: keep literal `slice.build('CategoriaRow', ...)` and
+  // `slice.build('OpcionRow', ...)` call sites here. The CLI analyzer only
+  // detects literal names, so variable-based `slice.build(componentName, ...)`
+  // can exclude rows from route bundles (see GOTCHAS.md §5).
   async _syncRows(registry, items, container, componentName, applyItem) {
     const currentIds = new Set(items.map((it) => String(it.id)));
     Object.keys(registry).forEach((id) => {
@@ -201,9 +204,20 @@ export default class PlantillaBuilderView extends HTMLElement {
     const toBuild = items.filter((it) => !registry[String(it.id)]);
     if (toBuild.length) {
       const [first, ...rest] = toBuild;
-      const firstRow = await slice.build(componentName, { sliceId: `${container.id}-${first.id}` });
-      const restRows = await Promise.all(rest.map((it) => slice.build(componentName, { sliceId: `${container.id}-${it.id}` })));
-      [firstRow, ...restRows].forEach((row, i) => { registry[String(toBuild[i].id)] = row; });
+
+      if (componentName === 'CategoriaRow') {
+        const firstRow = await slice.build('CategoriaRow', { sliceId: `${container.id}-${first.id}` });
+        const restRows = await Promise.all(rest.map((it) => slice.build('CategoriaRow', { sliceId: `${container.id}-${it.id}` })));
+        [firstRow, ...restRows].forEach((row, i) => { registry[String(toBuild[i].id)] = row; });
+      } else if (componentName === 'OpcionRow') {
+        const firstRow = await slice.build('OpcionRow', { sliceId: `${container.id}-${first.id}` });
+        const restRows = await Promise.all(rest.map((it) => slice.build('OpcionRow', { sliceId: `${container.id}-${it.id}` })));
+        [firstRow, ...restRows].forEach((row, i) => { registry[String(toBuild[i].id)] = row; });
+      } else {
+        const firstRow = await slice.build(componentName, { sliceId: `${container.id}-${first.id}` });
+        const restRows = await Promise.all(rest.map((it) => slice.build(componentName, { sliceId: `${container.id}-${it.id}` })));
+        [firstRow, ...restRows].forEach((row, i) => { registry[String(toBuild[i].id)] = row; });
+      }
     }
 
     items.forEach((it) => applyItem(registry[String(it.id)], it));
