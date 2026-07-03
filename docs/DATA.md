@@ -1,112 +1,138 @@
 # Data format & lifecycle
 
-## Storage
+Reflects the post-Fase-3 model (Tema/Opción vocabulary, four modos, dynamic
+atributos, voto/ranking). See `REDESIGN.md` for the phased history and
+`docs/COMPONENT-PATTERNS.md` for how components read/write this state.
 
-All data persists in `localStorage`, and only there — there is no server-side persistence and no plan to add one for Plantilla data specifically (it's authored entirely in-browser via `PlantillaBuilderView`; sharing it means exporting/importing the JSON file by hand, same as Respuestas). `api/` is a static/SPA-fallback server only, not a data API.
+## Storage (all `slice.context`, `persist: true` → localStorage)
 
-| Key | Content | Owner |
+| Key | Owner | Content |
 |---|---|---|
-| `conclave-settings-v3` | `{autor, lideres, lideresEnabled, sexoEnabled, edadEnabled}` | `settings` context (persist: true) |
-| `conclave-plantilla-v1` | `{categorias: Categoria[], opciones: Opcion[]}` | `plantilla` context (persist: true) |
-| `conclave-respuestas-v1` | `{seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: string}}` | `respuestas` context (persist: true) |
-| `conclave-decision-final-v1` | `{seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: {autor, texto}}}` | `decisionFinal` context (persist: true) |
-| `conclave-respuestas-importadas-v1` | `[{autor, respuestas: {seleccion, texto}}]` | `respuestasImportadas` context (persist: true) |
+| `conclave-settings-v3` | `SettingsService` | `{ autor, lideres, lideresEnabled }` |
+| `conclave-plantilla-v1` | `PlantillaService` | `{ nombre, atributos, temas, opciones }` |
+| `conclave-respuestas-v1` | `RespuestasService` | `{ seleccion, texto, voto, ranking }` |
+| `conclave-decision-final-v1` | `ConsensoService` | `{ seleccion, texto, voto, ranking }` |
+| `conclave-respuestas-importadas-v1` | `RespuestasImportService` | `[{ autor, respuestas: { seleccion, texto, voto, ranking } }]` |
 
-## The two JSON types
+All data is browser-only; there is no data server (`api/` is a static/SPA
+fallback only).
 
-Conclave distinguishes two kinds of exportable/importable JSON throughout the app and codebase:
-
-- **Plantilla** ("SETUP"): the shared structure a leader defines and distributes — Categorías + Opciones. One Plantilla, shared by everyone in the group.
-- **Respuestas** ("DATA"): one person's own answers against a Plantilla — their team assignments and/or free-text proposals. Each person has their own.
-
-### Plantilla envelope
-
-```json
-{
-  "app": "conclave",
-  "version": 2,
-  "tipo": "plantilla",
-  "nombre": "Retiro Juvenil 2026",
-  "autor": "Mateo Rivas",
-  "fecha": "2026-01-01T00:00:00.000Z",
-  "categorias": [ /* Categoria[] */ ],
-  "opciones": [ /* Opcion[] */ ]
-}
-```
-
-Built by `ExportService.downloadPlantilla()`, downloaded from `PlantillaBuilderView`. Imported from `CompareView`'s collapsible "Importar una Plantilla compartida" section — a bulk replace via `PlantillaService.loadFromData()`, gated behind a confirm dialog naming how many current Respuestas would be orphaned.
-
-### Respuestas envelope
-
-```json
-{
-  "app": "conclave",
-  "version": 2,
-  "tipo": "respuestas",
-  "autor": "Elena Duarte",
-  "fecha": "2026-01-01T00:00:00.000Z",
-  "respuestas": {
-    "seleccion": { "3": "transporte", "4": "bienvenida" },
-    "texto": { "cierre-actividad": "Propongo una fogata con..." }
-  }
-}
-```
-
-`tipo` is `"respuestas"` for a personal export (`ExportService.downloadRespuestas()`, from `RespuestasService.exportMine()`) or `"respuestas-final"` for the reconciled list (`ExportService.downloadRespuestasFinal()`, from `ConsensoService.exportFinal()`). Imported two different ways depending on intent:
-
-- **As a comparison source** (CompareView's main `ImportDrop`) → `RespuestasImportService.import()` ADDS it to the list of sources being compared, doesn't touch your own respuestas.
-- **As your own session** (`UserMenu`'s "Importar mis Respuestas") → `RespuestasService.importMine()` REPLACES your own `respuestas` context wholesale — for continuing on a different device.
-
-## Categoría / Opción shapes
-
-Categoría generalizes what used to be "Equipo" (team) — the decision axis (a team, an exposición slot, a discussion topic):
+## The Plantilla (`plantilla` context)
 
 ```js
 {
-  id: 'transporte',            // stable slug, the join key
+  nombre: 'Retiro 2026',
+  atributos: [ /* Atributo[] — custom per-Opción fields */ ],
+  temas: [ /* Tema[] */ ],
+  opciones: [ /* Opcion[] */ ],
+}
+```
+
+### Tema (ex "Categoría"/"Equipo")
+A decision axis. Its **`modo`** decides how it's answered:
+
+```js
+{
+  id: 'transporte',        // stable slug — the join key, never changes on rename
   nombre: 'Transporte',
-  modo: 'seleccion',           // 'seleccion' | 'texto_libre'
-  orden: 3,                    // display order
-  capacidad: 6, min: 4, max: 6,// only meaningful when modo === 'seleccion'
-  participable: true,          // generalizes the old `asignable` flag
-  meta: { lider: null, numero: 3 }, // modo:'seleccion'-specific extras
+  modo: 'reparto',         // 'reparto' | 'votacion' | 'ranking' | 'texto_libre'
+  orden: 3,
+  capacidad: 6, min: 4, max: 6,   // only meaningful for modo 'reparto'
+  participable: true,             // reparto: accepts pool assignments
+  meta: { lider: null, numero: 3 },
 }
 ```
 
-Opción generalizes what used to be "Miembro" (member) — the item placed inside a modo `seleccion` Categoría (a person, a speaker):
+- **`reparto`** (ex `seleccion`; UI label "Asignación") — the shared global
+  Opción **pool** is distributed into these temas (assign people to teams). Has
+  capacidad/min/max. Answered in `respuestas.seleccion`.
+- **`votacion`** — the Tema **owns** its Opciones (`opcion.temaId === tema.id`);
+  each responder picks exactly one. Answered in `respuestas.voto`.
+- **`ranking`** — the Tema owns its Opciones; each responder orders them (▲▼).
+  Answered in `respuestas.ranking`. Compared via Borda aggregation.
+- **`texto_libre`** — a free-text question, no Opciones. Answered in
+  `respuestas.texto`.
+
+A single Plantilla can mix modos freely.
+
+### Opción (ex "Miembro")
+```js
+{
+  id: 3,               // stable numeric id, the join key
+  nombre: 'Andrés',
+  temaId: null,        // null = reparto pool; non-null = owned by that votacion/ranking Tema
+  meta: {              // custom attribute values keyed by Atributo.key, + pool flags
+    sexo: 'M', edad: 23,      // ← just example atributos now, not hardcoded fields
+    fijo: false, rolFijo: null,
+  },
+}
+```
+
+- **Pool Opciones** (`temaId: null`) — candidates for reparto. `getOpcionesPool()`
+  / `getOpcionesDisponibles()` (pool minus `fijo`).
+- **Tema-owned Opciones** (`temaId` set) — the choices of a votacion/ranking
+  Tema. `getOpcionesDeTema(temaId)`.
+
+### Atributo (dynamic custom Opción field — Fase 3)
+```js
+{ key: 'rol', label: 'Rol', type: 'texto'|'numero'|'lista'|'siNo', opciones?: ['A','B'] }
+```
+Values live in `opcion.meta[key]`. edad/sexo are **not** special anymore — they
+are the default example atributos of the seed ("Asignación") Plantilla
+(`DEFAULT_ATRIBUTOS` in `seedData.js`). `PlantillaService.getOpcionAtributos(opcion)`
+returns `[{key,label,display}]` for generic tag rendering;
+`formatAtributo(atributo, value)` formats one value.
+
+## Respuestas (`respuestas` context) — one person's own answers
 
 ```js
 {
-  id: 3,                       // stable numeric id, the join key
-  nombre: 'Andrés Bracamonte',
-  meta: { sexo: 'M', edad: null, fijo: false, rolFijo: null },
+  seleccion: { [opcionId]: temaId },   // reparto: which tema each pool Opción goes to
+  texto:     { [temaId]: string },     // texto_libre: one answer per tema
+  voto:      { [temaId]: opcionId },   // votacion: one chosen Opción per tema
+  ranking:   { [temaId]: opcionId[] }, // ranking: ordered Opción ids per tema
 }
 ```
 
-`modo` is set **per Categoría**, not per Plantilla — one Plantilla can mix "assign these Opciones to these Categorías" (modo `seleccion`) with "what's your idea for X" (modo `texto_libre`) in a single shared session. Opciones only apply to modo `seleccion` Categorías; modo `texto_libre` Categorías are answered directly as free text, no Opción pool involved.
+`decisionFinal` (ConsensoService) mirrors this shape — the reconciled "final"
+decision made in Comparar. `respuestasImportadas` holds other people's
+Respuestas as comparison sources; `RespuestasImportService._normalizeRespuestas`
+filters all four modos against the current Plantilla on import/boot.
 
-## Seed data
+## The two exportable JSON types
 
-`src/data/seedData.js` exports `SEED_CATEGORIAS` (7, all modo `seleccion`) and `SEED_OPCIONES` (15). Used as fallback the first time the app runs, or if `conclave-plantilla-v1` is missing/empty/invalid. All fictional (invented names, not real retreat data) — deliberate, for public demo purposes. `src/data/equipos.json` / `miembros.json` are unrelated legacy reference files, not read by any code path.
+- **Plantilla** (`tipo: 'plantilla'`): the shared setup — `{ nombre, atributos,
+  temas, opciones }`. Built by `ExportService.downloadPlantilla`, imported via
+  `PlantillaService.prepareImport` → `loadFromData(temas, opciones, nombre, atributos)`
+  (validates shape + `isSafeId`, computes orphan impact, confirm-gated).
+- **Respuestas** (`tipo: 'respuestas'` / `'respuestas-final'`): one person's
+  answers — `{ respuestas: { seleccion, texto, voto, ranking } }`. Exported per
+  person or as the reconciled final (`ConsensoService.exportFinal`).
 
-## Fixed ID strategy
+## Fixed-ID strategy & cleanup
 
-Every Categoría/Opción `id` is the stable identifier that `respuestas`, `decisionFinal`, `settings.lideres`, and `respuestasImportadas` all reference.
+Every Tema/Opción `id` is the stable join key referenced by `respuestas`,
+`decisionFinal`, `settings.lideres`, and `respuestasImportadas`. Renaming
+changes `nombre`, never `id`. Deleting routes through
+`PlantillaService._cleanupOrphaned(removedTemaIds, removedOpcionIds)`, which
+scrubs orphaned entries from **all four modos** in `respuestas` +
+`decisionFinal`, from `settings.lideres`, and from `respuestasImportadas`.
+Removing a votacion/ranking Tema **cascades** to its owned Opciones.
 
-- **Substituting a person/categoría**: Edit its fields in `PlantillaBuilderView` but keep the same `id`. All references survive.
-- **Deleting**: `PlantillaService.removeCategoria()`/`removeOpcion()` (or a bulk Plantilla import via `loadFromData()`) runs `_cleanupOrphaned()`, which scrubs orphaned entries from every one of those four places automatically. `PlantillaBuilderView`'s delete confirm names the exact impact count first.
-- **Adding**: `addCategoria()`/`addOpcion()` auto-generate an id if none is given (slug from nombre for Categorías, incremental number for Opciones).
-- **Renaming**: Change `nombre`, keep `id`. References are preserved.
+## Bulk & migration
 
-## Data flow on replacement
+- Bulk CRUD: `removeTemas(ids)` / `removeOpciones(ids)` / `clearTemas()` /
+  `clearOpciones()` (all cascade + cleanup) — powers the builder's multi-select
+  delete + "Borrar todo".
+- **Migration** runs once per session in `PlantillaService._ensure()` →
+  `_migrate()`, **before** the empty/invalid reseed check (GOTCHAS §24), for
+  returning users: `categorias→temas`, `modo seleccion→reparto`, add
+  `temaId:null`, adopt `DEFAULT_ATRIBUTOS`. IDs never change, so respuestas/
+  decisionFinal/settings need no migration. voto/ranking default in getters
+  (GOTCHAS §20), no migration needed there.
 
-See ARCHITECTURE.md §Data flow for the full diagram. Key cleanup steps inside `PlantillaService._cleanupOrphaned()`:
+## Seed
 
-1. `respuestas.seleccion` and `respuestas.texto` — entries referencing a removed Opción/Categoría are dropped.
-2. Same for `decisionFinal.seleccion` and `decisionFinal.texto`.
-3. `settings.lideres` — leader assignments pointing to a deleted Categoría/Opción are dropped.
-4. `respuestasImportadas` — `RespuestasImportService.removeOrphaned()` filters every imported source's `seleccion` and `texto` the same way, and drops a source entirely only if BOTH end up empty.
-
-## Editing Categorías/Opciones (PlantillaBuilderView)
-
-There is no bulk CSV/JSON paste-and-parse step anymore — `PlantillaBuilderView` at `/plantilla` is real CRUD: a form-backed row per Categoría/Opción, edited inline (commits on blur/`change`), added via a name-only `confirm:request` prompt, removed via a confirm naming the exact impact count. A Categoría's `modo` is a toggle in its row that shows/hides the capacidad/min/max fields. "Exportar Plantilla" downloads the current state as the envelope above.
+`src/data/seedData.js` exports `SEED_TEMAS` (7, modo `reparto`), `SEED_OPCIONES`
+(15, pool), `DEFAULT_ATRIBUTOS` (sexo/edad). Fallback the first time the app
+runs or when localStorage is empty/invalid. All fictional (public demo).

@@ -1,0 +1,80 @@
+/* Sticker Book reskin of the registry Tabs (see GOTCHAS §14 — registry
+   components are reskinned in their own .css, not overridden per consumer).
+   The tab list is a SEGMENTED CONTROL: one container with a single ink border
+   + hard offset shadow, buttons inside. This keeps the bold ink treatment as a
+   hero-per-group (DESIGN.md), instead of a row of separate pills each with its
+   own border (which reads as noise for repeated elements). No panels are used
+   by this app — consumers manage their own content visibility. */
+
+slice-tabs { display: block; }
+slice-tabs .slice_tabs { width: 100%; }
+
+/* The panels container is unused (consumers render content themselves) —
+   collapse it so it never adds stray padding. */
+slice-tabs .slice_tabs_panels { padding: 0; }
+slice-tabs .slice_tabs_panels:empty { display: none; }
+
+/* ── Segmented control shell ─────────────────────────────────── */
+slice-tabs .slice_tabs_list {
+  display: inline-flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  width: auto;
+  max-width: 100%;
+}
+slice-tabs .slice_tabs_list::-webkit-scrollbar { display: none; }
+
+/* ── Individual tab button ───────────────────────────────────── */
+slice-tabs .slice_tab_button {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--font-secondary-color);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color .15s ease, background-color .15s ease, transform .08s ease;
+}
+slice-tabs .slice_tab_button:hover { color: var(--font-primary-color); }
+slice-tabs .slice_tab_button:active { transform: scale(0.96); }
+slice-tabs .slice_tab_button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+slice-tabs .slice_tab_button.active {
+  background: var(--primary-color);
+  color: var(--primary-color-contrast);
+}
+
+/* ── PRIMARY — bold hero segmented control (genuinely different tasks) ── */
+slice-tabs .slice_tabs_list.variant-primary {
+  padding: 5px;
+  border: 2.5px solid var(--font-primary-color);
+  background: var(--panel-background-color);
+  box-shadow: var(--box-shadow-primary);
+}
+slice-tabs .variant-primary .slice_tab_button {
+  padding: 8px 20px;
+  font-size: 14px;
+}
+
+/* ── SECONDARY — subtler nested segmented control (peer choices) ── */
+slice-tabs .slice_tabs_list.variant-secondary {
+  padding: 3px;
+  border: 2px solid var(--border-color);
+  background: var(--panel-alt-background-color);
+}
+slice-tabs .variant-secondary .slice_tab_button {
+  padding: 5px 14px;
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  slice-tabs .slice_tab_button { transition: none; }
+  slice-tabs .slice_tab_button:active { transform: none; }
+}

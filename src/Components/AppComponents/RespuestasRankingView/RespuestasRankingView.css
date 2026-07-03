@@ -1,0 +1,48 @@
+slice-respuestasrankingview { display: block; }
+
+slice-respuestasrankingview .rk-list {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+slice-respuestasrankingview .rk-card {
+  background: var(--panel-background-color);
+  border: 2.5px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--box-shadow-primary);
+  padding: 18px;
+}
+slice-respuestasrankingview .rk-card--answered { border-color: var(--success-color); }
+slice-respuestasrankingview .rk-card__head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 14px;
+}
+slice-respuestasrankingview .rk-card__title { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin: 0; }
+slice-respuestasrankingview .rk-card__status {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--font-secondary-color); white-space: nowrap;
+}
+slice-respuestasrankingview .rk-card--answered .rk-card__status { color: var(--success-color); }
+
+slice-respuestasrankingview .rk-items { display: flex; flex-direction: column; gap: 8px; }
+slice-respuestasrankingview .rk-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 12px;
+  background: var(--panel-alt-background-color); border: 1.5px solid var(--border-color);
+}
+slice-respuestasrankingview .rk-pos {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--primary-color); color: var(--primary-color-contrast);
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+}
+slice-respuestasrankingview .rk-name { flex: 1; font-size: 14px; font-weight: 600; }
+slice-respuestasrankingview .rk-moves { display: flex; flex-direction: column; gap: 2px; }
+slice-respuestasrankingview .rk-move {
+  border: 1.5px solid var(--border-color); background: var(--panel-background-color); cursor: pointer;
+  border-radius: 6px; width: 26px; height: 18px; line-height: 1; font-size: 9px; padding: 0;
+  color: var(--font-primary-color); display: flex; align-items: center; justify-content: center;
+}
+slice-respuestasrankingview .rk-move:hover:not(:disabled) { border-color: var(--font-primary-color); }
+slice-respuestasrankingview .rk-move:disabled { opacity: .35; cursor: default; }
+slice-respuestasrankingview .rk-noopc {
+  font-size: 12.5px; color: var(--font-secondary-color); font-style: italic;
+}

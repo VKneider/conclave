@@ -1,5 +1,5 @@
 slice-opcionrow { display: block; }
-/* PATCHED: same bug as CategoriaRow.css (see its comment) — an unconditional
+/* PATCHED: same bug as TemaRow.css (see its comment) — an unconditional
    author-level `display` always beats the browser's `[hidden]` UA rule. Not
    currently exploited (nothing hides an OpcionRow's outer tag today), but
    fixed proactively so it doesn't silently break the next thing that does. */
@@ -32,22 +32,25 @@ slice-opcionrow .opc-row__mini-field {
   display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: var(--font-secondary-color);
   font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
 }
-/* This is the actual bug the "Habilitar edad" toggle hit — same class as
-   above: OpcionRow._syncToggles() sets this element's .hidden, which the
-   unconditional display:flex above silently ignored. (.opc-row__sexo-slot
-   never had this problem — it only sets flex/width, no competing display.) */
 slice-opcionrow .opc-row__mini-field[hidden] { display: none; }
-slice-opcionrow .opc-row__mini-field input {
-  width: 74px; background: var(--panel-background-color); border: 1.5px solid var(--border-color); color: var(--font-primary-color);
+slice-opcionrow .opc-row__mini-field input,
+slice-opcionrow .opc-row__mini-field select {
+  width: 96px; background: var(--panel-background-color); border: 1.5px solid var(--border-color); color: var(--font-primary-color);
   border-radius: 7px; padding: 6px 9px; font-size: 13px; font-family: var(--font-body); font-weight: 500; outline: none;
 }
-slice-opcionrow .opc-row__mini-field input:focus-visible { border-color: var(--primary-color); }
-slice-opcionrow .opc-row__sexo-slot { flex: none; width: 80px; }
+slice-opcionrow .opc-row__mini-field input:focus-visible,
+slice-opcionrow .opc-row__mini-field select:focus-visible { border-color: var(--primary-color); }
+/* Dynamic per-atributo fields (Fase 3) lay out inline with rol fijo / fijo. */
+slice-opcionrow .opc-row__atributos { display: contents; }
+slice-opcionrow .opc-row__attr-check {
+  flex-direction: row; align-items: center; gap: 6px; text-transform: none; font-size: 11px;
+}
+slice-opcionrow .opc-row__attr-check input { width: auto; }
 slice-opcionrow .opc-row__rolfijo-slot { flex: 1; min-width: 160px; }
 
 /* Compact sizing only for this dense-row context — the actual skin lives
    directly in Input.css/Select.css/Checkbox.css now (patched for Sticker
-   Book, per their own header comments). See CategoriaRow.css for the full
+   Book, per their own header comments). See TemaRow.css for the full
    explanation of this narrower, size-only override. */
 slice-opcionrow slice-input .slice_input,
 slice-opcionrow slice-select .slice_select_container {
@@ -56,3 +59,8 @@ slice-opcionrow slice-select .slice_select_container {
 slice-opcionrow slice-select .slice_select { font-size: 12.5px; }
 slice-opcionrow slice-checkbox .slice_checkbox_container { padding: 4px; }
 slice-opcionrow slice-checkbox .checkbox_label { font-size: 12px; }
+
+/* Bulk-select checkbox (shown by PlantillaBuilderView's multi-select) */
+slice-opcionrow .opc-row__select {
+  width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; accent-color: var(--primary-color);
+}

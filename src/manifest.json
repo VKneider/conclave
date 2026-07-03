@@ -1,6 +1,7 @@
 {
-  "name": "Conclave — Organizador de equipos",
+  "name": "Conclave — Decisiones en equipo",
   "short_name": "Conclave",
+  "description": "Tomá decisiones grupales sin reuniones eternas: votaciones, asignaciones, rankings y lluvias de ideas. Cada quien responde por su cuenta y comparen para decidir juntos.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFF8F0",

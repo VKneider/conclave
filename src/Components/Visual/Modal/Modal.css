@@ -16,7 +16,7 @@ slice-modal .slice-modal:not([open]) {
    shadow instead of the stock soft-blur/top-accent-bar look, and no gradient.
    A modal is exactly the "hero, one-at-a-time" case DESIGN.md reserves that
    treatment for. This used to be duplicated per call site via a marker class
-   (.confirm-modal in sliceStyles.css, .team-members-modal in DashboardView) —
+   (.confirm-modal in sliceStyles.css, .tema-opciones-modal in DashboardView) —
    consolidated here since every current usage wants the same look; the
    registry's `#9333ea` purple fallback (present in neither theme) is gone
    too. If Modal is ever re-synced from the registry (`slice sync`),

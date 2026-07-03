@@ -8,17 +8,18 @@ Herramienta para tomar decisiones grupales estructuradas: un líder arma una **P
 
 ## Cómo funciona
 
-1. **Diseñá tu Plantilla** — Categorías y Opciones, o preguntas de texto libre. El líder arma el setup una vez.
+1. **Arma tu Plantilla** — suma **Temas** y elige el modo de cada uno (asignación, votación, ranking o texto libre). El líder arma el setup una vez; puedes empezar desde un ejemplo.
 2. **Cada quien responde** — a su manera, en su propio dispositivo, sin coordinar en tiempo real.
-3. **Comparen y decidan** — importen las Respuestas de todos y vean coincidencias, diferencias e ideas juntos.
+3. **Comparen y decidan** — importen las Respuestas de todos y vean coincidencias, mayorías e ideas — y fijen la decisión final juntos.
 
-## Casos de uso
+## Modos (un Tema por decisión)
 
-- **Asignación de equipos** — cada organizador asigna personas a equipos con su propio criterio. Comparen las listas y decidan la versión final juntos.
-- **Ponentes y exposiciones** — mismo flujo, otro contexto: asignen quién expone qué tema, propongan por separado y reconcilien en la reunión.
-- **Generación de ideas** — cada persona escribe su propuesta en texto libre frente a un problema común. Compárenlas en cards grandes y elijan la mejor.
+- **🎯 Asignación** — reparte un pool de personas/ítems entre equipos con cupos mín/máx. Comparen las listas y decidan la versión final.
+- **🗳️ Votación** — una pregunta con varias opciones; cada quien elige una y gana la mayoría (incluye Sí/No).
+- **🏆 Ranking** — ordena un conjunto de opciones por prioridad; se agregan los órdenes de todos (Borda) para un ranking de consenso.
+- **📝 Lluvia de ideas** — preguntas abiertas de texto libre; cada persona escribe su propuesta y se comparan lado a lado.
 
-Los tres casos usan el mismo modelo genérico: una Categoría (un equipo, una charla, una pregunta) está en modo **Selección** (se le asignan Opciones — personas, temas) o modo **Texto libre** (cada quien escribe su propia respuesta). Una Plantilla puede mezclar ambos modos libremente.
+Una misma Plantilla puede **mezclar modos** — por ejemplo una votación de fecha, un ranking de prioridades y una pregunta abierta, todo junto.
 
 ## Stack
 

@@ -1,9 +1,13 @@
 <div class="respuestas-view">
   <h2 class="view-title">Mis respuestas</h2>
+  <div class="av-progress" data-el="progress" hidden>
+    <div class="av-progress__track"><span data-el="progressBar"></span></div>
+    <span class="av-progress__label" data-el="progressLabel"></span>
+  </div>
   <div class="av-empty" hidden>
     <div class="av-empty__icon">🗂️</div>
     <h3>Todavía no hay nada que responder</h3>
-    <p>Tu Plantilla no tiene Opciones ni categorías de texto libre cargadas. Andá a Plantilla para crear las Categorías y Opciones sobre las que vas a responder.</p>
+    <p>Tu Plantilla todavía no tiene nada para responder — ni Opciones para asignar, ni Temas de votación o texto libre. Ve a Plantilla para armarla.</p>
     <button class="btn btn-primary" data-el="goPlantilla">📐 Ir a Plantilla</button>
   </div>
   <div class="av-kind-tabs" hidden></div>
@@ -11,6 +15,8 @@
   <div class="av-slots">
     <div data-slot="carousel"></div>
     <div data-slot="board" hidden></div>
+    <div data-slot="votacion" hidden></div>
+    <div data-slot="ranking" hidden></div>
     <div data-slot="texto" hidden></div>
   </div>
 </div>

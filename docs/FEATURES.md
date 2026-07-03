@@ -1,5 +1,41 @@
 # Feature documentation
 
+> **Post-Fase-3 additions** (the sections further down predate these in some
+> naming; Categoría→Tema, seleccion→reparto throughout):
+>
+> - **Four modos per Tema** (`docs/DATA.md`): `reparto` (pool→temas, the old
+>   assignment flow), `votacion` (pick one owned Opción), `ranking` (order owned
+>   Opciones with ▲▼; compared by Borda aggregate), `texto_libre`. Mixable.
+>   Votación/ranking share the inline owned-Opciones editor in `TemaRow` and the
+>   kind-tab pattern in Responder/Comparar.
+> - **Votación end-to-end.** Builder: choosing modo "Votación" on a `TemaRow`
+>   reveals an inline editor for that Tema's own Opciones (add/list/remove,
+>   `temaId`-owned). Respond: `RespuestasVotacionView` — one card per votación
+>   Tema, its Opciones as radio-pills, one pick per Tema (`RespuestasService.
+>   setVoto`). Compare: CompareView's "Votación" kind-tab shows a per-Tema vote
+>   tally (bars + counts), suggests the majority, and lets the organizer pin a
+>   final decision (★) via `ConsensoService.setResolutionVoto`.
+> - **Atributos custom (Fase 3).** The Plantilla defines `atributos`
+>   (`{key,label,type,opciones?}`); `OpcionRow` renders one field per attribute
+>   dynamically; values live in `opcion.meta[key]`. sexo/edad are just the seed
+>   defaults now. Shown generically via `PlantillaService.getOpcionAtributos`.
+>   The old sexoEnabled/edadEnabled toggles + Hombres/Mujeres cards + M/F counts
+>   are gone.
+> - **Bulk ops in the builder.** Each Tema/Opción row has a select checkbox;
+>   a "Borrar seleccionados (N)" bar + a per-section "🗑 Borrar todo" (via
+>   `PlantillaService.removeTemas/removeOpciones/clearTemas/clearOpciones`).
+> - **The global Opciones list is now "Pool de Asignación"** — shown only when
+>   the Plantilla has ≥1 reparto Tema (`getOpcionesPool`); votación/ranking
+>   temas own their Opciones inline.
+> - **Preset gallery (Fase 5).** `src/data/presets.js` defines 6 starter
+>   Plantillas (asignación, votación, Sí/No, ideas, ranking, mixta); the builder
+>   shows them in a `<details>` gallery. Picking one loads it via
+>   `prepareImport` + `loadFromData` (confirm-gated when the current Plantilla
+>   isn't empty).
+> - **Tabs** (`Visual/Tabs`, from the registry, reskinned): the shared segmented
+>   control used by RespuestasView + CompareView's kind/mode tab rows —
+>   `variant: 'primary'|'secondary'`. See GOTCHAS §26.
+
 ## Landing page stats
 
 File: `src/Components/AppComponents/LandingView/LandingView.js`

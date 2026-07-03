@@ -8,8 +8,7 @@ export default class LandingView extends HTMLElement {
 
   init() {
     this._roster = slice.getComponent('PlantillaService');
-    this._esc = slice.getComponent('FormatService').esc;
-    this._sanitize = slice.getComponent('SanitizeService').sanitize.bind(slice.getComponent('SanitizeService'));
+    this._html = slice.getComponent('HtmlService');
     this._render();
     slice.context.watch('respuestas', this, () => this._render());
     slice.context.watch('plantilla', this, () => this._render());
@@ -20,50 +19,53 @@ export default class LandingView extends HTMLElement {
   }
 
   _render() {
-    const orgName = this._roster.getNombre();
-
     const roster = this._roster;
-    const members = roster.getOpcionesDisponibles();
-    const teams = roster.getCategoriasParticipables();
-    const asignaciones = slice.getComponent('RespuestasService').getState().seleccion;
-    const assigned = members.filter((m) => asignaciones[m.id]).length;
-    const total = members.length;
+    const nombre = roster.getNombre();
+    const esc = (s) => this._html.esc(s);
 
-    this.$root.innerHTML = this._sanitize(`
+    const temas = roster.getTemas();
+    const byModo = { reparto: 0, votacion: 0, ranking: 0, texto_libre: 0 };
+    temas.forEach((t) => { if (byModo[t.modo] != null) byModo[t.modo]++; });
+    const compBadges = [
+      byModo.reparto ? `<span class="lp-badge">🎯 ${byModo.reparto} asignación</span>` : '',
+      byModo.votacion ? `<span class="lp-badge">🗳️ ${byModo.votacion} votación</span>` : '',
+      byModo.ranking ? `<span class="lp-badge">🏆 ${byModo.ranking} ranking</span>` : '',
+      byModo.texto_libre ? `<span class="lp-badge">📝 ${byModo.texto_libre} texto libre</span>` : '',
+    ].filter(Boolean).join('');
+
+    this.$root.innerHTML = this._html.sanitize(`
       <div class="landing-hero">
         <div class="landing-brandmark">🏷️</div>
         <h1 class="landing-title">Conclave</h1>
-        ${orgName ? `<p class="landing-org">${this._esc(orgName)}</p>` : '<p class="landing-sub">Organiza decisiones en equipo</p>'}
-        <p class="landing-desc">Definí una Plantilla, respondé por tu cuenta, comparen respuestas y decidan juntos.</p>
-        <button class="btn btn-primary landing-cta" id="landingGo">Ir al Dashboard →</button>
+        <p class="landing-sub">Decisiones en equipo, sin reuniones eternas</p>
+        <p class="landing-desc">Arma una <b>Plantilla</b>, cada quien responde por su cuenta, y después <b>comparen y decidan juntos</b> — votaciones, asignaciones, rankings o lluvias de ideas.</p>
+        <div class="landing-cta-row">
+          <button class="btn btn-primary landing-cta" data-href="/mis-respuestas">✍️ Responder</button>
+          <button class="btn btn-ghost landing-cta" data-href="/plantilla">📐 Editar plantilla</button>
+        </div>
       </div>
 
-      <div class="landing-stats">
-        <div class="stat-card"><div class="k">Opciones</div><div class="v">${total}</div></div>
-        <div class="stat-card"><div class="k">Categorías</div><div class="v">${teams.length}</div></div>
-        <div class="stat-card"><div class="k">Respondidas</div><div class="v">${assigned}<small>/${total}</small></div></div>
+      <div class="landing-plantilla">
+        <span class="lp-name">📋 ${esc(nombre || 'Mi Plantilla')}</span>
+        ${compBadges ? `<span class="lp-badges">${compBadges}</span>` : '<span class="lp-empty">Todavía sin temas — ármala en Plantilla</span>'}
       </div>
 
       <div class="landing-actions">
-        <button class="la-card" data-href="/mis-respuestas" aria-label="Responder uno por uno">
-          <span class="la-icon">🎯</span>
-          <span class="la-label">Responder</span>
-          <span class="la-sub">Uno por uno</span>
+        <button class="la-card" data-href="/mis-respuestas">
+          <span class="la-icon">✍️</span><span class="la-label">Responder</span>
+          <span class="la-sub">Tu propuesta</span>
         </button>
-        <button class="la-card" data-href="/comparar" aria-label="Comparar propuestas">
-          <span class="la-icon">🔀</span>
-          <span class="la-label">Comparar</span>
-          <span class="la-sub">Vs. otras propuestas</span>
+        <button class="la-card" data-href="/comparar">
+          <span class="la-icon">🔀</span><span class="la-label">Comparar</span>
+          <span class="la-sub">Y decidir juntos</span>
         </button>
-        <button class="la-card" data-href="/dashboard" aria-label="Ir al dashboard">
-          <span class="la-icon">📊</span>
-          <span class="la-label">Dashboard</span>
-          <span class="la-sub">Resumen completo</span>
+        <button class="la-card" data-href="/dashboard">
+          <span class="la-icon">📊</span><span class="la-label">Dashboard</span>
+          <span class="la-sub">Resumen</span>
         </button>
-        <button class="la-card" data-href="/plantilla" aria-label="Diseñar la Plantilla">
-          <span class="la-icon">📐</span>
-          <span class="la-label">Plantilla</span>
-          <span class="la-sub">Categorías y Opciones</span>
+        <button class="la-card" data-href="/plantilla">
+          <span class="la-icon">📐</span><span class="la-label">Plantilla</span>
+          <span class="la-sub">Arma el setup</span>
         </button>
       </div>
 
@@ -71,53 +73,52 @@ export default class LandingView extends HTMLElement {
         <h2 class="landing-section-title">Cómo funciona</h2>
         <div class="howto-steps">
           <div class="howto-step">
-            <span class="howto-num">1</span>
-            <span class="howto-icon">📐</span>
-            <h3>Diseñá tu Plantilla</h3>
-            <p>Categorías y Opciones, o preguntas de texto libre — el líder arma el setup una vez.</p>
+            <span class="howto-num">1</span><span class="howto-icon">📐</span>
+            <h3>Arma tu Plantilla</h3>
+            <p>Suma Temas y elige el modo de cada uno — el líder arma el setup una vez. Puedes empezar desde un ejemplo.</p>
           </div>
           <span class="howto-arrow">→</span>
           <div class="howto-step">
-            <span class="howto-num">2</span>
-            <span class="howto-icon">✍️</span>
+            <span class="howto-num">2</span><span class="howto-icon">✍️</span>
             <h3>Cada quien responde</h3>
-            <p>A su manera, en su propio dispositivo, sin coordinar en tiempo real.</p>
+            <p>A su manera, en su propio dispositivo, sin coordinar en tiempo real. Exportas tu respuesta como archivo.</p>
           </div>
           <span class="howto-arrow">→</span>
           <div class="howto-step">
-            <span class="howto-num">3</span>
-            <span class="howto-icon">🔀</span>
+            <span class="howto-num">3</span><span class="howto-icon">🔀</span>
             <h3>Comparen y decidan</h3>
-            <p>Importen las Respuestas de todos y vean coincidencias, diferencias e ideas juntos.</p>
+            <p>Importen las respuestas de todos y vean coincidencias, mayorías e ideas — y fijen la decisión final.</p>
           </div>
         </div>
       </section>
 
       <section class="landing-usecases">
-        <h2 class="landing-section-title">Para qué podés usarla</h2>
+        <h2 class="landing-section-title">Un modo para cada decisión</h2>
         <div class="usecases-grid">
-          <div class="usecase-card usecase-card--primary">
+          <button class="usecase-card usecase-card--primary" data-href="/plantilla">
             <span class="usecase-icon">🎯</span>
-            <h3>Asignación de equipos</h3>
-            <p>Cada organizador asigna personas a equipos con su propio criterio. Comparen las listas y decidan la versión final juntos.</p>
-          </div>
-          <div class="usecase-card usecase-card--secondary">
-            <span class="usecase-icon">🎤</span>
-            <h3>Ponentes y exposiciones</h3>
-            <p>Mismo flujo, otro contexto: asignen quién expone qué tema, propongan por separado y reconcilien en la reunión.</p>
-          </div>
-          <div class="usecase-card usecase-card--success">
+            <h3>Asignación</h3>
+            <p>Reparte un grupo de personas entre equipos con cupos mín/máx. Comparen las listas y decidan la versión final.</p>
+          </button>
+          <button class="usecase-card usecase-card--secondary" data-href="/plantilla">
+            <span class="usecase-icon">🗳️</span>
+            <h3>Votación</h3>
+            <p>Una pregunta con varias opciones; cada quien elige una y gana la mayoría. Ideal para "¿qué fecha?" o un Sí/No.</p>
+          </button>
+          <button class="usecase-card usecase-card--warning" data-href="/plantilla">
+            <span class="usecase-icon">🏆</span>
+            <h3>Ranking</h3>
+            <p>Ordena un conjunto de opciones por prioridad. Se agregan los órdenes de todos para un ranking de consenso.</p>
+          </button>
+          <button class="usecase-card usecase-card--success" data-href="/plantilla">
             <span class="usecase-icon">💡</span>
-            <h3>Generación de ideas</h3>
-            <p>Cada persona escribe su propuesta en texto libre frente a un problema común. Compárenlas en cards grandes y elijan la mejor.</p>
-          </div>
+            <h3>Lluvia de ideas</h3>
+            <p>Preguntas abiertas; cada persona escribe su propuesta. Compárenlas lado a lado en cards grandes.</p>
+          </button>
         </div>
       </section>`);
 
-    const go = this.$root.querySelector('#landingGo');
-    if (go) go.onclick = () => slice.router.navigate('/dashboard');
-
-    this.$root.querySelectorAll('.la-card').forEach((el) => {
+    this.$root.querySelectorAll('[data-href]').forEach((el) => {
       el.onclick = () => { const h = el.dataset.href; if (h) slice.router.navigate(h); };
     });
   }

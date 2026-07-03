@@ -22,8 +22,6 @@ slice-misrespuestasview .person-id { font-size: 12px; color: var(--font-secondar
 slice-misrespuestasview .person-name { font-family: var(--font-display); font-size: 32px; font-weight: 600; margin: 4px 0 2px; }
 slice-misrespuestasview .person-tags { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 slice-misrespuestasview .tag { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: var(--secondary-background-color); border: 1.5px solid var(--border-color); color: var(--font-secondary-color); }
-slice-misrespuestasview .tag.sexo-M { color: var(--primary-color-contrast); background: var(--male-color); border-color: var(--male-color); }
-slice-misrespuestasview .tag.sexo-F { color: var(--primary-color-contrast); background: var(--female-color); border-color: var(--female-color); }
 slice-misrespuestasview .tag-lider { background: var(--primary-color); color: var(--primary-color-contrast); border-color: var(--primary-color); }
 slice-misrespuestasview .current-assign { margin-top: 10px; font-size: 14px; color: var(--font-secondary-color); display: flex; align-items: center; gap: 8px; }
 slice-misrespuestasview .current-assign b { color: var(--font-primary-color); }
@@ -36,7 +34,7 @@ slice-misrespuestasview .lider-toggle:hover { transform: translate(-1px, -1px); 
 slice-misrespuestasview .lider-toggle:active { transform: translate(1px, 1px); box-shadow: none; }
 slice-misrespuestasview .lider-toggle.is-lider { border-color: var(--font-primary-color); background: var(--primary-color); box-shadow: 2px 2px 0 var(--font-primary-color); }
 
-slice-misrespuestasview .team-pills { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px; }
+slice-misrespuestasview .tema-pills { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px; }
 slice-misrespuestasview .pill {
   border: 2px solid var(--font-primary-color); background: var(--panel-background-color); color: var(--font-primary-color);
   padding: 9px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 700;
@@ -107,7 +105,7 @@ slice-misrespuestasview .assign-summary.visible {
   slice-misrespuestasview .person-top { flex-direction: column; align-items: flex-start; }
   slice-misrespuestasview .assign-toolbar { margin-bottom: 10px; }
   slice-misrespuestasview .mrv-search-slot { width: 140px; }
-  slice-misrespuestasview .team-pills { margin-top: 12px; gap: 6px; }
+  slice-misrespuestasview .tema-pills { margin-top: 12px; gap: 6px; }
   slice-misrespuestasview .pill { padding: 6px 10px; font-size: 12px; }
   slice-misrespuestasview .dots { margin-top: 12px; gap: 4px; }
   slice-misrespuestasview .dot { width: 9px; height: 9px; }

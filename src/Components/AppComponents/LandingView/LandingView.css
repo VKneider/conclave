@@ -18,36 +18,25 @@ slice-landingview .landing-sub { font-size: 16px; color: var(--font-secondary-co
 
 slice-landingview .landing-desc { font-size: 15px; color: var(--font-secondary-color); line-height: 1.55; margin: 12px 0 28px; }
 
-slice-landingview .landing-cta { font-size: 16px; padding: 12px 32px; }
+slice-landingview .landing-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+slice-landingview .landing-cta { font-size: 15px; padding: 12px 26px; }
 
-/* ── Stats row ───────────────────────────────────── */
+/* ── Plantilla composition strip ─────────────────── */
 
-slice-landingview .landing-stats {
-  display: flex; gap: 14px; justify-content: center; margin-top: 36px; flex-wrap: wrap;
+slice-landingview .landing-plantilla {
+  display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 40px; padding: 12px 18px; max-width: 720px;
+  background: var(--panel-background-color); border: 2px solid var(--font-primary-color);
+  border-radius: 999px; box-shadow: var(--box-shadow-primary);
 }
-
-slice-landingview .landing-stats .stat-card {
-  flex: 1; min-width: 120px; max-width: 180px;
-  background: var(--panel-background-color);
-  border: 2px solid var(--font-primary-color);
-  border-radius: var(--card-border-radius);
-  padding: 16px 20px; text-align: center;
-  box-shadow: var(--box-shadow-primary);
+slice-landingview .lp-name { font-family: var(--font-display); font-weight: 600; font-size: 15px; }
+slice-landingview .lp-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+slice-landingview .lp-badge {
+  font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px;
+  background: var(--secondary-background-color); border: 1.5px solid var(--border-color);
+  white-space: nowrap;
 }
-
-slice-landingview .landing-stats .stat-card .k {
-  font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
-  color: var(--font-secondary-color); margin-bottom: 6px;
-}
-
-slice-landingview .landing-stats .stat-card .v {
-  font-size: 28px; font-weight: 700; line-height: 1;
-}
-
-slice-landingview .landing-stats .stat-card .v small {
-  font-size: 14px; font-weight: 500; color: var(--font-secondary-color);
-  margin-left: 2px;
-}
+slice-landingview .lp-empty { font-size: 13px; color: var(--font-secondary-color); font-weight: 600; }
 
 /* ── Quick actions ───────────────────────────────── */
 
@@ -145,11 +134,12 @@ slice-landingview .usecases-grid {
 }
 
 slice-landingview .usecase-card {
+  display: block; width: 100%; text-align: left; cursor: pointer; font-family: inherit;
   background: var(--panel-background-color);
   border: 2.5px solid var(--font-primary-color);
   border-top: 7px solid var(--usecase-color, var(--primary-color));
   border-radius: var(--card-border-radius);
-  padding: 26px 22px;
+  padding: 24px 22px;
   box-shadow: var(--box-shadow-primary);
   transition: transform .1s ease, box-shadow .1s ease;
 }
@@ -157,9 +147,11 @@ slice-landingview .usecase-card:hover {
   transform: translate(-2px, -2px);
   box-shadow: 5px 5px 0 var(--font-primary-color);
 }
+slice-landingview .usecase-card:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--font-primary-color); }
 
 slice-landingview .usecase-card--primary { --usecase-color: var(--primary-color); }
 slice-landingview .usecase-card--secondary { --usecase-color: var(--secondary-color); }
+slice-landingview .usecase-card--warning { --usecase-color: var(--warning-color); }
 slice-landingview .usecase-card--success { --usecase-color: var(--success-color); }
 
 slice-landingview .usecase-icon {

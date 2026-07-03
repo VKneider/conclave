@@ -136,8 +136,10 @@ app.use('/api', (req, res) => {
 // ==============================================
 
 app.use((req, res) => {
-  const indexPath = path.join(__dirname, '..', folderDeployed, 'App', 'index.html');
-  res.sendFile(indexPath, err => {
+  // Express 5's res.sendFile rejects an absolute path arg with "Not Found";
+  // pass the filename relative to a `root` dir instead (the supported form).
+  const rootDir = path.join(__dirname, '..', folderDeployed, 'App');
+  res.sendFile('index.html', { root: rootDir }, err => {
     if (err) res.status(500).send('<h1>500 - Internal Server Error</h1>');
   });
 });

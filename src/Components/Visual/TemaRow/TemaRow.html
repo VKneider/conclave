@@ -1,0 +1,27 @@
+<div class="cat-row">
+  <div class="cat-row__main">
+    <input class="cat-row__select" type="checkbox" aria-label="Seleccionar tema" />
+    <span class="cat-row__icon"></span>
+    <div class="cat-row__name-slot"></div>
+    <div class="cat-row__modo-slot"></div>
+    <button class="btn btn-ghost cat-row__toggle" type="button">▸ Detalles</button>
+    <button class="btn btn-ghost cat-row__remove" type="button" title="Eliminar tema">✕</button>
+  </div>
+  <p class="cat-row__hint"></p>
+  <div class="cat-row__extra" hidden>
+    <div class="cat-row__reparto-fields">
+      <label class="cat-row__mini-field">Mín <input class="cat-row__min" type="number" /></label>
+      <label class="cat-row__mini-field">Máx <input class="cat-row__max" type="number" /></label>
+      <label class="cat-row__mini-field">Cap <input class="cat-row__cap" type="number" /></label>
+      <div class="cat-row__lider-slot"></div>
+      <div class="cat-row__participable-slot"></div>
+    </div>
+    <div class="cat-row__votacion-editor" hidden>
+      <div class="cat-row__opc-list"></div>
+      <div class="cat-row__opc-add-row">
+        <input class="cat-row__opc-add" type="text" placeholder="Nueva opción…" enterkeyhint="done" />
+        <button class="btn btn-primary cat-row__opc-add-btn" type="button">+ Agregar</button>
+      </div>
+    </div>
+  </div>
+</div>

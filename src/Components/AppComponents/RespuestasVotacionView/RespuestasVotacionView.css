@@ -1,0 +1,71 @@
+slice-respuestasvotacionview { display: block; }
+
+slice-respuestasvotacionview .vv-list {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* One card per votación Tema — hero treatment (bold ink outline + hard shadow),
+   a handful per screen, per DESIGN.md. */
+slice-respuestasvotacionview .vv-card {
+  background: var(--panel-background-color);
+  border: 2.5px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--box-shadow-primary);
+  padding: 18px 18px 20px;
+}
+slice-respuestasvotacionview .vv-card--answered { border-color: var(--success-color); }
+
+slice-respuestasvotacionview .vv-card__head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 14px;
+}
+slice-respuestasvotacionview .vv-card__title {
+  font-family: var(--font-display); font-size: 16px; font-weight: 600; margin: 0;
+}
+slice-respuestasvotacionview .vv-card__status {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--font-secondary-color); white-space: nowrap;
+}
+slice-respuestasvotacionview .vv-card--answered .vv-card__status { color: var(--success-color); }
+
+slice-respuestasvotacionview .vv-opciones { display: flex; flex-direction: column; gap: 8px; }
+
+/* Each Opción is a radio-like pill. Dense/repeated → thin resting border,
+   the bold treatment only on the chosen/interactive state (DESIGN.md). */
+slice-respuestasvotacionview .vv-opc {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 10px 14px; border-radius: 12px; cursor: pointer;
+  font: inherit; font-family: var(--font-body); font-size: 14px; font-weight: 600;
+  color: var(--font-primary-color);
+  background: var(--panel-alt-background-color);
+  border: 1.5px solid var(--border-color);
+  transition: border-color .12s, background .12s, transform .08s;
+}
+slice-respuestasvotacionview .vv-opc:hover {
+  border-color: var(--font-primary-color); transform: translate(-1px, -1px);
+}
+slice-respuestasvotacionview .vv-opc__radio {
+  width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid var(--font-secondary-color); position: relative;
+}
+slice-respuestasvotacionview .vv-opc--chosen {
+  background: var(--primary-color); color: var(--primary-color-contrast);
+  border-color: var(--font-primary-color); box-shadow: 3px 3px 0 var(--font-primary-color);
+}
+slice-respuestasvotacionview .vv-opc--chosen .vv-opc__radio {
+  border-color: var(--primary-color-contrast); background: var(--primary-color-contrast);
+}
+slice-respuestasvotacionview .vv-opc--chosen .vv-opc__radio::after {
+  content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 900; color: var(--primary-color);
+}
+slice-respuestasvotacionview .vv-opc__name { flex: 1; }
+
+slice-respuestasvotacionview .vv-noopc {
+  font-size: 12.5px; color: var(--font-secondary-color); font-style: italic; padding: 4px 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  slice-respuestasvotacionview .vv-opc { transition: none; }
+  slice-respuestasvotacionview .vv-opc:hover { transform: none; }
+}

@@ -2,6 +2,8 @@
 
 **Source of truth:** `DESIGN.md` at the project root covers the full design philosophy. This file documents the interaction patterns, animation standards, and component-level UX decisions that agents need to follow when modifying views.
 
+> **Post-redesign note.** Vocabulary is Tema/Opción now (this file predates the rename in spots — read "Categoría"→"Tema", "PorCategoriaView"→"PorTemaView", and ignore the sexo/edad tally which is gone, now generic `atributos`). Newer interaction patterns live in `docs/COMPONENT-PATTERNS.md` §UI patterns: **fullscreen overlays** (⛶ text editor/reader), **Enter-plus-tap-button add rows** (mobile), the shared **`Tabs`** segmented control (kind/mode tabs). All-Spanish UI copy is **neutral (tuteo)** — no voseo (`arma`/`elige`/`escribe`, not `armá`/`elegí`/`escribí`).
+
 ## Before reading this
 
 Read `DESIGN.md` first — this file assumes you know the "Sticker Book" concept, typography (Fredoka display + Plus Jakarta Sans body), color tokens, and the hero-vs-dense element distinction.

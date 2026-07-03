@@ -9,30 +9,29 @@ export default class CompareCarousel extends HTMLElement {
     this._index = 0;
     this._query = '';
     this._filter = 'all';
-    this._teamFilter = '';
+    this._temaFilter = '';
     this._onKeydown = this._onKeydown.bind(this);
-    this._boundPaint = () => this._paint();
+    this._boundPaint = () => this._render();
     slice.controller.setComponentProps(this, props);
   }
 
   async init() {
-    this._esc = slice.getComponent('FormatService').esc;
-    this._sanitize = slice.getComponent('SanitizeService').sanitize.bind(slice.getComponent('SanitizeService'));
+    this._html = slice.getComponent('HtmlService');
     document.addEventListener('keydown', this._onKeydown);
 
     // Built once, unlike everything else here (rebuilt in full on every
-    // _paint()) — survives filter/data changes without a focus-restore hack.
+    // _render()) — survives filter/data changes without a focus-restore hack.
     this.$searchInput = await slice.build('Input', { sliceId: 'cc-search', placeholder: 'Buscar…' });
     this.$searchSlot.appendChild(this.$searchInput);
     this.$searchInput.addEventListener('input', () => {
       this._query = this.$searchInput.value;
       this._index = 0;
-      this._paint();
+      this._render();
     });
 
     slice.context.watch('decisionFinal', this, this._boundPaint);
     slice.context.watch('settings', this, this._boundPaint);
-    this._paint();
+    this._render();
   }
 
   beforeDestroy() {
@@ -42,20 +41,20 @@ export default class CompareCarousel extends HTMLElement {
   set sources(arr) {
     this._sources = arr || [];
     this._index = 0;
-    if (this.isConnected) this._paint();
+    if (this.isConnected) this._render();
   }
 
   _onKeydown(e) {
     if (!this.isConnected) return;
     if (this.closest('[hidden]')) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
-    const list = this._visibleMembers();
+    const list = this._visibleOpciones();
     if (e.key === 'ArrowLeft' && this._index > 0) {
       this._index--;
-      this._paint();
+      this._render();
     } else if (e.key === 'ArrowRight' && this._index < list.length - 1) {
       this._index++;
-      this._paint();
+      this._render();
     }
   }
 
@@ -68,16 +67,16 @@ export default class CompareCarousel extends HTMLElement {
   }
 
   _svcName(id) {
-    return id ? this._roster().getCategoriaById(id)?.nombre || id : '—';
+    return id ? this._roster().getTemaById(id)?.nombre || id : '—';
   }
 
-  _visibleMembers() {
+  _visibleOpciones() {
     const roster = this._roster();
     let list = roster.getOpcionesDisponibles();
     const q = this._query.trim().toLowerCase();
     if (q) list = list.filter((m) => m.nombre.toLowerCase().includes(q));
     const all = this._sources;
-    if (this._filter !== 'all' || this._teamFilter) {
+    if (this._filter !== 'all' || this._temaFilter) {
       list = list.filter((m) => {
         const vals = all.map((src) => src.asignaciones[m.id] || null);
         const nonNull = vals.filter(Boolean);
@@ -88,7 +87,7 @@ export default class CompareCarousel extends HTMLElement {
         else if (uniq.size === 1) status = 'agree';
         else status = 'disagree';
         if (this._filter !== 'all' && status !== this._filter) return false;
-        if (this._teamFilter && !vals.some((v) => v === this._teamFilter)) return false;
+        if (this._temaFilter && !vals.some((v) => v === this._temaFilter)) return false;
         return true;
       });
     }
@@ -98,8 +97,8 @@ export default class CompareCarousel extends HTMLElement {
   _rows() {
     const roster = this._roster();
     const all = this._sources;
-    return roster.getOpcionesDisponibles().map((member) => {
-      const vals = all.map((src) => src.asignaciones[member.id] || null);
+    return roster.getOpcionesDisponibles().map((opcion) => {
+      const vals = all.map((src) => src.asignaciones[opcion.id] || null);
       const nonNull = vals.filter(Boolean);
       const uniq = new Set(nonNull);
       let status;
@@ -107,16 +106,16 @@ export default class CompareCarousel extends HTMLElement {
       else if (nonNull.length < all.length) status = 'partial';
       else if (uniq.size === 1) status = 'agree';
       else status = 'disagree';
-      return { member, vals, status };
+      return { opcion, vals, status };
     });
   }
 
-  _paint() {
+  _render() {
     const all = this._sources;
     const roster = this._roster();
     const resolution = this._resolution();
     const settings = slice.getComponent('SettingsService');
-    const teams = roster.getCategoriasParticipables();
+    const temas = roster.getTemasParticipables();
 
     if (all.length < 2) {
       this.$searchSlot.hidden = true;
@@ -126,8 +125,8 @@ export default class CompareCarousel extends HTMLElement {
     this.$searchSlot.hidden = false;
 
     const rows = this._rows();
-    const members = this._visibleMembers();
-    if (this._index >= members.length) this._index = Math.max(0, members.length - 1);
+    const opciones = this._visibleOpciones();
+    if (this._index >= opciones.length) this._index = Math.max(0, opciones.length - 1);
 
     const nAgree = rows.filter((r) => r.status === 'agree').length;
     const nDisagree = rows.filter((r) => r.status === 'disagree').length;
@@ -136,7 +135,7 @@ export default class CompareCarousel extends HTMLElement {
     const pct = (n) => (comparables ? Math.round((n / comparables) * 100) : 0);
 
     const conflictCount = rows.filter((r) => r.status === 'disagree').length;
-    const resolvedConflicts = rows.filter((r) => r.status === 'disagree' && resolution.hasResolution(r.member.id)).length;
+    const resolvedConflicts = rows.filter((r) => r.status === 'disagree' && resolution.hasResolution(r.opcion.id)).length;
     const pendientes = conflictCount - resolvedConflicts;
 
     // Summary
@@ -149,7 +148,7 @@ export default class CompareCarousel extends HTMLElement {
       <div class="res-bar">
         <div class="res-info">
           <b>Lista final</b>
-          <span class="res-chip ok">${rows.filter((r) => resolution.hasResolution(r.member.id)).length} decididos</span>
+          <span class="res-chip ok">${rows.filter((r) => resolution.hasResolution(r.opcion.id)).length} decididos</span>
           <span class="res-chip ${pendientes ? 'warn' : 'muted'}">${pendientes ? pendientes + ' conflictos por revisar' : 'Sin conflictos pendientes'}</span>
         </div>
         <div class="res-progress">
@@ -161,24 +160,24 @@ export default class CompareCarousel extends HTMLElement {
     // Filters — always render so the user can change even in empty state
     // (the search field itself lives in .cc-search-slot, built once in init())
     html += `<div class="cc-filters">
-      <button class="cc-filter-btn ${this._filter === 'all' ? 'active' : ''}" data-ccf="all">Todos (${members.length})</button>
+      <button class="cc-filter-btn ${this._filter === 'all' ? 'active' : ''}" data-ccf="all">Todos (${opciones.length})</button>
       <button class="cc-filter-btn ${this._filter === 'disagree' ? 'active' : ''}" data-ccf="disagree">Diferencias</button>
       <button class="cc-filter-btn ${this._filter === 'agree' ? 'active' : ''}" data-ccf="agree">Coincidencias</button>
       <button class="cc-filter-btn ${this._filter === 'pending' ? 'active' : ''}" data-ccf="pending">Por revisar</button>
-      <select class="cc-filter-select" id="ccTeamFilter">
-        <option value="">Todas las categorías</option>
-        ${teams.map((t) => `<option value="${t.id}" ${this._teamFilter === t.id ? 'selected' : ''}>${this._esc(t.nombre)}</option>`).join('')}
+      <select class="cc-filter-select" id="ccTemaFilter">
+        <option value="">Todos los temas</option>
+        ${temas.map((t) => `<option value="${t.id}" ${this._temaFilter === t.id ? 'selected' : ''}>${this._html.esc(t.nombre)}</option>`).join('')}
       </select>
     </div>`;
 
-    if (!members.length) {
+    if (!opciones.length) {
       html += `<div class="cc-empty">No hay opciones que coincidan con los filtros.</div>`;
-      this.$dynamic.innerHTML = this._sanitize(html);
+      this.$dynamic.innerHTML = this._html.sanitize(html);
       return;
     }
 
-    const member = members[this._index];
-    const vals = all.map((src) => src.asignaciones[member.id] || null);
+    const opcion = opciones[this._index];
+    const vals = all.map((src) => src.asignaciones[opcion.id] || null);
     const nonNull = vals.filter(Boolean);
     const uniq = new Set(nonNull);
     let status;
@@ -193,12 +192,11 @@ export default class CompareCarousel extends HTMLElement {
       <div class="cc-card">
         <div class="cc-card-top">
           <div>
-            <div class="cc-id">Opción ${this._index + 1} de ${members.length} · #${member.id}</div>
-            <div class="cc-name">${this._esc(member.nombre)}</div>
+            <div class="cc-id">Opción ${this._index + 1} de ${opciones.length} · #${opcion.id}</div>
+            <div class="cc-name">${this._html.esc(opcion.nombre)}</div>
           </div>
           <div class="cc-tags">
-            ${settings.isSexoEnabled() && member.meta?.sexo ? `<span class="cc-tag sexo-${this._esc(member.meta.sexo)}">${member.meta.sexo === 'M' ? 'Masculino' : member.meta.sexo === 'F' ? 'Femenino' : this._esc(member.meta.sexo)}</span>` : ''}
-            ${settings.isEdadEnabled() && member.meta?.edad != null ? `<span class="cc-tag">${member.meta.edad} años</span>` : ''}
+            ${this._roster().getOpcionAtributos(opcion).map((a) => `<span class="cc-tag">${this._html.esc(a.label)}: ${this._html.esc(a.display)}</span>`).join('')}
             <span class="cc-status ${status}">${stTxt}</span>
           </div>
         </div>
@@ -206,48 +204,48 @@ export default class CompareCarousel extends HTMLElement {
         <div class="cc-sources">`;
 
     all.forEach((src, i) => {
-      const teamId = vals[i];
+      const temaId = vals[i];
       html += `<div class="cc-source-row">
         <span class="cc-swatch" style="background:${src.color}"></span>
-        <span class="cc-source-label">${this._esc(src.autor)}</span>
-        <span class="cc-source-team ${!teamId ? 'none' : ''}">${teamId ? this._esc(this._svcName(teamId)) : '—'}</span>
+        <span class="cc-source-label">${this._html.esc(src.autor)}</span>
+        <span class="cc-source-tema ${!temaId ? 'none' : ''}">${temaId ? this._html.esc(this._svcName(temaId)) : '—'}</span>
       </div>`;
     });
 
-    const f = resolution.finalFor({ member, vals });
-    const needsReview = status === 'disagree' && !resolution.hasResolution(member.id);
-    const suggestion = status !== 'agree' ? resolution.suggestFinal({ member, vals }) : null;
+    const f = resolution.finalFor({ opcion, vals });
+    const needsReview = status === 'disagree' && !resolution.hasResolution(opcion.id);
+    const suggestion = status !== 'agree' ? resolution.suggestFinal({ opcion, vals }) : null;
     const col = f ? roster.colorFor(f) : 'var(--border-color)';
 
     html += `</div>
         <div class="cc-divider"></div>
         <div class="cc-final">
           <span class="cc-final-label">Decisión final</span>
-          <select class="cc-final-select ${needsReview ? 'suggested' : ''}" data-ccmember="${member.id}" style="border-left:4px solid ${col}">
-            <option value="">${needsReview && suggestion ? `↳ Sugerencia: ${this._esc(this._svcName(suggestion))}` : '— sin decidir'}</option>
-            ${teams.map((t) => `<option value="${t.id}" ${f === t.id ? 'selected' : ''}>${this._esc(t.nombre)}</option>`).join('')}
+          <select class="cc-final-select ${needsReview ? 'suggested' : ''}" data-ccmember="${opcion.id}" style="border-left:4px solid ${col}">
+            <option value="">${needsReview && suggestion ? `↳ Sugerencia: ${this._html.esc(this._svcName(suggestion))}` : '— sin decidir'}</option>
+            ${temas.map((t) => `<option value="${t.id}" ${f === t.id ? 'selected' : ''}>${this._html.esc(t.nombre)}</option>`).join('')}
           </select>
-          ${needsReview && suggestion ? `<span class="cc-suggestion-hint">↳ ${this._esc(this._svcName(suggestion))}</span>` : ''}
+          ${needsReview && suggestion ? `<span class="cc-suggestion-hint">↳ ${this._html.esc(this._svcName(suggestion))}</span>` : ''}
         </div>
       </div>
-      <button class="cc-arrow" data-ccact="next" ${this._index === members.length - 1 ? 'disabled' : ''}>›</button>
+      <button class="cc-arrow" data-ccact="next" ${this._index === opciones.length - 1 ? 'disabled' : ''}>›</button>
     </div>`;
 
     // Dots
     html += `<div class="cc-dots">`;
-    members.forEach((m, i) => {
+    opciones.forEach((m, i) => {
       const cls = ['cc-dot'];
       if (resolution.hasResolution(m.id)) cls.push('done');
       if (i === this._index) cls.push('active');
-      html += `<span class="${cls.join(' ')}" data-ccidx="${i}" title="${this._esc(m.nombre)}"></span>`;
+      html += `<span class="${cls.join(' ')}" data-ccidx="${i}" title="${this._html.esc(m.nombre)}"></span>`;
     });
     html += `</div>`;
 
-    this.$dynamic.innerHTML = this._sanitize(html);
-    this._bindInteractions(members);
+    this.$dynamic.innerHTML = this._html.sanitize(html);
+    this._bindInteractions(opciones);
   }
 
-  _bindInteractions(members) {
+  _bindInteractions(opciones) {
     const roster = this._roster();
     const resolution = this._resolution();
 
@@ -256,36 +254,36 @@ export default class CompareCarousel extends HTMLElement {
       b.onclick = () => {
         this._filter = b.dataset.ccf;
         this._index = 0;
-        this._paint();
+        this._render();
       };
     });
 
-    // Team filter
-    const tf = this.$root.querySelector('#ccTeamFilter');
+    // Tema filter
+    const tf = this.$root.querySelector('#ccTemaFilter');
     if (tf) {
       tf.onchange = () => {
-        this._teamFilter = tf.value;
+        this._temaFilter = tf.value;
         this._index = 0;
-        this._paint();
+        this._render();
       };
     }
 
     // Arrows
     const prev = this.$root.querySelector('[data-ccact="prev"]');
     const next = this.$root.querySelector('[data-ccact="next"]');
-    if (prev) prev.onclick = () => { if (this._index > 0) { this._index--; this._paint(); } };
-    if (next) next.onclick = () => { if (this._index < members.length - 1) { this._index++; this._paint(); } };
+    if (prev) prev.onclick = () => { if (this._index > 0) { this._index--; this._render(); } };
+    if (next) next.onclick = () => { if (this._index < opciones.length - 1) { this._index++; this._render(); } };
 
     // Dots
     this.$root.querySelectorAll('.cc-dot').forEach((d) => {
-      d.onclick = () => { this._index = +d.dataset.ccidx; this._paint(); };
+      d.onclick = () => { this._index = +d.dataset.ccidx; this._render(); };
     });
 
     // Final select
     this.$root.querySelectorAll('.cc-final-select').forEach((sel) => {
       sel.onchange = () => {
         resolution.setResolution(sel.dataset.ccmember, sel.value);
-        this._paint();
+        this._render();
       };
     });
   }

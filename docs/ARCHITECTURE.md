@@ -1,5 +1,36 @@
 # Architecture
 
+> **Post-Fase-3 update.** The sections below predate the redesign in some
+> details; this block is the current source of truth for structure. See
+> `docs/DATA.md` (data model), `docs/COMPONENT-PATTERNS.md` (component/refresh
+> contract + Core services), and `REDESIGN.md` (phased history).
+>
+> **Service folders** (`sliceConfig.json` → `paths.components`, all type Service):
+> - **`Core`** (infra): `StoreService` (context wrapper — `ensure/get/set/watch`,
+>   replaces `utils/context.js`), `HtmlService` (`esc` + `sanitize`, replaces
+>   FormatService/SanitizeService + `utils/format.js`), `DomService`
+>   (`reconcile`), `ChartService`, `FetchManager`, `FileDownloadService`,
+>   `IndexedDbManager`, `LocalStorageManager`.
+> - **`Domain`** (business): `PlantillaService`, `RespuestasService`,
+>   `ConsensoService`, `SettingsService`, `RespuestasImportService`,
+>   `ExportService`.
+> - **`Providers`** (wiring + provider-services): `Providers`, `ToastProvider`,
+>   `ConfirmActionModal`, `DragDropService`.
+> - There is no `utils/` folder. Visual = UI only; domain logic lives in a
+>   Domain service. Every context-owning Domain service calls
+>   `StoreService.ensure()` **once** in `init()`.
+>
+> **Contexts** now carry the four-modo model — see `docs/DATA.md` for shapes:
+> `plantilla { nombre, atributos, temas, opciones }`, `respuestas`/`decisionFinal`
+> `{ seleccion, texto, voto, ranking }`, `respuestasImportadas`, `settings
+> { autor, lideres, lideresEnabled }`.
+>
+> **Views** (`AppComponents`): `LandingView`, `DashboardView`, `RespuestasView`
+> (tab shell → `MisRespuestasView` carousel, `PorTemaView` board,
+> `RespuestasVotacionView` "elegí una", `RespuestasTextoView`), `CompareView`,
+> `PlantillaBuilderView`, `AppShell`, `TopBar`, `UserMenu`. Shared control:
+> `Tabs` (Visual, segmented control, `variant` prop) — see GOTCHAS §26.
+
 ## App Shell + MultiRoute
 
 Every route in `src/routes.js` points to `AppShell`; `AppShell` builds its own internal `MultiRoute` mapping the same five paths to the five view components. `AppShell` itself persists across navigation (see GOTCHAS.md §2) — it's where the persistent `TopBar` (tabs + `UserMenu`) lives. There's no footer — every session-level action (exportar/importar/reiniciar mis Respuestas, tu nombre, tema) lives in `UserMenu` instead, reachable from any route.

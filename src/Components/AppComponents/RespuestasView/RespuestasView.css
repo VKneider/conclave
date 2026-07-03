@@ -1,32 +1,11 @@
-/* PRIMARY — Selección vs Texto libre: genuinely different tasks, only shown
-   when the Plantilla mixes both. Bold/hero treatment, same language as
-   CompareView's .cmp-kind-tab (see that file for the full rationale). */
-slice-respuestasview .av-kind-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+/* Tab rows are now the shared <slice-tabs> segmented control (see Tabs.css).
+   These wrappers are layout-only: the PRIMARY row (Selección vs Texto libre)
+   sits above the SECONDARY row (Carrusel vs Por tema), which is indented to
+   read as nested under Selección. */
+slice-respuestasview .av-kind-tabs { display: flex; margin-bottom: 10px; }
 slice-respuestasview .av-kind-tabs[hidden] { display: none; }
-slice-respuestasview .av-kind-tab {
-  font-size: 14.5px; font-weight: 700; padding: 10px 22px; border-radius: 999px; cursor: pointer;
-  border: 2.5px solid var(--font-primary-color); background: var(--panel-background-color); color: var(--font-secondary-color);
-  box-shadow: 3px 3px 0 var(--font-primary-color);
-  transition: transform .08s, box-shadow .08s, background .15s, color .15s;
-}
-slice-respuestasview .av-kind-tab:hover { color: var(--font-primary-color); transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--font-primary-color); }
-slice-respuestasview .av-kind-tab.active { background: var(--primary-color); color: var(--primary-color-contrast); transform: rotate(-2deg); }
-
-/* SECONDARY — Carrusel vs Por categoría: real peer alternatives for the
-   SAME Selección task, nested visually under it (smaller, no hard shadow,
-   tinted strip instead of a bare pill row). */
-slice-respuestasview .av-mode-tabs {
-  display: flex; align-items: center; gap: 6px; margin: 0 0 18px 6px; padding: 6px 10px 6px 4px;
-  border-left: 3px solid var(--border-color);
-}
+slice-respuestasview .av-mode-tabs { display: flex; margin: 0 0 18px 10px; }
 slice-respuestasview .av-mode-tabs[hidden] { display: none; }
-slice-respuestasview .av-mode-tab {
-  font-size: 11.5px; font-weight: 700; padding: 5px 13px; border-radius: 999px; cursor: pointer;
-  border: 1.5px solid var(--border-color); background: transparent; color: var(--font-secondary-color);
-  transition: border-color .15s, background .15s, color .15s;
-}
-slice-respuestasview .av-mode-tab:hover { border-color: var(--font-primary-color); color: var(--font-primary-color); }
-slice-respuestasview .av-mode-tab.active { border-color: var(--primary-color); background: var(--primary-color); color: var(--primary-color-contrast); }
 
 slice-respuestasview .av-empty {
   text-align: center; max-width: 420px; margin: 40px auto;
@@ -41,3 +20,15 @@ slice-respuestasview .av-empty__icon {
 }
 slice-respuestasview .av-empty h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0 0 10px; }
 slice-respuestasview .av-empty p { font-size: 13.5px; line-height: 1.55; color: var(--font-secondary-color); margin: 0 0 20px; }
+
+/* Answer progress across all modos */
+slice-respuestasview .av-progress { display: flex; align-items: center; gap: 12px; margin: 2px 0 18px; max-width: 520px; }
+slice-respuestasview .av-progress[hidden] { display: none; }
+slice-respuestasview .av-progress__track {
+  flex: 1; height: 10px; border-radius: 999px; overflow: hidden;
+  background: var(--secondary-background-color); border: 1.5px solid var(--border-color);
+}
+slice-respuestasview .av-progress__track > span {
+  display: block; height: 100%; background: var(--success-color); border-radius: 999px; transition: width .25s ease;
+}
+slice-respuestasview .av-progress__label { font-size: 12.5px; font-weight: 700; color: var(--font-secondary-color); white-space: nowrap; }

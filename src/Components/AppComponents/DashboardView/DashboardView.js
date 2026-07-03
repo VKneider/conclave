@@ -8,46 +8,67 @@ export default class DashboardView extends HTMLElement {
 
   async init() {
     this._roster = slice.getComponent('PlantillaService');
-    this._esc = slice.getComponent('FormatService').esc;
-    this._sanitize = slice.getComponent('SanitizeService').sanitize.bind(slice.getComponent('SanitizeService'));
+    this._html = slice.getComponent('HtmlService');
     this._charts = slice.getComponent('ChartService');
     await this._buildShell();
-    this._refresh();
-    // MultiRoute's update()-on-revisit only fires on navigation — it does NOT
-    // catch a mutation that happens while THIS view is already the one on
-    // screen (e.g. the footer's "Reiniciar" button, which is reachable
-    // regardless of which view is active). Watch the context directly so an
-    // external mutation still repaints without requiring a round-trip nav.
-    slice.context.watch('respuestas', this, () => this._refresh());
-    slice.context.watch('settings', this, () => this._refresh());
-    slice.context.watch('plantilla', this, () => this._refresh());
+    this._render();
+    slice.context.watch('respuestas', this, () => this._render());
+    slice.context.watch('settings', this, () => this._render());
+    // A modo change / add / rename / import changes the SHAPE (which sections
+    // exist), so the shell is rebuilt when needed, not just re-rendered.
+    slice.context.watch('plantilla', this, () => this._rebuildIfNeeded());
   }
 
-  // Called by MultiRoute on cached revisit — the shell already exists, only
-  // the numbers need refreshing.
   update() {
-    this._refresh();
+    // Cached revisit: rebuild only if the shape (which temas/modos exist)
+    // changed while away; otherwise just refresh the numbers.
+    this._rebuildIfNeeded();
   }
 
-  // StatusBadge instances are built with slice.build after init(), so the
-  // parent-destroy cascade won't find them — clean up explicitly. The team
-  // modal is appended to <body> (outside $root) with its own registered
-  // sliceId, so destroyByContainer($root) can't reach it either — a plain
-  // .remove() would leave it registered in the controller after the DOM
-  // node is gone. destroyComponent() unregisters it properly.
+  // Which temas exist, their modo and name — everything the SHELL bakes in.
+  _shapeKey() {
+    return this._roster.getTemas().map((t) => `${t.id}:${t.modo}:${t.nombre}`).join('|');
+  }
+
+  _rebuildIfNeeded() {
+    if (this._shapeKey() !== this._builtShapeKey) this._rebuild();
+    else this._render();
+  }
+
   beforeDestroy() {
     slice.controller.destroyByContainer(this.$root);
     if (this._teamModal) slice.controller.destroyComponent(this._teamModal);
     this._charts?.destroy(this._completionChart);
   }
 
-  // Builds the static structure + one StatusBadge per team, once. Later
-  // refreshes only touch cached element refs / call setComponentProps —
-  // never re-template or rebuild the badges.
+  async _rebuild() {
+    // Tear down the old shell's built children (StatusBadges) before rebuilding.
+    slice.controller.destroyByContainer(this.$root);
+    this._charts?.destroy(this._completionChart);
+    this._completionChart = null;
+    await this._buildShell();
+    this._render();
+  }
+
   async _buildShell() {
     const roster = this._roster;
-    const teams = roster.getCategoriasParticipables();
-    const categoriasTexto = roster.getCategoriasTexto();
+    const esc = (s) => this._html.esc(s);
+    const temasReparto = roster.getTemasParticipables();
+    const temasVotacion = roster.getTemasVotacion();
+    const temasRanking = roster.getTemasRanking();
+    const temasTexto = roster.getTemasTexto();
+
+    // A per-tema answered/pending list — shared by votación / ranking / texto.
+    const modoSection = (title, sub, temas, prefix) => `
+      <h3 class="view-title dash-section-title">${title}</h3>
+      <p class="view-sub">${sub}</p>
+      <div class="texto-list">
+        ${temas.map((c) => `
+          <div class="texto-row">
+            <span class="texto-row__name">${esc(c.nombre)}</span>
+            <span class="badge" data-el="${prefix}-badge-${c.id}"></span>
+          </div>`).join('')}
+      </div>`;
 
     let html = `
       <h2 class="view-title">Dashboard</h2>
@@ -61,59 +82,49 @@ export default class DashboardView extends HTMLElement {
             <div class="dash-chart-pct" data-el="completionPct"></div>
           </div>
         </div>
-        <div class="stat-card"><div class="k">Opciones</div><div class="v" data-el="total"></div></div>
-        <div class="stat-card"><div class="k">Asignadas</div><div class="v" data-el="assigned"></div></div>
-        <div class="stat-card"><div class="k">Categorías en rango</div><div class="v" data-el="enRango"></div></div>
-        <div class="stat-card"><div class="k">Fuera de rango</div><div class="v" data-el="conProblema"></div></div>
-        <div class="stat-card" data-el="cardHombres"><div class="k"><span class="gender-dot M"></span> Hombres</div><div class="v" data-el="hombres"></div></div>
-        <div class="stat-card" data-el="cardMujeres"><div class="k"><span class="gender-dot F"></span> Mujeres</div><div class="v" data-el="mujeres"></div></div>
-      </div>
-      <h3 class="view-title" style="font-size:16px">Categorías</h3>
-      <p class="view-sub">Cada barra muestra los asignados frente al mínimo y máximo recomendado.</p>
-      <div class="team-grid">`;
+        <div class="stat-card"><div class="k">Temas</div><div class="v" data-el="totalTemas"></div></div>
+        <div class="stat-card"><div class="k">Respondido</div><div class="v" data-el="answered"></div></div>
+        <div class="stat-card" data-el="cardRango" hidden><div class="k">En rango</div><div class="v" data-el="enRango"></div></div>
+        <div class="stat-card" data-el="cardProblema" hidden><div class="k">Fuera de rango</div><div class="v" data-el="conProblema"></div></div>
+      </div>`;
 
-    teams.forEach((t) => {
-      const col = roster.colorFor(t.id);
+    if (temasReparto.length) {
       html += `
-        <div class="team-card" data-team-id="${t.id}" style="--team-color:${col}">
-          <div class="team-head">
-            <h3><span class="color-dot" style="background:${col}"></span>${this._esc(t.nombre)}</h3>
-            <div class="team-count" style="color:${col}"><span data-el="n-${t.id}"></span><small>/${t.max != null ? t.max : '–'}</small></div>
-          </div>
-          <div class="team-meta">Mín ${t.min != null ? t.min : '–'} · Máx ${t.max != null ? t.max : '–'} · Cap ${t.capacidad != null ? t.capacidad : '–'}</div>
-          <div class="team-lider" data-el="lider-${t.id}"></div>
-          <div class="bar"><span data-el="bar-${t.id}" style="background:${col}"></span></div>
-          <div class="badge-slot" data-badge="${t.id}"></div>
-        </div>`;
-    });
-    html += `</div>`;
-
-    if (categoriasTexto.length) {
-      html += `
-        <h3 class="view-title" style="font-size:16px">Texto libre</h3>
-        <p class="view-sub">Tus respuestas de texto libre para esta Plantilla.</p>
-        <div class="texto-list">
-          ${categoriasTexto.map((c) => `
-            <div class="texto-row">
-              <span class="texto-row__name">${this._esc(c.nombre)}</span>
-              <span class="badge" data-el="texto-badge-${c.id}"></span>
-            </div>`).join('')}
+        <h3 class="view-title dash-section-title">🎯 Asignación</h3>
+        <p class="view-sub">Cada barra muestra las opciones asignadas frente al mínimo y máximo. Toca un tema para ver quiénes quedaron.</p>
+        <div class="tema-grid">
+          ${temasReparto.map((t) => {
+            const col = roster.colorFor(t.id);
+            return `
+            <div class="tema-card" data-tema-id="${t.id}" style="--tema-color:${col}">
+              <div class="tema-head">
+                <h3><span class="color-dot" style="background:${col}"></span>${esc(t.nombre)}</h3>
+                <div class="tema-count" style="color:${col}"><span data-el="n-${t.id}"></span><small>/${t.max != null ? t.max : '–'}</small></div>
+              </div>
+              <div class="tema-meta">Mín ${t.min != null ? t.min : '–'} · Máx ${t.max != null ? t.max : '–'} · Cap ${t.capacidad != null ? t.capacidad : '–'}</div>
+              <div class="tema-lider" data-el="lider-${t.id}"></div>
+              <div class="bar"><span data-el="bar-${t.id}" style="background:${col}"></span></div>
+              <div class="badge-slot" data-badge="${t.id}"></div>
+            </div>`;
+          }).join('')}
         </div>`;
     }
 
-    this.$root.innerHTML = this._sanitize(html);
+    if (temasVotacion.length) html += modoSection('🗳️ Votación', 'Respondido = elegiste una opción en el tema.', temasVotacion, 'voto');
+    if (temasRanking.length) html += modoSection('🏆 Ranking', 'Respondido = ordenaste las opciones del tema.', temasRanking, 'rank');
+    if (temasTexto.length) html += modoSection('📝 Texto libre', 'Respondido = escribiste tu propuesta.', temasTexto, 'texto');
+
+    this.$root.innerHTML = this._html.sanitize(html);
 
     this._els = {
       plantillaLine: this.$root.querySelector('[data-el="plantillaLine"]'),
       sub: this.$root.querySelector('[data-el="sub"]'),
-      total: this.$root.querySelector('[data-el="total"]'),
-      assigned: this.$root.querySelector('[data-el="assigned"]'),
-      hombres: this.$root.querySelector('[data-el="hombres"]'),
-      mujeres: this.$root.querySelector('[data-el="mujeres"]'),
-      cardHombres: this.$root.querySelector('[data-el="cardHombres"]'),
-      cardMujeres: this.$root.querySelector('[data-el="cardMujeres"]'),
+      totalTemas: this.$root.querySelector('[data-el="totalTemas"]'),
+      answered: this.$root.querySelector('[data-el="answered"]'),
       enRango: this.$root.querySelector('[data-el="enRango"]'),
       conProblema: this.$root.querySelector('[data-el="conProblema"]'),
+      cardRango: this.$root.querySelector('[data-el="cardRango"]'),
+      cardProblema: this.$root.querySelector('[data-el="cardProblema"]'),
       completionPct: this.$root.querySelector('[data-el="completionPct"]'),
     };
 
@@ -122,7 +133,7 @@ export default class DashboardView extends HTMLElement {
       this._completionChart = this._charts.create(canvas, {
         type: 'doughnut',
         data: {
-          labels: ['Asignadas', 'Sin asignar'],
+          labels: ['Respondido', 'Pendiente'],
           datasets: [{
             data: [0, 0],
             backgroundColor: [this._charts.themeColor('--success-color'), this._charts.themeColor('--secondary-background-color')],
@@ -141,7 +152,7 @@ export default class DashboardView extends HTMLElement {
     }
 
     this._teamEls = {};
-    teams.forEach((t) => {
+    temasReparto.forEach((t) => {
       this._teamEls[t.id] = {
         n: this.$root.querySelector(`[data-el="n-${t.id}"]`),
         bar: this.$root.querySelector(`[data-el="bar-${t.id}"]`),
@@ -149,135 +160,128 @@ export default class DashboardView extends HTMLElement {
       };
     });
 
+    this._votoEls = {};
+    temasVotacion.forEach((c) => { this._votoEls[c.id] = this.$root.querySelector(`[data-el="voto-badge-${c.id}"]`); });
+    this._rankEls = {};
+    temasRanking.forEach((c) => { this._rankEls[c.id] = this.$root.querySelector(`[data-el="rank-badge-${c.id}"]`); });
     this._textoEls = {};
-    categoriasTexto.forEach((c) => {
-      this._textoEls[c.id] = this.$root.querySelector(`[data-el="texto-badge-${c.id}"]`);
-    });
+    temasTexto.forEach((c) => { this._textoEls[c.id] = this.$root.querySelector(`[data-el="texto-badge-${c.id}"]`); });
 
-    const badgeProps = teams.map((t) => ({ sliceId: `dash-badge-${t.id}`, status: 'empty', label: '' }));
-    const [first, ...rest] = badgeProps;
-    const firstBadge = await slice.build('StatusBadge', first);
-    const restBadges = await Promise.all(rest.map((p) => slice.build('StatusBadge', p)));
-    const badgeNodes = [firstBadge, ...restBadges];
+    // StatusBadges only for reparto temas (guard the first/rest pattern).
     this._badges = {};
-    teams.forEach((t, i) => {
-      this._badges[t.id] = badgeNodes[i];
-      this.$root.querySelector(`[data-badge="${t.id}"]`).appendChild(badgeNodes[i]);
-    });
+    if (temasReparto.length) {
+      const badgeProps = temasReparto.map((t) => ({ sliceId: `dash-badge-${t.id}`, status: 'empty', label: '' }));
+      const [first, ...rest] = badgeProps;
+      const firstBadge = await slice.build('StatusBadge', first);
+      const restBadges = await Promise.all(rest.map((p) => slice.build('StatusBadge', p)));
+      const badgeNodes = [firstBadge, ...restBadges];
+      temasReparto.forEach((t, i) => {
+        this._badges[t.id] = badgeNodes[i];
+        this.$root.querySelector(`[data-badge="${t.id}"]`).appendChild(badgeNodes[i]);
+      });
 
-    this.$root.querySelector('.team-grid').addEventListener('click', (e) => {
-      const card = e.target.closest('.team-card');
-      if (!card) return;
-      this._openTeamModal(card.dataset.teamId);
-    });
+      this.$root.querySelector('.tema-grid').addEventListener('click', (e) => {
+        const card = e.target.closest('.tema-card');
+        if (card) this._openTemaModal(card.dataset.temaId);
+      });
+    }
+
+    this._builtShapeKey = this._shapeKey();
   }
 
-  _refresh() {
+  _render() {
     const roster = this._roster;
-    const teams = roster.getCategoriasParticipables();
-    const categoriasTexto = roster.getCategoriasTexto();
+    const temasReparto = roster.getTemasParticipables();
     const asignaciones = slice.getComponent('RespuestasService').getState().seleccion;
-    const counts = roster.countByCategoria(asignaciones);
-    const members = roster.getOpcionesDisponibles();
-    const totalMembers = members.length;
-    const assigned = members.filter((m) => asignaciones[m.id]).length;
-    const enRango = teams.filter((t) => roster.statusOf(t, counts[t.id]) === 'ok').length;
-    const conProblema = teams.filter((t) => ['under', 'over'].includes(roster.statusOf(t, counts[t.id]))).length;
+    const counts = roster.countByTema(asignaciones);
     const autor = slice.getComponent('SettingsService').getState().autor;
+    const progress = roster.getAnswerProgress();
 
-    this._els.sub.textContent = `Resumen de tus asignaciones${autor ? ' — ' + autor : ''}.`;
+    this._els.sub.textContent = `Resumen de tus respuestas${autor ? ' — ' + autor : ''}.`;
 
-    // No single "tipo" field exists on purpose — a Plantilla can freely mix
-    // Categorías in modo Selección and Texto libre (see PlantillaBuilderView's
-    // non-restrictive filter). This shows what's actually in it instead of
-    // forcing it into an artificial fixed category.
     const nombrePlantilla = roster.getNombre();
-    const nSeleccion = roster.getCategorias().filter((c) => c.modo === 'seleccion').length;
-    const nTexto = categoriasTexto.length;
+    const nReparto = roster.getTemas().filter((c) => c.modo === 'reparto').length;
+    const nVotacion = roster.getTemasVotacion().length;
+    const nRanking = roster.getTemasRanking().length;
+    const nTexto = roster.getTemasTexto().length;
     const composicion = [
-      nSeleccion ? `🎯 ${nSeleccion} de selección` : null,
+      nReparto ? `🎯 ${nReparto} de asignación` : null,
+      nVotacion ? `🗳️ ${nVotacion} de votación` : null,
+      nRanking ? `🏆 ${nRanking} de ranking` : null,
       nTexto ? `📝 ${nTexto} de texto libre` : null,
     ].filter(Boolean).join(' · ');
-    this._els.plantillaLine.innerHTML = this._sanitize(
-      `<span class="dash-plantilla__name">📋 ${this._esc(nombrePlantilla || 'Plantilla sin nombre')}</span>${composicion ? `<span class="dash-plantilla__meta">${composicion}</span>` : ''}`
+    this._els.plantillaLine.innerHTML = this._html.sanitize(
+      `<span class="dash-plantilla__name">📋 ${this._html.esc(nombrePlantilla || 'Plantilla sin nombre')}</span>${composicion ? `<span class="dash-plantilla__meta">${composicion}</span>` : ''}`
     );
 
-    const sexoEnabled = slice.getComponent('SettingsService').isSexoEnabled();
-    this._els.cardHombres.hidden = !sexoEnabled;
-    this._els.cardMujeres.hidden = !sexoEnabled;
-    if (sexoEnabled) {
-      this._els.hombres.textContent = members.filter((m) => m.meta?.sexo === 'M').length;
-      this._els.mujeres.textContent = members.filter((m) => m.meta?.sexo === 'F').length;
-    }
+    this._els.totalTemas.textContent = roster.getTemas().length;
+    this._els.answered.innerHTML = `${progress.answered} <small>/ ${progress.total}</small>`;
 
-    this._els.total.textContent = totalMembers;
-    this._els.assigned.innerHTML = `${assigned} <small>/ ${totalMembers}</small>`;
-    this._els.enRango.innerHTML = `${enRango} <small>/ ${teams.length}</small>`;
-    this._els.conProblema.textContent = conProblema;
+    // Reparto-only cards: shown + filled only when there ARE reparto temas.
+    const showReparto = temasReparto.length > 0;
+    this._els.cardRango.hidden = !showReparto;
+    this._els.cardProblema.hidden = !showReparto;
+    if (showReparto) {
+      const enRango = temasReparto.filter((t) => roster.statusOf(t, counts[t.id]) === 'ok').length;
+      const conProblema = temasReparto.filter((t) => ['under', 'over'].includes(roster.statusOf(t, counts[t.id]))).length;
+      this._els.enRango.innerHTML = `${enRango} <small>/ ${temasReparto.length}</small>`;
+      this._els.conProblema.textContent = conProblema;
+    }
 
     if (this._completionChart) {
-      this._completionChart.data.datasets[0].data = [assigned, Math.max(totalMembers - assigned, 0)];
+      this._completionChart.data.datasets[0].data = [progress.answered, Math.max(progress.total - progress.answered, 0)];
       this._completionChart.update();
     }
-    const completionPct = totalMembers ? Math.round((assigned / totalMembers) * 100) : 0;
-    this._els.completionPct.textContent = `${completionPct}%`;
+    this._els.completionPct.textContent = `${progress.total ? Math.round((progress.answered / progress.total) * 100) : 0}%`;
 
-    teams.forEach((t) => {
+    temasReparto.forEach((t) => {
       const n = counts[t.id];
       const st = roster.statusOf(t, n);
       const denom = t.max || t.capacidad || Math.max(n, 1);
       const pct = Math.min(100, Math.round((n / denom) * 100));
-      const label = roster.statusLabel(t, n);
-
       this._teamEls[t.id].n.textContent = n;
       this._teamEls[t.id].bar.style.width = `${pct}%`;
-      slice.setComponentProps(this._badges[t.id], { status: st, label });
-
+      if (this._badges[t.id]) slice.setComponentProps(this._badges[t.id], { status: st, label: roster.statusLabel(t, n) });
       const lider = slice.getComponent('SettingsService').getEffectiveLider(t.id);
-      this._teamEls[t.id].lider.textContent = lider && lider.member ? `👑 ${lider.member.nombre}` : '';
+      this._teamEls[t.id].lider.textContent = lider && lider.opcion ? `👑 ${lider.opcion.nombre}` : '';
     });
 
-    const texto = slice.getComponent('RespuestasService').getState().texto;
-    Object.entries(this._textoEls).forEach(([categoriaId, el]) => {
-      const answered = !!(texto[categoriaId] || '').trim();
+    const resp = slice.getComponent('RespuestasService').getState();
+    const setBadge = (el, answered) => {
       el.className = `badge ${answered ? 'ok' : 'empty'}`;
-      el.textContent = answered ? 'Respondida' : 'Pendiente';
-    });
+      el.textContent = answered ? 'Respondido' : 'Pendiente';
+    };
+    Object.entries(this._votoEls).forEach(([id, el]) => setBadge(el, resp.voto?.[id] != null));
+    Object.entries(this._rankEls).forEach(([id, el]) => setBadge(el, (resp.ranking?.[id] || []).length > 0));
+    Object.entries(this._textoEls).forEach(([id, el]) => setBadge(el, !!(resp.texto?.[id] || '').trim()));
   }
 
-  async _openTeamModal(teamId) {
+  async _openTemaModal(temaId) {
     const roster = this._roster;
-    const team = roster.getCategoriasParticipables().find((t) => t.id === teamId);
-    if (!team) return;
+    const tema = roster.getTemasParticipables().find((t) => t.id === temaId);
+    if (!tema) return;
 
     const asignaciones = slice.getComponent('RespuestasService').getState().seleccion;
-    const members = roster.getOpcionesDisponibles().filter((m) => asignaciones[m.id] === teamId);
-
-    const lider = slice.getComponent('SettingsService').getEffectiveLider(teamId);
-    const liderId = lider?.member ? String(lider.member.id) : null;
+    const opciones = roster.getOpcionesDisponibles().filter((m) => asignaciones[m.id] === temaId);
+    const lider = slice.getComponent('SettingsService').getEffectiveLider(temaId);
+    const liderId = lider?.opcion ? String(lider.opcion.id) : null;
 
     if (!this._teamModal) {
-      this._teamModal = await slice.build('Modal', {
-        sliceId: 'team-members-modal',
-        dismissable: true,
-      });
-      this._teamModal.classList.add('team-members-modal');
-      this._teamMemberList = document.createElement('div');
-      this._teamMemberList.className = 'team-member-list';
-      this._teamModal.appendBody(this._teamMemberList);
+      this._teamModal = await slice.build('Modal', { sliceId: 'tema-opciones-modal', dismissable: true });
+      this._teamModal.classList.add('tema-opciones-modal');
+      this._teamOpcionList = document.createElement('div');
+      this._teamOpcionList.className = 'tema-opcion-list';
+      this._teamModal.appendBody(this._teamOpcionList);
       document.body.appendChild(this._teamModal);
     }
 
-    const sexoEnabled = slice.getComponent('SettingsService').isSexoEnabled();
-    this._teamModal.title = `${team.nombre} ${lider ? '👑' : ''}`;
-    this._teamMemberList.innerHTML = this._sanitize(members.length
-      ? members.map((m) => `
-        <div class="team-member-item${liderId === String(m.id) ? ' is-lider' : ''}">
-          ${sexoEnabled ? `<span class="sx ${m.meta?.sexo || ''}"></span>` : ''}
-          <span class="nm">${this._esc(m.nombre)}</span>
+    this._teamModal.title = `${tema.nombre} ${lider ? '👑' : ''}`;
+    this._teamOpcionList.innerHTML = this._html.sanitize(opciones.length
+      ? opciones.map((m) => `
+        <div class="tema-opcion-item${liderId === String(m.id) ? ' is-lider' : ''}">
+          <span class="nm">${this._html.esc(m.nombre)}</span>
           ${liderId === String(m.id) ? '<span class="lider-badge">Responsable</span>' : ''}
-        </div>
-      `).join('')
+        </div>`).join('')
       : '<div class="empty-state">Sin opciones asignadas</div>');
 
     this._teamModal.open = true;

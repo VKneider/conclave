@@ -28,7 +28,8 @@ export default class PorCategoriaView extends HTMLElement {
 
   // Called by MultiRoute on cached revisit — the shell/chips/dropzones
   // already exist, only positions/counts need refreshing.
-  update() {
+  async update() {
+    await this._ensureChips();
     this._layout();
   }
 
@@ -163,6 +164,21 @@ export default class PorCategoriaView extends HTMLElement {
     });
   }
 
+  // Builds chips for any members added since _buildShell() (PlantillaBuilderView
+  // can add opciones after this view mounted). Idempotent — does nothing if all
+  // current members already have a chip.
+  async _ensureChips() {
+    const roster = this._roster;
+    const members = roster.getOpcionesDisponibles();
+    const missing = members.filter((m) => !this._chips[m.id]);
+    if (missing.length === 0) return;
+    const build = (m) => slice.build('OpcionChip', { sliceId: `byteam-chip-${m.id}`, member: m, draggable: true });
+    const [first, ...rest] = missing;
+    const firstChip = await build(first);
+    const restChips = await Promise.all(rest.map(build));
+    missing.forEach((m, i) => { this._chips[m.id] = i === 0 ? firstChip : restChips[i - 1]; });
+  }
+
   // Re-parents each member's existing chip into its current zone and
   // refreshes counts/badges. No component is ever destroyed or rebuilt here.
   _layout() {
@@ -193,7 +209,10 @@ export default class PorCategoriaView extends HTMLElement {
     // they're shared singleton nodes re-parented by every _layout() call,
     // so "not placed in the sidebar right now" already makes them invisible
     // and undraggable, same idea as an assigned chip living in a team square.
-    visibleUnassigned.forEach((m) => this._unassignedEls.chips.appendChild(this._chips[m.id]));
+    visibleUnassigned.forEach((m) => {
+      const chip = this._chips[m.id];
+      if (chip) this._unassignedEls.chips.appendChild(chip);
+    });
     const noMatches = unassigned.length > 0 && visibleUnassigned.length === 0;
     this._unassignedEls.empty.hidden = !(unassigned.length === 0 || noMatches);
     this._unassignedEls.empty.textContent = unassigned.length === 0 ? '¡Todos asignados! 🎉' : 'No hay coincidencias.';
@@ -202,7 +221,10 @@ export default class PorCategoriaView extends HTMLElement {
     teams.forEach((t) => {
       const people = grouped[t.id];
       const els = this._teamEls[t.id];
-      people.forEach((m) => els.chips.appendChild(this._chips[m.id]));
+      people.forEach((m) => {
+        const chip = this._chips[m.id];
+        if (chip) els.chips.appendChild(chip);
+      });
       els.empty.hidden = people.length > 0;
 
       const n = counts[t.id];

@@ -93,11 +93,11 @@ main.app-shell__content { flex: 1; padding: 32px 28px; max-width: 1200px; width:
 .stat-card .v small { font-family: var(--font-body); font-size: 15px; color: var(--font-secondary-color); font-weight: 500; }
 .stat-card .pct { font-size: 12px; color: var(--font-secondary-color); margin-top: 4px; font-weight: 600; }
 
-/* Shared progress bar, reused by DashboardView and PorCategoriaView — solid fill. */
+/* Shared progress bar, reused by DashboardView and PorTemaView — solid fill. */
 .bar { height: 8px; background: var(--secondary-background-color); border-radius: 999px; overflow: hidden; position: relative; border: 1px solid var(--border-color); }
 .bar > span { display: block; height: 100%; }
 
-/* Shared small color swatch, reused wherever a team's color needs a dot label. */
+/* Shared small color swatch, reused wherever a tema's color needs a dot label. */
 .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1.5px solid var(--font-primary-color); }
 
 /* Shared status label — a solid-filled pill (candy-label style), reused by

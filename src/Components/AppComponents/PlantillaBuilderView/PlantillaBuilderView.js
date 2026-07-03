@@ -1,16 +1,18 @@
+import { PRESETS } from '../../../data/presets.js';
+
 // Replaces HelpView's CSV/JSON textarea with real visual CRUD for
-// Categorías/Opciones — the "SETUP now lives entirely in the UI, no files
-// on the server" direction. Categoría/Opción rows are real Visual components
-// (CategoriaRow/OpcionRow — build-once, reused by stable sliceId, updated
+// Temas/Opciones — the "SETUP now lives entirely in the UI, no files
+// on the server" direction. Tema/Opción rows are real Visual components
+// (TemaRow/OpcionRow — build-once, reused by stable sliceId, updated
 // via a setter) instead of re-templated HTML strings: no more manual
 // expanded/collapsed state tracking here, and no innerHTML+string-
 // interpolation surface left in this view at all. Text fields use the
 // registry Input/Select/Checkbox (reskinned to Sticker Book in this file's
-// CSS) instead of raw <input>/<select> — see the CategoriaRow.css header
+// CSS) instead of raw <input>/<select> — see the TemaRow.css header
 // comment for why that reskin is safe (no Shadow DOM). Also hosts the
 // Plantilla-level settings that used to live in the now-retired
 // SettingsView: "Nombre de la Plantilla" (Detalles) and the "responsables"
-// toggle (scoped inside Categorías, since it only applies to modo
+// toggle (scoped inside Temas, since it only applies to modo
 // Selección). Personal/session settings (tu nombre, tema) moved to
 // UserMenu instead.
 export default class PlantillaBuilderView extends HTMLElement {
@@ -20,8 +22,11 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$root = this.querySelector('.plantilla-builder-view');
     this.$nombreSlot = this.querySelector('#plantillaNombreSlot');
     this.$lideresSlot = this.querySelector('#lideresToggleSlot');
-    this.$sexoSlot = this.querySelector('#sexoToggleSlot');
-    this.$edadSlot = this.querySelector('#edadToggleSlot');
+    this.$presetGrid = this.querySelector('#presetGrid');
+    this.$atribList = this.querySelector('#atribList');
+    this.$atribAddLabel = this.querySelector('#atribAddLabel');
+    this.$atribAddType = this.querySelector('#atribAddType');
+    this.$atribAddBtn = this.querySelector('#atribAddBtn');
     this.$addCatSlot = this.querySelector('#addCatSlot');
     this.$addOpcSlot = this.querySelector('#addOpcSlot');
     this.$catList = this.querySelector('#catList');
@@ -31,14 +36,61 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$catEmpty = this.querySelector('#catEmpty');
     this.$catFilterEmpty = this.querySelector('#catFilterEmpty');
     this.$opcEmpty = this.querySelector('#opcEmpty');
+    this.$opcSection = this.querySelector('#opcSection');
     this.$exportBtn = this.querySelector('#exportPlantillaBtn');
     this.$importBtn = this.querySelector('#importPlantillaBtn');
     this.$importFile = this.querySelector('#importPlantillaFile');
-    this.$resetBtn = this.querySelector('#resetBtn');
+    this.$catClearAll = this.querySelector('#catClearAll');
+    this.$catBulkBar = this.querySelector('#catBulkBar');
+    this.$catBulkCount = this.querySelector('#catBulkCount');
+    this.$catBulkDelete = this.querySelector('#catBulkDelete');
+    this.$opcClearAll = this.querySelector('#opcClearAll');
+    this.$opcBulkBar = this.querySelector('#opcBulkBar');
+    this.$opcBulkCount = this.querySelector('#opcBulkCount');
+    this.$opcBulkDelete = this.querySelector('#opcBulkDelete');
 
-    // Non-restrictive view filter for the Categorías list — groups by modo
+    // Bulk selection: each row carries a checkbox whose native change event
+    // bubbles to the list container — delegate it here to keep the "N
+    // seleccionados" bar in sync. Delete-selected and delete-all both go
+    // through confirm:request (destructive) and the PlantillaService bulk
+    // methods (which cascade + clean up references).
+    this.$catList.addEventListener('change', (e) => {
+      if (e.target.classList.contains('cat-row__select')) this._updateCatBulk();
+    });
+    this.$opcList.addEventListener('change', (e) => {
+      if (e.target.classList.contains('opc-row__select')) this._updateOpcBulk();
+    });
+    this.$catClearAll.onclick = () => this._confirmClear('temas');
+    this.$opcClearAll.onclick = () => this._confirmClear('opciones');
+    this.$catBulkDelete.onclick = () => this._confirmBulkDelete('temas');
+    this.$opcBulkDelete.onclick = () => this._confirmBulkDelete('opciones');
+
+    // Preset gallery: load a starter Plantilla (confirm-gated if not empty).
+    this.$presetGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('[data-preset]');
+      if (!card) return;
+      const preset = PRESETS.find((p) => p.id === card.dataset.preset);
+      if (preset) this._loadPreset(preset);
+    });
+
+    // Atributos editor: add / edit label / edit lista options / remove.
+    this.$atribAddBtn.onclick = () => this._addAtributo();
+    this.$atribAddLabel.addEventListener('keydown', (e) => { if (e.key === 'Enter') this._addAtributo(); });
+    this.$atribList.addEventListener('click', (e) => {
+      const rm = e.target.closest('[data-atrib-remove]');
+      if (rm) this._plantilla.removeAtributo(rm.dataset.atribRemove);
+    });
+    this.$atribList.addEventListener('change', (e) => {
+      const el = e.target.closest('[data-atrib-field]');
+      if (!el) return;
+      const key = el.dataset.atribKey;
+      if (el.dataset.atribField === 'label') this._plantilla.updateAtributo(key, { label: el.value.trim() || key });
+      else if (el.dataset.atribField === 'opciones') this._plantilla.updateAtributo(key, { opciones: el.value.split(',').map((s) => s.trim()).filter(Boolean) });
+    });
+
+    // Non-restrictive view filter for the Temas list — groups by modo
     // so a Plantilla that mixes Selección and Texto libre stays scannable,
-    // and gives new categorías a smart default modo. Never blocks what you
+    // and gives new temas a smart default modo. Never blocks what you
     // can create; "Todas" always shows everything regardless of this.
     this._catFilter = 'all';
     this._catRows = {};
@@ -55,34 +107,28 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$exportBtn.onclick = () => this._exportPlantilla();
     this.$importBtn.onclick = () => this.$importFile.click();
     this.$importFile.onchange = (e) => this._handleImportFile(e);
-    this.$resetBtn.onclick = () => this._confirmReset();
 
     slice.controller.setComponentProps(this, props);
   }
 
   async init() {
     this._plantilla = slice.getComponent('PlantillaService');
+    this._html = slice.getComponent('HtmlService');
     const settings = slice.getComponent('SettingsService');
 
-    const [nombreInput, lideresCheckbox, sexoCheckbox, edadCheckbox, addCatInput, addOpcInput] = await Promise.all([
+    const [nombreInput, lideresCheckbox, addCatInput, addOpcInput] = await Promise.all([
       slice.build('Input', { sliceId: 'pb-nombre', placeholder: 'Nombre de la Plantilla' }),
-      slice.build('Checkbox', { sliceId: 'pb-lideres', label: '👑 Habilitar responsables de categoría' }),
-      slice.build('Checkbox', { sliceId: 'pb-sexo', label: 'Habilitar sexo' }),
-      slice.build('Checkbox', { sliceId: 'pb-edad', label: 'Habilitar edad' }),
-      slice.build('Input', { sliceId: 'pb-add-cat', placeholder: 'Nueva categoría… — escribí y presioná Enter' }),
-      slice.build('Input', { sliceId: 'pb-add-opc', placeholder: 'Nueva opción… — escribí y presioná Enter' }),
+      slice.build('Checkbox', { sliceId: 'pb-lideres', label: '👑 Habilitar responsables de tema' }),
+      slice.build('Input', { sliceId: 'pb-add-cat', placeholder: 'Nuevo tema… — escribe y presiona Enter' }),
+      slice.build('Input', { sliceId: 'pb-add-opc', placeholder: 'Nueva opción… — escribe y presiona Enter' }),
     ]);
     this.$nombreInput = nombreInput;
     this.$lideresCheckbox = lideresCheckbox;
-    this.$sexoCheckbox = sexoCheckbox;
-    this.$edadCheckbox = edadCheckbox;
     this.$addCatInput = addCatInput;
     this.$addOpcInput = addOpcInput;
 
     this.$nombreSlot.appendChild(nombreInput);
     this.$lideresSlot.appendChild(lideresCheckbox);
-    this.$sexoSlot.appendChild(sexoCheckbox);
-    this.$edadSlot.appendChild(edadCheckbox);
     this.$addCatSlot.appendChild(addCatInput);
     this.$addOpcSlot.appendChild(addOpcInput);
 
@@ -92,44 +138,35 @@ export default class PlantillaBuilderView extends HTMLElement {
     lideresCheckbox.checked = settings.isLideresEnabled();
     lideresCheckbox.addEventListener('change', () => settings.setLideresEnabled(lideresCheckbox.checked));
 
-    sexoCheckbox.checked = settings.isSexoEnabled();
-    sexoCheckbox.addEventListener('change', () => settings.setSexoEnabled(sexoCheckbox.checked));
-
-    edadCheckbox.checked = settings.isEdadEnabled();
-    edadCheckbox.addEventListener('change', () => settings.setEdadEnabled(edadCheckbox.checked));
-
-    this._bindAddInput(addCatInput, (name) => {
-      // New categorías default to whatever the active filter is focused on
+    this._bindAddInput(addCatInput, this.querySelector('#addCatBtn'), (name) => {
+      // New temas default to whatever the active filter is focused on
       // — one less click when bulk-adding a run of the same modo. "Todas"
-      // keeps PlantillaService.addCategoria's own default (modo: 'seleccion').
+      // keeps PlantillaService.addTema's own default (modo: 'reparto').
       const modo = this._catFilter === 'texto_libre' ? 'texto_libre' : undefined;
-      this._plantilla.addCategoria(modo ? { nombre: name, modo } : { nombre: name });
+      this._plantilla.addTema(modo ? { nombre: name, modo } : { nombre: name });
     });
-    this._bindAddInput(addOpcInput, (name) => this._plantilla.addOpcion({ nombre: name }));
+    this._bindAddInput(addOpcInput, this.querySelector('#addOpcBtn'), (name) => this._plantilla.addOpcion({ nombre: name }));
 
-    this._renderCategorias();
+    this._renderPresets();
+    this._renderTemas();
     this._renderOpciones();
+    this._renderAtributos();
 
     // Catches mutations from outside this view too (e.g. CompareView's
     // Plantilla import) — matches the watch convention every other view uses.
-    slice.context.watch('plantilla', this, () => { this._renderCategorias(); this._renderOpciones(); });
+    slice.context.watch('plantilla', this, () => { this._renderTemas(); this._renderOpciones(); this._renderAtributos(); });
     slice.context.watch('settings', this, (s) => {
       if (this.$lideresCheckbox && document.activeElement !== this.$lideresCheckbox) {
         this.$lideresCheckbox.checked = s.lideresEnabled === true;
-      }
-      if (this.$sexoCheckbox && document.activeElement !== this.$sexoCheckbox) {
-        this.$sexoCheckbox.checked = s.sexoEnabled !== false;
-      }
-      if (this.$edadCheckbox && document.activeElement !== this.$edadCheckbox) {
-        this.$edadCheckbox.checked = s.edadEnabled !== false;
       }
     });
   }
 
   update() {
     if (this.$nombreInput) this.$nombreInput.value = this._plantilla.getNombre();
-    this._renderCategorias();
+    this._renderTemas();
     this._renderOpciones();
+    this._renderAtributos();
   }
 
   // Registry Input has no onChange prop — its native <input> still fires
@@ -138,49 +175,190 @@ export default class PlantillaBuilderView extends HTMLElement {
   // like it would on a plain <input>. Type a name, press Enter: added, and
   // the field clears/refocuses itself so several items can be typed
   // back-to-back — no dialog per item.
-  _bindAddInput(input, addFn) {
-    input.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter') return;
+  _bindAddInput(input, button, addFn) {
+    const commit = () => {
       const name = input.value.trim();
-      if (!name) return;
+      if (!name) { input.focus(); return; }
       addFn(name);
       input.value = '';
       input.focus();
+    };
+    // Enter works on desktop; on mobile the virtual "Go/Done/Intro" key is
+    // unreliable (Android/Gboard often reports keyCode 229 / key 'Unidentified'
+    // mid-composition instead of a clean 'Enter'), so the visible "+ Agregar"
+    // button is the dependable path there.
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); commit(); }
     });
+    if (button) button.addEventListener('click', commit);
+    // Label the mobile keyboard's action key on the inner native <input>.
+    const native = input.querySelector ? input.querySelector('input') : null;
+    if (native) native.setAttribute('enterkeyhint', 'done');
   }
 
-  // ── Categorías ──────────────────────────────────────────────
+  // ── Temas ──────────────────────────────────────────────
 
-  async _renderCategorias() {
-    const categorias = this._plantilla.getCategorias();
-    this.$catCount.textContent = categorias.length;
-    this.$catEmpty.hidden = categorias.length > 0;
+  async _renderTemas() {
+    const temas = this._plantilla.getTemas();
+    this.$catCount.textContent = temas.length;
+    this.$catEmpty.hidden = temas.length > 0;
 
-    await this._syncRows(this._catRows, categorias, this.$catList, 'CategoriaRow', (row, c) => { row.categoria = c; });
+    await this._syncRows(this._catRows, temas, this.$catList, 'TemaRow', (row, c) => { row.tema = c; });
     this._applyCatFilter();
+    this._updateCatBulk();
   }
 
   _applyCatFilter() {
-    const categorias = this._plantilla.getCategorias();
+    const temas = this._plantilla.getTemas();
     let visibleCount = 0;
-    categorias.forEach((c) => {
+    temas.forEach((c) => {
       const row = this._catRows[String(c.id)];
       if (!row) return;
       const show = this._catFilter === 'all' || c.modo === this._catFilter;
       row.hidden = !show;
       if (show) visibleCount++;
     });
-    this.$catFilterEmpty.hidden = categorias.length === 0 || visibleCount > 0;
+    this.$catFilterEmpty.hidden = temas.length === 0 || visibleCount > 0;
   }
 
   // ── Opciones ────────────────────────────────────────────────
 
   async _renderOpciones() {
-    const opciones = this._plantilla.getOpciones();
+    // The pool only makes sense with at least one Asignación (reparto) Tema —
+    // a pure votación/ideas Plantilla shows only Temas (each owning its
+    // opciones inline), no separate pool section.
+    const hasReparto = this._plantilla.getTemas().some((t) => t.modo === 'reparto');
+    this.$opcSection.hidden = !hasReparto;
+
+    // Only the reparto POOL here — votación/ranking temas own their opciones,
+    // edited inline in their own TemaRow, not in this global list.
+    const opciones = this._plantilla.getOpcionesPool();
     this.$opcCount.textContent = opciones.length;
     this.$opcEmpty.hidden = opciones.length > 0;
 
     await this._syncRows(this._opcRows, opciones, this.$opcList, 'OpcionRow', (row, o) => { row.opcion = o; });
+    this._updateOpcBulk();
+  }
+
+  // ── Preset gallery ──────────────────────────────────────────
+  _renderPresets() {
+    if (!this.$presetGrid) return;
+    const esc = (s) => this._html.esc(s);
+    this.$presetGrid.innerHTML = this._html.sanitize(PRESETS.map((p) => `
+      <button class="pb-preset" type="button" data-preset="${esc(p.id)}">
+        <span class="pb-preset__icon">${esc(p.icon)}</span>
+        <span class="pb-preset__body">
+          <span class="pb-preset__name">${esc(p.nombre)}</span>
+          <span class="pb-preset__desc">${esc(p.descripcion)}</span>
+        </span>
+      </button>`).join(''));
+  }
+
+  _loadPreset(preset) {
+    let prepared;
+    try {
+      prepared = this._plantilla.prepareImport(preset.plantilla);
+    } catch (err) {
+      slice.events.emit('toast:show', { message: err.message || 'No se pudo cargar la plantilla.', type: 'error' });
+      return;
+    }
+    const apply = () => {
+      this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos);
+      slice.events.emit('toast:show', { message: `Plantilla «${preset.nombre}» cargada`, type: 'success' });
+    };
+    const nTemas = this._plantilla.getTemas().length;
+    const nOpc = this._plantilla.getOpciones().length;
+    if (nTemas === 0 && nOpc === 0) { apply(); return; }
+    slice.events.emit('confirm:request', {
+      title: `¿Empezar desde «${preset.nombre}»?`,
+      message: `Reemplazará tu Plantilla actual (${nTemas} temas, ${nOpc} opciones)${prepared.impact ? ` y limpiará ${prepared.impact} respuesta(s) que la referencian` : ''}. No se puede deshacer.`,
+      confirmLabel: 'Cargar plantilla',
+      danger: true,
+      onConfirm: apply,
+    });
+  }
+
+  // ── Atributos custom (dynamic per-Opción fields) ────────────
+  _addAtributo() {
+    const label = this.$atribAddLabel.value.trim();
+    if (!label) return;
+    this._plantilla.addAtributo({ label, type: this.$atribAddType.value || 'texto' });
+    this.$atribAddLabel.value = '';
+    this.$atribAddLabel.focus();
+  }
+
+  _renderAtributos() {
+    if (!this.$atribList) return;
+    const esc = (s) => this._html.esc(s);
+    const TYPE_LABEL = { texto: 'Texto', numero: 'Número', lista: 'Lista', siNo: 'Sí/No' };
+    const atributos = this._plantilla.getAtributos();
+    const html = atributos.length
+      ? atributos.map((a) => {
+          const optsField = a.type === 'lista'
+            ? `<input class="pb-atrib__opts" data-atrib-field="opciones" data-atrib-key="${esc(a.key)}" type="text" placeholder="opciones separadas por coma" value="${esc((a.opciones || []).join(', '))}" />`
+            : '';
+          return `<div class="pb-atrib">
+            <input class="pb-atrib__label" data-atrib-field="label" data-atrib-key="${esc(a.key)}" type="text" value="${esc(a.label)}" />
+            <span class="pb-atrib__type">${esc(TYPE_LABEL[a.type] || a.type)}</span>
+            ${optsField}
+            <button class="pb-atrib__rm" type="button" data-atrib-remove="${esc(a.key)}" title="Quitar atributo">✕</button>
+          </div>`;
+        }).join('')
+      : '<div class="pb-atrib__empty">Sin atributos. Agrega campos extra para tus Opciones (opcional).</div>';
+    this.$atribList.innerHTML = this._html.sanitize(html);
+  }
+
+  // ── Bulk selection / delete ─────────────────────────────────
+  _selectedTemaIds() {
+    return Object.entries(this._catRows).filter(([, row]) => row && row.selected).map(([id]) => id);
+  }
+
+  _selectedOpcionIds() {
+    return Object.entries(this._opcRows).filter(([, row]) => row && row.selected).map(([id]) => id);
+  }
+
+  _updateCatBulk() {
+    const n = this._selectedTemaIds().length;
+    this.$catBulkBar.hidden = n === 0;
+    this.$catBulkCount.textContent = `${n} seleccionado${n === 1 ? '' : 's'}`;
+  }
+
+  _updateOpcBulk() {
+    const n = this._selectedOpcionIds().length;
+    this.$opcBulkBar.hidden = n === 0;
+    this.$opcBulkCount.textContent = `${n} seleccionada${n === 1 ? '' : 's'}`;
+  }
+
+  _confirmBulkDelete(kind) {
+    const ids = kind === 'temas' ? this._selectedTemaIds() : this._selectedOpcionIds();
+    if (!ids.length) return;
+    const noun = kind === 'temas' ? (ids.length === 1 ? 'tema' : 'temas') : (ids.length === 1 ? 'opción' : 'opciones');
+    slice.events.emit('confirm:request', {
+      title: `¿Borrar ${ids.length} ${noun}?`,
+      message: 'Se quitarán de la Plantilla y se limpiarán las respuestas que las referencian. No se puede deshacer.',
+      confirmLabel: 'Borrar',
+      danger: true,
+      onConfirm: () => {
+        if (kind === 'temas') this._plantilla.removeTemas(ids);
+        else this._plantilla.removeOpciones(ids);
+      },
+    });
+  }
+
+  _confirmClear(kind) {
+    const count = kind === 'temas' ? this._plantilla.getTemas().length : this._plantilla.getOpciones().length;
+    if (!count) return;
+    const noun = kind === 'temas' ? 'los temas' : 'las opciones';
+    slice.events.emit('confirm:request', {
+      title: `¿Borrar todos ${noun}?`,
+      message: `Se eliminarán ${count} y se limpiarán las respuestas que los referencian. No se puede deshacer.`,
+      confirmLabel: 'Borrar todo',
+      danger: true,
+      onConfirm: () => {
+        if (kind === 'temas') this._plantilla.clearTemas();
+        else this._plantilla.clearOpciones();
+      },
+    });
   }
 
   // Shared "reuse by stable id" list sync: builds a row component for every
@@ -188,7 +366,7 @@ export default class PlantillaBuilderView extends HTMLElement {
   // setter (cheap, idempotent), destroys rows for items that no longer exist,
   // and reorders the DOM to match. Never rebuilds a survivor.
   //
-  // IMPORTANT: keep literal `slice.build('CategoriaRow', ...)` and
+  // IMPORTANT: keep literal `slice.build('TemaRow', ...)` and
   // `slice.build('OpcionRow', ...)` call sites here. The CLI analyzer only
   // detects literal names, so variable-based `slice.build(componentName, ...)`
   // can exclude rows from route bundles (see GOTCHAS.md §5).
@@ -205,9 +383,9 @@ export default class PlantillaBuilderView extends HTMLElement {
     if (toBuild.length) {
       const [first, ...rest] = toBuild;
 
-      if (componentName === 'CategoriaRow') {
-        const firstRow = await slice.build('CategoriaRow', { sliceId: `${container.id}-${first.id}` });
-        const restRows = await Promise.all(rest.map((it) => slice.build('CategoriaRow', { sliceId: `${container.id}-${it.id}` })));
+      if (componentName === 'TemaRow') {
+        const firstRow = await slice.build('TemaRow', { sliceId: `${container.id}-${first.id}` });
+        const restRows = await Promise.all(rest.map((it) => slice.build('TemaRow', { sliceId: `${container.id}-${it.id}` })));
         [firstRow, ...restRows].forEach((row, i) => { registry[String(toBuild[i].id)] = row; });
       } else if (componentName === 'OpcionRow') {
         const firstRow = await slice.build('OpcionRow', { sliceId: `${container.id}-${first.id}` });
@@ -253,7 +431,7 @@ export default class PlantillaBuilderView extends HTMLElement {
       }
       const proceed = () => {
         try {
-          this._plantilla.loadFromData(prepared.categorias, prepared.opciones, prepared.nombre);
+          this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos);
           this._showToast('Plantilla importada', 'success');
         } catch (err) {
           this._showToast(err.message, 'error');
@@ -262,7 +440,7 @@ export default class PlantillaBuilderView extends HTMLElement {
       if (prepared.impact) {
         slice.events.emit('confirm:request', {
           title: '¿Reemplazar la Plantilla actual?',
-          message: `Se reemplazan tus Categorías y Opciones actuales por las de «${data.nombre || file.name}». Se limpiarán ${prepared.impact} respuesta${prepared.impact !== 1 ? 's' : ''} que ya no aplicarían. Esta acción no se puede deshacer.`,
+          message: `Se reemplazan tus Temas y Opciones actuales por las de «${data.nombre || file.name}». Se limpiarán ${prepared.impact} respuesta${prepared.impact !== 1 ? 's' : ''} que ya no aplicarían. Esta acción no se puede deshacer.`,
           confirmLabel: 'Reemplazar de todas formas',
           danger: true,
           onConfirm: proceed,
@@ -278,24 +456,11 @@ export default class PlantillaBuilderView extends HTMLElement {
     const plantilla = {
       nombre: this._plantilla.getNombre() || 'Plantilla sin nombre',
       autor: slice.getComponent('SettingsService').getState().autor || '',
-      categorias: this._plantilla.getCategorias(),
+      temas: this._plantilla.getTemas(),
       opciones: this._plantilla.getOpciones(),
     };
     slice.getComponent('ExportService').downloadPlantilla(plantilla);
     this._showToast('Plantilla exportada', 'success');
-  }
-
-  _confirmReset() {
-    slice.events.emit('confirm:request', {
-      title: '¿Restaurar datos de ejemplo?',
-      message: 'Se perderán todas tus categorías y opciones actuales. Las respuestas que las referencian se limpiarán automáticamente.',
-      confirmLabel: 'Restaurar',
-      danger: true,
-      onConfirm: () => {
-        this._plantilla.resetToSeed();
-        this._showToast('Datos de ejemplo restaurados', 'success');
-      },
-    });
   }
 
   _showToast(message, type) {

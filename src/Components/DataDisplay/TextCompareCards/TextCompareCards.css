@@ -47,3 +47,41 @@ slice-textcomparecards .tcc-pick { align-self: flex-start; }
   slice-textcomparecards .tcc-grid { grid-template-columns: 1fr; }
   slice-textcomparecards .tcc-text { font-size: 15px; }
 }
+
+/* Read-fullscreen for a proposal */
+slice-textcomparecards .tcc-wrap { display: block; }
+slice-textcomparecards .tcc-card-head { align-items: center; }
+slice-textcomparecards .tcc-read {
+  margin-left: auto; flex-shrink: 0; border: 1.5px solid var(--border-color);
+  background: var(--panel-background-color); color: var(--font-secondary-color); cursor: pointer;
+  font-size: 13px; font-weight: 700; padding: 3px 9px; border-radius: 8px; line-height: 1;
+  transition: border-color .12s, color .12s;
+}
+slice-textcomparecards .tcc-read:hover { border-color: var(--font-primary-color); color: var(--font-primary-color); }
+slice-textcomparecards .tcc-fs {
+  position: fixed; inset: 0; z-index: 1000;
+  background: color-mix(in srgb, var(--font-primary-color) 55%, transparent);
+  display: flex; align-items: stretch; justify-content: center;
+  padding: max(20px, 4vh) max(20px, 4vw); animation: tccFsIn .12s ease;
+}
+slice-textcomparecards .tcc-fs[hidden] { display: none; }
+slice-textcomparecards .tcc-fs__panel {
+  width: 100%; max-width: 820px; display: flex; flex-direction: column; gap: 16px;
+  background: var(--panel-background-color); border: 3px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius); box-shadow: var(--box-shadow-primary); padding: 24px 26px;
+}
+slice-textcomparecards .tcc-fs__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+slice-textcomparecards .tcc-fs__autor { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
+slice-textcomparecards .tcc-fs__close {
+  flex-shrink: 0; border: 2px solid var(--font-primary-color); background: var(--panel-background-color);
+  color: var(--font-primary-color); cursor: pointer; font-size: 13px; font-weight: 700;
+  padding: 8px 16px; border-radius: 999px; box-shadow: 2px 2px 0 var(--font-primary-color);
+  transition: transform .08s, box-shadow .08s;
+}
+slice-textcomparecards .tcc-fs__close:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
+slice-textcomparecards .tcc-fs__text {
+  flex: 1; overflow: auto; margin: 0; white-space: pre-wrap; word-break: break-word;
+  font-size: 17px; line-height: 1.75; color: var(--font-primary-color);
+}
+@keyframes tccFsIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { slice-textcomparecards .tcc-fs { animation: none; } }
