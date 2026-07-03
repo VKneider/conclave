@@ -154,7 +154,12 @@ export default class PlantillaBuilderView extends HTMLElement {
 
     // Catches mutations from outside this view too (e.g. CompareView's
     // Plantilla import) — matches the watch convention every other view uses.
-    slice.context.watch('plantilla', this, () => { this._renderTemas(); this._renderOpciones(); this._renderAtributos(); });
+    slice.context.watch('plantilla', this, () => {
+      if (this.$nombreInput && document.activeElement !== this.$nombreInput) {
+        this.$nombreInput.value = this._plantilla.getNombre();
+      }
+      this._renderTemas(); this._renderOpciones(); this._renderAtributos();
+    });
     slice.context.watch('settings', this, (s) => {
       if (this.$lideresCheckbox && document.activeElement !== this.$lideresCheckbox) {
         this.$lideresCheckbox.checked = s.lideresEnabled === true;
@@ -163,7 +168,9 @@ export default class PlantillaBuilderView extends HTMLElement {
   }
 
   update() {
-    if (this.$nombreInput) this.$nombreInput.value = this._plantilla.getNombre();
+    if (this.$nombreInput && document.activeElement !== this.$nombreInput) {
+      this.$nombreInput.value = this._plantilla.getNombre();
+    }
     this._renderTemas();
     this._renderOpciones();
     this._renderAtributos();
