@@ -83,6 +83,7 @@ export default class Providers {
     await slice.build('StoreService', { singleton: true });
     await slice.build('HtmlService', { singleton: true });
     await slice.build('DomService', { singleton: true });
+    await slice.build('CompressionService', { singleton: true });
 
     // PlantillaService must finish loading before any view reads
     // tema/opción data — it reads from localStorage (the `plantilla`

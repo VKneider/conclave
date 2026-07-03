@@ -38,6 +38,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$opcEmpty = this.querySelector('#opcEmpty');
     this.$opcSection = this.querySelector('#opcSection');
     this.$exportBtn = this.querySelector('#exportPlantillaBtn');
+    this.$shareBtn = this.querySelector('#shareLinkBtn');
     this.$importBtn = this.querySelector('#importPlantillaBtn');
     this.$importFile = this.querySelector('#importPlantillaFile');
     this.$catClearAll = this.querySelector('#catClearAll');
@@ -105,6 +106,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     });
 
     this.$exportBtn.onclick = () => this._exportPlantilla();
+    this.$shareBtn.onclick = () => this._shareLink();
     this.$importBtn.onclick = () => this.$importFile.click();
     this.$importFile.onchange = (e) => this._handleImportFile(e);
 
@@ -468,6 +470,22 @@ export default class PlantillaBuilderView extends HTMLElement {
     };
     slice.getComponent('ExportService').downloadPlantilla(plantilla);
     this._showToast('Plantilla exportada', 'success');
+  }
+
+  _shareLink() {
+    const data = {
+      nombre: this._plantilla.getNombre() || 'Plantilla sin nombre',
+      atributos: this._plantilla.getAtributos(),
+      temas: this._plantilla.getTemas(),
+      opciones: this._plantilla.getOpciones(),
+    };
+    const compressed = slice.getComponent('CompressionService').compressToURI({ tipo: 'plantilla', ...data });
+    const url = `${window.location.origin}${window.location.pathname}#plantilla=${compressed}`;
+    navigator.clipboard.writeText(url).then(() => {
+      this._showToast('Enlace copiado al portapapeles', 'success');
+    }, () => {
+      this._showToast('No se pudo copiar el enlace', 'error');
+    });
   }
 
   _showToast(message, type) {

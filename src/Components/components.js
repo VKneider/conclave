@@ -14,6 +14,7 @@ const components = {
   "TopBar": "AppComponents",
   "UserMenu": "AppComponents",
   "ChartService": "Core",
+  "CompressionService": "Core",
   "DomService": "Core",
   "FetchManager": "Core",
   "FileDownloadService": "Core",
