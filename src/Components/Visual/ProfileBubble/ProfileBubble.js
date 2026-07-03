@@ -1,14 +1,46 @@
+const DISMISS_KEY = 'conclave-profile-dismissed';
+
 export default class ProfileBubble extends HTMLElement {
   constructor(props) {
     super();
     slice.attachTemplate(this);
 
-    this.$bubble = this.querySelector('.bubble');
     this._modal = null;
 
-    this.$bubble.addEventListener('click', () => this._openModal());
+    this.querySelector('.bubble').addEventListener('click', () => this._openModal());
+    this.querySelector('.bubble-dismiss').addEventListener('click', (e) => {
+      e.stopPropagation();
+      this._dismiss();
+    });
 
     slice.controller.setComponentProps(this, props);
+  }
+
+  async init() {
+    this._boundCheck = () => this._checkVisibility();
+    this._checkVisibility();
+    window.addEventListener('popstate', this._boundCheck);
+    slice.events.subscribe('router:change', this._boundCheck);
+  }
+
+  async update() {
+    this._checkVisibility();
+  }
+
+  beforeDestroy() {
+    window.removeEventListener('popstate', this._boundCheck);
+    slice.events.unsubscribe('router:change', this._boundCheck);
+  }
+
+  _checkVisibility() {
+    const dismissed = localStorage.getItem(DISMISS_KEY) === 'true';
+    const onLanding = window.location.pathname === '/';
+    this.hidden = dismissed || !onLanding;
+  }
+
+  _dismiss() {
+    localStorage.setItem(DISMISS_KEY, 'true');
+    this.hidden = true;
   }
 
   async _ensureModal() {
