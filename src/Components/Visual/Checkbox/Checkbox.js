@@ -71,20 +71,14 @@ export default class Checkbox extends HTMLElement {
       });
    }
 
-   // PATCHED: the created <label> had no `for`/id association with the
-   // <input> — it's a plain sibling, not a wrapper, so clicking the text
-   // did nothing (only the small .checkmark circle itself responded to
-   // clicks). `this.sliceId` is always set by the framework, so it's a safe
-   // unique id source. If Checkbox is ever re-synced from the registry
-   // (`slice sync`), re-check this association survived.
    createLabel() {
       if (!this.querySelector('.checkbox_label')) {
-         if (!this.$input.id) this.$input.id = `slice-checkbox-${this.sliceId}`;
-         const label = document.createElement('label');
-         label.classList.add('checkbox_label');
-         label.setAttribute('for', this.$input.id);
-         label.textContent = this.label;
-         this.$checkbox.appendChild(label);
+         const wrapper = this.$checkbox.querySelector('label');
+         if (!wrapper) return;
+         const span = document.createElement('span');
+         span.classList.add('checkbox_label');
+         span.textContent = this.label;
+         wrapper.appendChild(span);
       }
    }
 
