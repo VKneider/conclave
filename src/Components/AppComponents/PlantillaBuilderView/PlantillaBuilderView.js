@@ -32,7 +32,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$catList = this.querySelector('#catList');
     this.$opcList = this.querySelector('#opcList');
     this.$catCount = this.querySelector('#catCount');
-    this.$opcCount = this.querySelector('#opcCount');
+    this.$catFilters = this.querySelector('#catFilters');
     this.$catEmpty = this.querySelector('#catEmpty');
     this.$catFilterEmpty = this.querySelector('#catFilterEmpty');
     this.$opcEmpty = this.querySelector('#opcEmpty');
@@ -96,14 +96,6 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._catFilter = 'all';
     this._catRows = {};
     this._opcRows = {};
-
-    this.$root.querySelectorAll('.pb-filter-btn').forEach((btn) => {
-      btn.onclick = () => {
-        this._catFilter = btn.dataset.filter;
-        this.$root.querySelectorAll('.pb-filter-btn').forEach((b) => b.classList.toggle('active', b === btn));
-        this._applyCatFilter();
-      };
-    });
 
     this.$exportBtn.onclick = () => this._exportPlantilla();
     this.$shareBtn.onclick = () => this._shareLink();
@@ -211,10 +203,30 @@ export default class PlantillaBuilderView extends HTMLElement {
     const temas = this._plantilla.getTemas();
     this.$catCount.textContent = temas.length;
     this.$catEmpty.hidden = temas.length > 0;
+    this._renderCatFilters(temas);
 
     await this._syncRows(this._catRows, temas, this.$catList, 'TemaRow', (row, c) => { row.tema = c; });
     this._applyCatFilter();
     this._updateCatBulk();
+  }
+
+  _renderCatFilters(temas) {
+    const modoLabels = { reparto: '🎯 Asignación', votacion: '🗳️ Votación', ranking: '🏆 Ranking', texto_libre: '📝 Texto libre' };
+    const present = new Set(temas.map((t) => t.modo));
+    const filters = ['all', ...Object.keys(modoLabels).filter((m) => present.has(m))];
+    if (!filters.includes(this._catFilter)) this._catFilter = 'all';
+
+    this.$catFilters.innerHTML = this._html.sanitize(filters.map((f) =>
+      `<button class="pb-filter-btn${f === this._catFilter ? ' active' : ''}" data-filter="${f}" type="button">${f === 'all' ? 'Todas' : modoLabels[f]}</button>`
+    ).join(''));
+
+    Array.from(this.$catFilters.children).forEach((btn) => {
+      btn.onclick = () => {
+        this._catFilter = btn.dataset.filter;
+        Array.from(this.$catFilters.children).forEach((b) => b.classList.toggle('active', b === btn));
+        this._applyCatFilter();
+      };
+    });
   }
 
   _applyCatFilter() {
