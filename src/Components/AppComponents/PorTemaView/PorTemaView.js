@@ -20,15 +20,30 @@ export default class PorTemaView extends HTMLElement {
     // Catches a mutation made while THIS view is on screen but the trigger
     // lives outside it (the footer's "Reiniciar" button) — MultiRoute's
     // update()-on-revisit alone only covers navigating back to this view.
-    slice.context.watch('respuestas', this, () => this._render());
-    slice.context.watch('settings', this, () => this._render());
-    slice.context.watch('plantilla', this, () => this._render());
+    slice.context.watch('respuestas', this, () => this.update());
+    slice.context.watch('settings', this, () => this.update());
+    slice.context.watch('plantilla', this, () => this.update());
   }
 
   // Called by MultiRoute on cached revisit — the shell/chips/dropzones
   // already exist, only positions/counts need refreshing.
   async update() {
-    await this._ensureChips();
+    const currentIds = new Set(this._roster.getTemasParticipables().map((t) => t.id));
+    const builtIds = new Set(Object.keys(this._teamEls || {}));
+    const needsRebuild = [...currentIds].some((id) => !builtIds.has(id)) || currentIds.size !== builtIds.size;
+    if (needsRebuild) {
+      this._dropzones?.forEach((z) => this._dnd.detach(z));
+      slice.controller.destroyByContainer(this.$root);
+      this._teamEls = {};
+      this._unassignedEls = {};
+      this._badges = {};
+      this._chips = {};
+      this._dropzones = [];
+      this.$root.innerHTML = '';
+      await this._buildShell();
+    } else {
+      await this._ensureChips();
+    }
     this._render();
   }
 
@@ -174,6 +189,7 @@ export default class PorTemaView extends HTMLElement {
   // Re-parents each opcion's existing chip into its current zone and
   // refreshes counts/badges. No component is ever destroyed or rebuilt here.
   _render() {
+    if (!this._teamEls) return;
     const roster = this._roster;
     const temas = roster.getTemasParticipables();
     const asignaciones = slice.getComponent('RespuestasService').getState().seleccion;
@@ -213,6 +229,7 @@ export default class PorTemaView extends HTMLElement {
     temas.forEach((t) => {
       const people = grouped[t.id];
       const els = this._teamEls[t.id];
+      if (!els) return;
       people.forEach((m) => {
         const chip = this._chips[m.id];
         if (chip) els.chips.appendChild(chip);
