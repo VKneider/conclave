@@ -1,11 +1,11 @@
 const SEED_TEMAS = [
-  { id: 'coordinacion-principal', nombre: 'Coordinación Principal', modo: 'reparto', orden: 1, capacidad: 1, min: null, max: null, participable: false, meta: { numero: 1, lider: 'Mateo Rivas' } },
-  { id: 'coordinacion-apoyo', nombre: 'Coordinación de Apoyo', modo: 'reparto', orden: 2, capacidad: 1, min: null, max: null, participable: false, meta: { numero: 2, lider: 'Elena Duarte' } },
-  { id: 'transporte', nombre: 'Transporte', modo: 'reparto', orden: 3, capacidad: 6, min: 4, max: 6, participable: true, meta: { numero: 3, lider: null } },
-  { id: 'banda-en-vivo', nombre: 'Banda en Vivo', modo: 'reparto', orden: 4, capacidad: 10, min: 6, max: 10, participable: true, meta: { numero: 4, lider: null } },
-  { id: 'bienvenida', nombre: 'Bienvenida', modo: 'reparto', orden: 5, capacidad: 12, min: 8, max: 12, participable: true, meta: { numero: 5, lider: null } },
-  { id: 'cafeteria', nombre: 'Cafetería', modo: 'reparto', orden: 6, capacidad: 6, min: 4, max: 6, participable: true, meta: { numero: 6, lider: null } },
-  { id: 'anfitriones', nombre: 'Anfitriones', modo: 'reparto', orden: 7, capacidad: 2, min: 2, max: 2, participable: true, meta: { numero: 12, lider: null } },
+  { id: 'coordinacion-principal', nombre: 'Coordinación Principal', modo: 'reparto', orden: 1, min: null, max: null, participable: false, meta: { numero: 1, lider: 'Mateo Rivas' } },
+  { id: 'coordinacion-apoyo', nombre: 'Coordinación de Apoyo', modo: 'reparto', orden: 2, min: null, max: null, participable: false, meta: { numero: 2, lider: 'Elena Duarte' } },
+  { id: 'transporte', nombre: 'Transporte', modo: 'reparto', orden: 3, min: 4, max: 6, participable: true, meta: { numero: 3, lider: null } },
+  { id: 'banda-en-vivo', nombre: 'Banda en Vivo', modo: 'reparto', orden: 4, min: 6, max: 10, participable: true, meta: { numero: 4, lider: null } },
+  { id: 'bienvenida', nombre: 'Bienvenida', modo: 'reparto', orden: 5, min: 8, max: 12, participable: true, meta: { numero: 5, lider: null } },
+  { id: 'cafeteria', nombre: 'Cafetería', modo: 'reparto', orden: 6, min: 4, max: 6, participable: true, meta: { numero: 6, lider: null } },
+  { id: 'anfitriones', nombre: 'Anfitriones', modo: 'reparto', orden: 7, min: 2, max: 2, participable: true, meta: { numero: 12, lider: null } },
 ];
 
 const SEED_OPCIONES = [

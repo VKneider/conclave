@@ -6,7 +6,7 @@ import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from './seedData.js';
 // shared Plantilla, so ids are validated). Tema/Opción ids are safe slugs /
 // numbers (see PlantillaService.isSafeId).
 const tema = (id, nombre, modo, { orden = 1, numero = 1 } = {}) => ({
-  id, nombre, modo, orden, capacidad: null, min: null, max: null,
+  id, nombre, modo, orden, min: null, max: null,
   participable: modo === 'reparto', meta: { lider: null, numero },
 });
 const opc = (id, nombre, temaId = null) => ({ id, nombre, temaId, meta: { fijo: false, rolFijo: null } });
@@ -23,16 +23,16 @@ const PRESETS = [
     plantilla: {
       nombre: 'Decisión grupal', atributos: [],
       temas: [tema('decision', '¿Qué opción elegimos?', 'votacion')],
-      opciones: [opc(1, 'Opción A', 'decision'), opc(2, 'Opción B', 'decision'), opc(3, 'Opción C', 'decision')],
+      opciones: [opc(1, 'Inversión en marketing', 'decision'), opc(2, 'Nueva funcionalidad', 'decision'), opc(3, 'Mejora técnica', 'decision'), opc(4, 'Contratación', 'decision')],
     },
   },
   {
-    id: 'sino', icon: '✅', nombre: 'Sí / No',
-    descripcion: 'Una decisión binaria: aprobamos o no. La votación más simple.',
+    id: 'sino', icon: '✅', nombre: 'Sí / No / Abstención',
+    descripcion: 'Una decisión con tres posturas: a favor, en contra o neutro.',
     plantilla: {
-      nombre: 'Sí o No', atributos: [],
+      nombre: 'Sí, No o Abstención', atributos: [],
       temas: [tema('propuesta', '¿Aprobamos la propuesta?', 'votacion')],
-      opciones: [opc(1, 'Sí', 'propuesta'), opc(2, 'No', 'propuesta')],
+      opciones: [opc(1, 'Sí', 'propuesta'), opc(2, 'No', 'propuesta'), opc(3, 'Abstención', 'propuesta')],
     },
   },
   {
@@ -43,6 +43,7 @@ const PRESETS = [
       temas: [
         tema('idea-1', '¿Qué propondrías para mejorar?', 'texto_libre', { numero: 1, orden: 1 }),
         tema('idea-2', '¿Qué NO deberíamos hacer?', 'texto_libre', { numero: 2, orden: 2 }),
+        tema('idea-3', '¿Qué aprendimos esta semana?', 'texto_libre', { numero: 3, orden: 3 }),
       ],
       opciones: [],
     },
@@ -53,7 +54,11 @@ const PRESETS = [
     plantilla: {
       nombre: 'Priorización', atributos: [],
       temas: [tema('prioridad', 'Ordená por prioridad', 'ranking')],
-      opciones: [opc(1, 'Iniciativa A', 'prioridad'), opc(2, 'Iniciativa B', 'prioridad'), opc(3, 'Iniciativa C', 'prioridad'), opc(4, 'Iniciativa D', 'prioridad')],
+      opciones: [
+        opc(1, 'Refactor de auth', 'prioridad'), opc(2, 'Nueva landing', 'prioridad'),
+        opc(3, 'Bug del checkout', 'prioridad'), opc(4, 'Tests automáticos', 'prioridad'),
+        opc(5, 'Documentación', 'prioridad'), opc(6, 'Deuda técnica', 'prioridad'),
+      ],
     },
   },
   {
@@ -67,8 +72,9 @@ const PRESETS = [
         tema('libre', '¿Algo más para sumar?', 'texto_libre', { numero: 3, orden: 3 }),
       ],
       opciones: [
-        opc(1, 'Lunes 3', 'fecha'), opc(2, 'Miércoles 5', 'fecha'), opc(3, 'Viernes 7', 'fecha'),
-        opc(4, 'Refactor de auth', 'prioridades'), opc(5, 'Nueva landing', 'prioridades'), opc(6, 'Bug del checkout', 'prioridades'),
+        opc(1, 'Lunes 3', 'fecha'), opc(2, 'Miércoles 5', 'fecha'), opc(3, 'Viernes 7', 'fecha'), opc(4, 'Martes 11', 'fecha'),
+        opc(5, 'Refactor de auth', 'prioridades'), opc(6, 'Nueva landing', 'prioridades'),
+        opc(7, 'Bug del checkout', 'prioridades'), opc(8, 'Tests automáticos', 'prioridades'),
       ],
     },
   },

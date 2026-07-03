@@ -9,7 +9,7 @@ const MODO_OPTIONS = [
 // same pattern OpcionChip already uses for DragDropService. Nombre/Líder use
 // the registry Input, Modo uses the registry Select, Participable uses the
 // registry Checkbox — reskinned in CategoriaRow.css to match Sticker Book
-// (see that file's header comment for why). Mín/Máx/Cap stay plain <input>:
+// (see that file's header comment for why). Mín/Máx stay plain <input>:
 // three dense number fields in a row don't fit Input's floating-label
 // pattern, and they're already tucked behind "Detalles".
 export default class CategoriaRow extends HTMLElement {
@@ -30,7 +30,6 @@ export default class CategoriaRow extends HTMLElement {
     this.$extra = this.querySelector('.cat-row__extra');
     this.$min = this.querySelector('.cat-row__min');
     this.$max = this.querySelector('.cat-row__max');
-    this.$cap = this.querySelector('.cat-row__cap');
     this.$liderSlot = this.querySelector('.cat-row__lider-slot');
     this.$participableSlot = this.querySelector('.cat-row__participable-slot');
 
@@ -43,7 +42,6 @@ export default class CategoriaRow extends HTMLElement {
     this.$remove.addEventListener('click', () => this._confirmRemove());
     this.$min.addEventListener('change', () => this._patch({ min: this.$min.value === '' ? null : Number(this.$min.value) }));
     this.$max.addEventListener('change', () => this._patch({ max: this.$max.value === '' ? null : Number(this.$max.value) }));
-    this.$cap.addEventListener('change', () => this._patch({ capacidad: this.$cap.value === '' ? null : Number(this.$cap.value) }));
 
     // Pattern B: props may arrive before the async sub-components in init()
     // exist — `categoria`'s setter guards on that (see _sync()).
@@ -111,7 +109,6 @@ export default class CategoriaRow extends HTMLElement {
     }
     if (this.$min.value !== String(c.min ?? '')) this.$min.value = c.min ?? '';
     if (this.$max.value !== String(c.max ?? '')) this.$max.value = c.max ?? '';
-    if (this.$cap.value !== String(c.capacidad ?? '')) this.$cap.value = c.capacidad ?? '';
     const liderValue = c.meta?.lider || '';
     if (this.$liderInput && this.$liderInput.value !== liderValue) this.$liderInput.value = liderValue;
     if (this.$participableCheckbox) this.$participableCheckbox.checked = !!c.participable;

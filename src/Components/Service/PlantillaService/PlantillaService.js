@@ -330,7 +330,7 @@ export default class PlantillaService {
     // caller-supplied id blindly (see isSafeId's comment).
     const id = categoria?.id ? this._slug(String(categoria.id)) : this._slug(categoria?.nombre);
     const c = {
-      id, nombre: '', modo: 'seleccion', orden: numero, capacidad: null, min: null, max: null,
+      id, nombre: '', modo: 'seleccion', orden: numero, min: null, max: null,
       participable: true, meta: { lider: null, numero },
       ...categoria, id,
     };

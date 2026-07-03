@@ -101,7 +101,7 @@ export default class DashboardView extends HTMLElement {
                 <h3><span class="color-dot" style="background:${col}"></span>${esc(t.nombre)}</h3>
                 <div class="tema-count" style="color:${col}"><span data-el="n-${t.id}"></span><small>/${t.max != null ? t.max : '–'}</small></div>
               </div>
-              <div class="tema-meta">Mín ${t.min != null ? t.min : '–'} · Máx ${t.max != null ? t.max : '–'} · Cap ${t.capacidad != null ? t.capacidad : '–'}</div>
+              <div class="tema-meta">Mín ${t.min != null ? t.min : '–'} · Máx ${t.max != null ? t.max : '–'}</div>
               <div class="tema-lider" data-el="lider-${t.id}"></div>
               <div class="bar"><span data-el="bar-${t.id}" style="background:${col}"></span></div>
               <div class="badge-slot" data-badge="${t.id}"></div>
@@ -237,7 +237,7 @@ export default class DashboardView extends HTMLElement {
     temasReparto.forEach((t) => {
       const n = counts[t.id];
       const st = roster.statusOf(t, n);
-      const denom = t.max || t.capacidad || Math.max(n, 1);
+      const denom = t.max || Math.max(n, 1);
       const pct = Math.min(100, Math.round((n / denom) * 100));
       this._teamEls[t.id].n.textContent = n;
       this._teamEls[t.id].bar.style.width = `${pct}%`;

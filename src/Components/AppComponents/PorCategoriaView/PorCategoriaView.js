@@ -231,7 +231,7 @@ export default class PorCategoriaView extends HTMLElement {
       const st = roster.statusOf(t, n);
       const atOrOverCapacity = t.max != null && n >= t.max;
       const isOver = st === 'over';
-      const denom = t.max || t.capacidad || Math.max(n, 1);
+      const denom = t.max || Math.max(n, 1);
       const pct = Math.min(100, Math.round((n / denom) * 100));
       const label = roster.statusLabel(t, n);
 

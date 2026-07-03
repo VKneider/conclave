@@ -30,11 +30,6 @@ export default class CompareView extends HTMLElement {
     importDrop.onFiles = (files) => this._handleFiles(files);
     this.querySelector('.cmp-import-slot').appendChild(importDrop);
 
-    const plantillaImportDrop = await slice.build('ImportDrop', { sliceId: 'cmp-plantilla-import' });
-    plantillaImportDrop.multiple = false;
-    plantillaImportDrop.onFiles = (files) => this._handlePlantillaFiles(files);
-    this.querySelector('.cmp-plantilla-import-slot').appendChild(plantillaImportDrop);
-
     this._finalTally = await slice.build('FinalTally', { sliceId: 'cmp-finaltally' });
     this.querySelector('.cmp-finaltally-slot').appendChild(this._finalTally);
 
@@ -651,48 +646,6 @@ export default class CompareView extends HTMLElement {
       };
       reader.readAsText(file);
     });
-  }
-
-  _handlePlantillaFiles(fileList) {
-    const file = Array.from(fileList || [])[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      let data;
-      try {
-        data = JSON.parse(reader.result);
-      } catch (e) {
-        slice.events.emit('toast:show', { message: `No se pudo leer ${file.name}: JSON inválido.`, type: 'error' });
-        return;
-      }
-      let prepared;
-      try {
-        prepared = this._roster.prepareImport(data);
-      } catch (err) {
-        slice.events.emit('toast:show', { message: err.message, type: 'error' });
-        return;
-      }
-      const proceed = () => {
-        try {
-          this._roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos);
-          slice.events.emit('toast:show', { message: 'Plantilla importada', type: 'success' });
-        } catch (err) {
-          slice.events.emit('toast:show', { message: err.message, type: 'error' });
-        }
-      };
-      if (prepared.impact) {
-        slice.events.emit('confirm:request', {
-          title: '¿Reemplazar la Plantilla actual?',
-          message: `Se reemplazan tus Temas y Opciones actuales por las de «${this._html.esc(data.nombre || file.name)}». Se limpiarán ${prepared.impact} respuesta${prepared.impact !== 1 ? 's' : ''} que ya no aplicarían. Esta acción no se puede deshacer.`,
-          confirmLabel: 'Reemplazar de todas formas',
-          danger: true,
-          onConfirm: proceed,
-        });
-      } else {
-        proceed();
-      }
-    };
-    reader.readAsText(file);
   }
 
   _bindTableInteractions(all, rows) {

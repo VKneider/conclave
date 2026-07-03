@@ -474,7 +474,7 @@ export default class PlantillaService {
     // caller-supplied id blindly (see isSafeId's comment).
     const id = tema?.id ? this._slug(String(tema.id)) : this._slug(tema?.nombre);
     const c = {
-      id, nombre: '', modo: 'reparto', orden: numero, capacidad: null, min: null, max: null,
+      id, nombre: '', modo: 'reparto', orden: numero, min: null, max: null,
       participable: true, meta: { lider: null, numero },
       ...tema, id,
     };
