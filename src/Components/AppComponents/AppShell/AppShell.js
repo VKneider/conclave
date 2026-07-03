@@ -20,9 +20,10 @@ export default class AppShell extends HTMLElement {
     await slice.build('Providers', { singleton: true });
 
     // ── URL hash import ─────────────────────────────────────────────
-    // If the page was opened with #plantilla=<compressed>, decompress and
-    // offer to import. Must run after Providers (services exist) but before
-    // the shell renders (so the imported data is ready for all views).
+    // If the page was opened with #plantilla=<compressed> or
+    // #respuestas=<compressed>, decompress and offer to import. Must run
+    // after Providers (services exist) but before the shell renders (so
+    // the imported data is ready for all views).
     await this._tryImportFromHash();
 
     const topBar = await slice.build('TopBar', { sliceId: 'app-topbar' });
@@ -36,18 +37,29 @@ export default class AppShell extends HTMLElement {
     const bubble = await slice.build('ProfileBubble', { sliceId: 'app-profile-bubble' });
     document.body.appendChild(bubble);
   }
-  // Checks for #plantilla=<lz-compressed> in the URL hash. If found,
-  // decompresses, validates, and prompts the user to import.
+  // Checks for #plantilla=<lz-compressed> or #respuestas=<lz-compressed>
+  // in the URL hash. If found, decompresses, validates, and prompts the
+  // user to import.
   async _tryImportFromHash() {
     const hash = window.location.hash;
-    if (!hash || !hash.startsWith('#plantilla=')) return;
+    if (!hash || !hash.includes('=')) return;
 
+    const compressor = slice.getComponent('CompressionService');
+
+    if (hash.startsWith('#plantilla=')) {
+      await this._tryImportPlantilla(hash, compressor);
+    } else if (hash.startsWith('#respuestas=')) {
+      await this._tryImportRespuestas(hash, compressor);
+    }
+  }
+
+  async _tryImportPlantilla(hash, compressor) {
     const compressed = hash.slice('#plantilla='.length);
     if (!compressed) return;
 
     let data;
     try {
-      data = slice.getComponent('CompressionService').decompressFromURI(compressed);
+      data = compressor.decompressFromURI(compressed);
     } catch (e) {
       console.warn('[AppShell] Error al descomprimir plantilla del hash:', e);
       return;
@@ -87,6 +99,43 @@ export default class AppShell extends HTMLElement {
     } else {
       proceed();
     }
+  }
+
+  async _tryImportRespuestas(hash, compressor) {
+    const compressed = hash.slice('#respuestas='.length);
+    if (!compressed) return;
+
+    let data;
+    try {
+      data = compressor.decompressFromURI(compressed);
+    } catch (e) {
+      console.warn('[AppShell] Error al descomprimir respuestas del hash:', e);
+      return;
+    }
+    if (!data || !data.respuestas) return;
+
+    const html = slice.getComponent('HtmlService');
+    const autor = data.autor || 'Alguien';
+
+    const proceed = () => {
+      slice.getComponent('RespuestasImportService').import(data, autor);
+      slice.events.emit('toast:show', {
+        message: `Respuestas de «${html.esc(autor)}» agregadas para comparar`,
+        type: 'success',
+      });
+      // Navigate to CompareView after import so the user sees the result.
+      slice.router.navigate('/comparar');
+    };
+
+    // Hash already consumed — clean it so a page refresh doesn't re-import.
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    slice.events.emit('confirm:request', {
+      title: `¿Agregar respuestas de «${html.esc(autor)}»?`,
+      message: 'Se agregarán a tu lista de comparación. Podés quitarlas después desde la vista Comparar.',
+      confirmLabel: 'Agregar',
+      onConfirm: proceed,
+    });
   }
 }
 
