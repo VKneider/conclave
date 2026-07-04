@@ -80,6 +80,7 @@ export default class AppShell extends HTMLElement {
       try {
         roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos);
         slice.events.emit('toast:show', { message: 'Plantilla importada desde el enlace', type: 'success' });
+        slice.router.navigate('/mis-respuestas');
       } catch (err) {
         slice.events.emit('toast:show', { message: err.message, type: 'error' });
       }

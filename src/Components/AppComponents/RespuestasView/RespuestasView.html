@@ -1,8 +1,17 @@
 <div class="respuestas-view">
-  <h2 class="view-title">Mis respuestas</h2>
+  <div class="av-header">
+    <h2 class="view-title">Mis respuestas</h2>
+    <div class="av-header__actions" data-el="exportSlot"></div>
+  </div>
   <div class="av-progress" data-el="progress" hidden>
     <div class="av-progress__track"><span data-el="progressBar"></span></div>
     <span class="av-progress__label" data-el="progressLabel"></span>
+  </div>
+  <div class="av-next" data-el="nextSection" hidden>
+    <div class="av-next__banner">
+      <span class="av-next__text" data-el="nextText"></span>
+      <button class="btn btn-primary av-next__btn" data-el="nextBtn" type="button"></button>
+    </div>
   </div>
   <div class="av-empty" hidden>
     <div class="av-empty__icon">🗂️</div>

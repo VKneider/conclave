@@ -32,6 +32,10 @@ export default class RespuestasView extends HTMLElement {
     this.$progress = this.querySelector('[data-el="progress"]');
     this.$progressBar = this.querySelector('[data-el="progressBar"]');
     this.$progressLabel = this.querySelector('[data-el="progressLabel"]');
+    this.$nextSection = this.querySelector('[data-el="nextSection"]');
+    this.$nextText = this.querySelector('[data-el="nextText"]');
+    this.$nextBtn = this.querySelector('[data-el="nextBtn"]');
+    this.$exportSlot = this.querySelector('[data-el="exportSlot"]');
     this._activeKind = 'seleccion';
     this._activeMode = 'carousel';
     this._kindKey = '';
@@ -77,6 +81,14 @@ export default class RespuestasView extends HTMLElement {
     this._textoView = await slice.build('RespuestasTextoView', { sliceId: 'respuestas-texto' });
     if (this._textoView instanceof Node) this.$textoSlot.appendChild(this._textoView);
 
+    this._exportBtn = await slice.build('Button', {
+      sliceId: 'av-export-btn',
+      value: '⬇ Exportar',
+      variant: 'ghost',
+      onClick: () => slice.getComponent('RespuestasService').exportMineWithPrompt(),
+    });
+    if (this._exportBtn instanceof Node) this.$exportSlot.appendChild(this._exportBtn);
+
     this._render();
 
     slice.context.watch('plantilla', this, () => this._render());
@@ -87,11 +99,47 @@ export default class RespuestasView extends HTMLElement {
 
   _updateProgress() {
     const p = this._plantilla.getAnswerProgress();
-    if (p.total === 0) { this.$progress.hidden = true; return; }
+    if (p.total === 0) { this.$progress.hidden = true; this.$nextSection.hidden = true; return; }
     this.$progress.hidden = false;
     const pct = Math.round((p.answered / p.total) * 100);
     this.$progressBar.style.width = `${pct}%`;
     this.$progressLabel.textContent = `Respondiste ${p.answered} de ${p.total} (${pct}%)`;
+    this._updateNextSection(p);
+  }
+
+  // Shows/hides the next-section banner: when the current kind tab is fully
+  // answered, offers a button to jump to the next available kind tab.
+  _updateNextSection(progress) {
+    const kinds = this._availableKinds;
+    if (!kinds || kinds.length < 2 || !progress) { this.$nextSection.hidden = true; return; }
+
+    const kindMap = { seleccion: 'reparto', votacion: 'votacion', ranking: 'ranking', texto: 'texto' };
+    const pk = kindMap[this._activeKind];
+    const p = pk ? progress[pk] : null;
+    const isComplete = p && p.total > 0 && p.answered === p.total;
+
+    if (!isComplete) { this.$nextSection.hidden = true; return; }
+
+    const currentIdx = kinds.findIndex((k) => k.id === this._activeKind);
+    if (currentIdx < 0 || currentIdx >= kinds.length - 1) {
+      // Last section done — show a congratulatory message
+      this.$nextSection.hidden = false;
+      this.$nextText.textContent = '¡Todas las secciones están completas! 🎉';
+      this.$nextBtn.textContent = 'Todo listo';
+      this.$nextBtn.disabled = true;
+      this.$nextBtn.onclick = null;
+      return;
+    }
+
+    const next = kinds[currentIdx + 1];
+    this.$nextSection.hidden = false;
+    this.$nextBtn.disabled = false;
+    this.$nextBtn.textContent = `Ir a ${next.label} →`;
+    this.$nextBtn.onclick = () => {
+      this._activeKind = next.id;
+      this._render();
+    };
+    this.$nextText.textContent = '';
   }
 
   update() {
@@ -127,12 +175,15 @@ export default class RespuestasView extends HTMLElement {
       || (k.id === 'ranking' && hasRanking)
       || (k.id === 'texto' && hasTexto));
 
+    this._availableKinds = available;
+
     if (!available.length) {
       this.$empty.hidden = false;
       this.$kindTabs.hidden = true;
       this.$modeTabs.hidden = true;
       this.$slots.hidden = true;
       this.$progress.hidden = true;
+      this.$nextSection.hidden = true;
       return;
     }
     this.$empty.hidden = true;

@@ -1,15 +1,12 @@
 slice-topbar .topbar {
-  display: flex; flex-direction: column;
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0 14px; padding: 12px 18px;
   background: var(--panel-background-color);
   border-bottom: 2.5px solid var(--font-primary-color); position: sticky; top: 0; z-index: 20;
 }
 
-slice-topbar .topbar-left {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 20px; padding: 14px 24px;
-}
-
-slice-topbar .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+/* ── Brand (left side) ── */
+slice-topbar .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; }
 slice-topbar .brand:hover { opacity: .72; }
 slice-topbar .brand-mark {
   font-size: 24px; display: flex; align-items: center; justify-content: center;
@@ -19,23 +16,24 @@ slice-topbar .brand-mark {
 slice-topbar .topbar h1 { font-family: var(--font-display); font-size: 20px; margin: 0; letter-spacing: -.01em; }
 slice-topbar .brand-sub { margin: 1px 0 0; font-size: 12px; color: var(--font-secondary-color); font-weight: 500; }
 
-slice-topbar .topbar-right {
-  display: none; flex-direction: column; align-items: stretch;
-  padding: 0 24px 14px; gap: 14px;
+/* ── UserMenu trigger (always visible) ── */
+slice-topbar .user-menu-slot { flex-shrink: 0; }
+
+/* ── Tabs (collapsible on mobile) ── */
+slice-topbar .tabs {
+  display: none; width: 100%; flex-direction: column; gap: 4px;
+  padding: 10px 0 2px;
 }
-
-slice-topbar .topbar.open .topbar-right { display: flex; }
-
-slice-topbar .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+slice-topbar .topbar.open .tabs { display: flex; }
 slice-topbar .tab {
-  background: transparent; border: 2px solid transparent; color: var(--font-secondary-color); padding: 7px 13px;
-  border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 700; transition: transform .1s ease;
-  text-decoration: none; display: inline-block;
+  background: transparent; border: 2px solid transparent; color: var(--font-secondary-color); padding: 10px 16px;
+  border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; transition: transform .1s ease;
+  text-decoration: none; text-align: center;
 }
 slice-topbar .tab:hover { color: var(--font-primary-color); border-color: var(--border-color); }
-slice-topbar .tab.active { background: var(--primary-color); border-color: var(--font-primary-color); color: var(--primary-color-contrast); transform: rotate(-2deg); }
+slice-topbar .tab.active { background: var(--primary-color); border-color: var(--font-primary-color); color: var(--primary-color-contrast); transform: rotate(-1deg); }
 
-/* Hamburger */
+/* ── Hamburger ── */
 slice-topbar .hamburger {
   display: flex; flex-direction: column; justify-content: center; gap: 5px;
   width: 38px; height: 38px; padding: 6px; border: 2px solid var(--font-primary-color);
@@ -52,10 +50,11 @@ slice-topbar .topbar.open .hamburger-line:nth-child(1) { transform: translateY(7
 slice-topbar .topbar.open .hamburger-line:nth-child(2) { opacity: 0; }
 slice-topbar .topbar.open .hamburger-line:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
 
+/* ── Desktop ── */
 @media (min-width: 761px) {
-  slice-topbar .topbar { flex-direction: row; align-items: center; padding: 14px 24px; }
-  slice-topbar .topbar-left { padding: 0; }
-  slice-topbar .topbar-right { display: flex; flex-direction: row; align-items: center; padding: 0; margin-left: auto; }
-  slice-topbar .tabs { justify-content: flex-end; }
+  slice-topbar .topbar { flex-wrap: nowrap; padding: 14px 24px; gap: 20px; }
+  slice-topbar .brand { flex: 0; }
+  slice-topbar .user-menu-slot { order: 1; margin-left: auto; }
+  slice-topbar .tabs { display: flex; width: auto; order: 0; padding: 0; }
   slice-topbar .hamburger { display: none; }
 }

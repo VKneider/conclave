@@ -46,6 +46,8 @@ slice-usermenu .user-menu__action--danger:hover { background: color-mix(in srgb,
 
 slice-usermenu .user-menu__hint { margin: 8px 0 0; font-size: 11px; line-height: 1.5; color: var(--font-secondary-color); }
 
-@media (max-width: 480px) {
-  slice-usermenu .user-menu__panel { width: 240px; right: -8px; }
+@media (max-width: 760px) {
+  slice-usermenu .user-menu__panel {
+    position: fixed; top: 64px; right: 16px; width: 260px;
+  }
 }

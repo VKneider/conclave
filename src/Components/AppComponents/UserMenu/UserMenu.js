@@ -68,7 +68,6 @@ export default class UserMenu extends HTMLElement {
     this.$panel.hidden = !open;
     this.$trigger.setAttribute('aria-expanded', String(open));
     this.$root.classList.toggle('is-open', open);
-    if (open) this.$autorField?.querySelector('input')?.focus({ preventScroll: true });
   }
 
   _syncAutor(autor) {
@@ -78,25 +77,8 @@ export default class UserMenu extends HTMLElement {
   }
 
   _exportMine() {
-    const settings = slice.getComponent('SettingsService');
-    if (settings.getState().autor?.trim()) {
-      slice.getComponent('RespuestasService').exportMine();
-      this._setOpen(false);
-      return;
-    }
-    slice.events.emit('confirm:request', {
-      title: '¿Cuál es tu nombre?',
-      message: 'Se incluye en el archivo exportado.',
-      confirmLabel: 'Exportar',
-      inputLabel: 'Tu nombre',
-      inputPlaceholder: '¿Quién asigna?',
-      onConfirm: (name) => {
-        if (!name) return;
-        settings.setAutor(name);
-        slice.getComponent('RespuestasService').exportMine();
-        this._setOpen(false);
-      },
-    });
+    slice.getComponent('RespuestasService').exportMineWithPrompt();
+    this._setOpen(false);
   }
 
   _shareLink() {

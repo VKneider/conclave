@@ -92,12 +92,32 @@ export default class RespuestasService {
     });
   }
 
-  // The caller (a view) is responsible for prompting for a name first (via
-  // SettingsService.setAutor) when settings.autor is empty, before calling this.
+  // Exports the user's respuestas. If settings.autor is empty, prompts
+  // for a name first via confirm:request before exporting.
   exportMine() {
     const respuestas = this.getState();
     const autor = slice.getComponent('SettingsService').getState().autor;
     slice.getComponent('ExportService').downloadRespuestas(autor, respuestas);
+  }
+
+  exportMineWithPrompt() {
+    const settings = slice.getComponent('SettingsService');
+    if (settings.getState().autor?.trim()) {
+      this.exportMine();
+      return;
+    }
+    slice.events.emit('confirm:request', {
+      title: '¿Cuál es tu nombre?',
+      message: 'Se incluye en el archivo exportado.',
+      confirmLabel: 'Exportar',
+      inputLabel: 'Tu nombre',
+      inputPlaceholder: '¿Quién asigna?',
+      onConfirm: (name) => {
+        if (!name) return;
+        settings.setAutor(name);
+        this.exportMine();
+      },
+    });
   }
 
   setTexto(temaId, texto) {
