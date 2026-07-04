@@ -8,7 +8,7 @@
 // guarantees init runs before any consumer, so no per-method defensive ensure.
 const CONTEXT = 'settings';
 const STORAGE_KEY = 'conclave-settings-v3';
-const INITIAL_STATE = { autor: '', lideres: {}, lideresEnabled: false };
+const INITIAL_STATE = { autor: '', email: '', lideres: {}, lideresEnabled: false };
 
 export default class SettingsService {
   init() {
@@ -21,6 +21,11 @@ export default class SettingsService {
 
   setAutor(name) {
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, autor: name || '' }));
+  }
+
+  getEmail() { return this.getState().email || ''; }
+  setEmail(email) {
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, email: email || '' }));
   }
 
   getLider(temaId) {

@@ -6,13 +6,7 @@ slice-respuestasview .av-header__actions {
   display: flex; gap: 8px; flex-shrink: 0; padding-top: 4px;
 }
 slice-respuestasview .av-header__actions slice-button .slice_button {
-  padding: 6px 12px; font-size: 12px; border-radius: 8px; box-shadow: 2px 2px 0 var(--font-primary-color);
-}
-slice-respuestasview .av-header__actions slice-button .slice_button:hover {
-  box-shadow: 3px 3px 0 var(--font-primary-color);
-}
-slice-respuestasview .av-header__actions slice-button .slice_button:active {
-  box-shadow: 0 0 0 var(--font-primary-color);
+  padding: 6px 12px; font-size: 12px; min-width: 0; border-radius: 8px;
 }
 
 /* Tab rows are now the shared <slice-tabs> segmented control (see Tabs.css).
@@ -55,7 +49,9 @@ slice-respuestasview .av-next__banner {
 slice-respuestasview .av-next__text {
   flex: 1; font-family: var(--font-display); font-size: 15px; font-weight: 600; line-height: 1.3;
 }
-slice-respuestasview .av-next__btn { flex-shrink: 0; white-space: nowrap; }
+slice-respuestasview .av-next__banner slice-button .slice_button {
+  padding: 9px 16px; min-width: 0; white-space: nowrap; border-radius: 10px;
+}
 
 /* Answer progress across all modos */
 slice-respuestasview .av-progress { display: flex; align-items: center; gap: 12px; margin: 2px 0 18px; max-width: 520px; }

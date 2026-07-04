@@ -34,7 +34,7 @@ export default class RespuestasView extends HTMLElement {
     this.$progressLabel = this.querySelector('[data-el="progressLabel"]');
     this.$nextSection = this.querySelector('[data-el="nextSection"]');
     this.$nextText = this.querySelector('[data-el="nextText"]');
-    this.$nextBtn = this.querySelector('[data-el="nextBtn"]');
+    this.$nextBtnSlot = this.querySelector('[data-el="nextBtnSlot"]');
     this.$exportSlot = this.querySelector('[data-el="exportSlot"]');
     this._activeKind = 'seleccion';
     this._activeMode = 'carousel';
@@ -83,11 +83,19 @@ export default class RespuestasView extends HTMLElement {
 
     this._exportBtn = await slice.build('Button', {
       sliceId: 'av-export-btn',
-      value: '⬇ Exportar',
-      variant: 'ghost',
-      onClick: () => slice.getComponent('RespuestasService').exportMineWithPrompt(),
+      value: '📤 Compartir respuestas',
+      variant: 'filled',
+      onClick: () => slice.getComponent('ExportRespuestasModal').show(),
     });
     if (this._exportBtn instanceof Node) this.$exportSlot.appendChild(this._exportBtn);
+
+    this._nextBtnCmp = await slice.build('Button', {
+      sliceId: 'av-next-btn',
+      variant: 'filled',
+      value: '',
+    });
+    if (this._nextBtnCmp instanceof Node) this.$nextBtnSlot.appendChild(this._nextBtnCmp);
+    this._nextBtnCmp.$button.disabled = true;
 
     this._render();
 
@@ -122,20 +130,19 @@ export default class RespuestasView extends HTMLElement {
 
     const currentIdx = kinds.findIndex((k) => k.id === this._activeKind);
     if (currentIdx < 0 || currentIdx >= kinds.length - 1) {
-      // Last section done — show a congratulatory message
       this.$nextSection.hidden = false;
       this.$nextText.textContent = '¡Todas las secciones están completas! 🎉';
-      this.$nextBtn.textContent = 'Todo listo';
-      this.$nextBtn.disabled = true;
-      this.$nextBtn.onclick = null;
+      this._nextBtnCmp.value = 'Todo listo';
+      this._nextBtnCmp.$button.disabled = true;
+      this._nextBtnCmp.onClick = null;
       return;
     }
 
     const next = kinds[currentIdx + 1];
     this.$nextSection.hidden = false;
-    this.$nextBtn.disabled = false;
-    this.$nextBtn.textContent = `Ir a ${next.label} →`;
-    this.$nextBtn.onclick = () => {
+    this._nextBtnCmp.$button.disabled = false;
+    this._nextBtnCmp.value = `Ir a ${next.label} →`;
+    this._nextBtnCmp.onClick = () => {
       this._activeKind = next.id;
       this._render();
     };

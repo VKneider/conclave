@@ -94,6 +94,27 @@ export default class PlantillaService {
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, nombre: nombre || '' }));
   }
 
+  getShareLink() {
+    const packed = slice.getComponent('CompressionService').packForURI({
+      tipo: 'plantilla',
+      nombre: this.getNombre() || 'Plantilla sin nombre',
+      atributos: this.getAtributos(),
+      temas: this.getTemas(),
+      opciones: this.getOpciones(),
+    });
+    const compressed = slice.getComponent('CompressionService').compressToURI(packed);
+    return `${window.location.origin}${window.location.pathname}#plantilla=${compressed}`;
+  }
+
+  copyShareLink() {
+    const url = this.getShareLink();
+    navigator.clipboard.writeText(url).then(() => {
+      slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
+    }, () => {
+      slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error' });
+    });
+  }
+
   getTemas() { return this.getState().temas; }
   // modo 'reparto' (ex 'seleccion'): the shared Opción pool is distributed into
   // these temas. "participables" = reparto temas that accept assignments.

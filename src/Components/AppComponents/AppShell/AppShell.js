@@ -60,6 +60,7 @@ export default class AppShell extends HTMLElement {
     let data;
     try {
       data = compressor.decompressFromURI(compressed);
+      data = compressor.unpackFromURI(data);
     } catch (e) {
       console.warn('[AppShell] Error al descomprimir plantilla del hash:', e);
       return;
@@ -109,6 +110,7 @@ export default class AppShell extends HTMLElement {
     let data;
     try {
       data = compressor.decompressFromURI(compressed);
+      data = compressor.unpackFromURI(data);
     } catch (e) {
       console.warn('[AppShell] Error al descomprimir respuestas del hash:', e);
       return;

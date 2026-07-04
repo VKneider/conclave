@@ -109,6 +109,10 @@ export default class Providers {
     // a confirmation by emitting 'confirm:request' — see ConfirmActionModal.js.
     await slice.build('ConfirmActionModal', { singleton: true });
 
+    // Export modal with three sharing options (download JSON, copy link, email).
+    await slice.build('ExportRespuestasModal', { singleton: true });
+    await slice.build('SharePlantillaModal', { singleton: true });
+
     this._ready = true;
     return this;
   }

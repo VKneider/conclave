@@ -137,7 +137,7 @@ export default class TemaRow extends HTMLElement {
         ? 'Ej: "¿Qué fecha elegimos?" — carga las opciones acá; cada persona elige una.'
         : isRanking
           ? 'Ej: "Ordena las ideas por prioridad" — carga las opciones acá; cada persona las ordena.'
-          : 'Ej: "¿Qué proponés para el cierre?" — cada persona escribe su respuesta, sin Opciones.';
+          : 'Ej: "¿Qué propones para el cierre?" — cada persona escribe su respuesta, sin Opciones.';
     this.$toggle.hidden = !hasExtra;
     if (this.$repartoFields) this.$repartoFields.hidden = !isReparto;
     if (this.$votacionEditor) this.$votacionEditor.hidden = !ownsOpciones;

@@ -120,6 +120,78 @@ export default class RespuestasService {
     });
   }
 
+  // Generates a compressed share URL for the current respuestas.
+  getShareLink(autor) {
+    const respuestas = this.getState();
+    const packed = slice.getComponent('CompressionService').packForURI({ tipo: 'respuestas', autor: autor || '', respuestas });
+    const compressed = slice.getComponent('CompressionService').compressToURI(packed);
+    return `${window.location.origin}${window.location.pathname}#respuestas=${compressed}`;
+  }
+
+  // Copies the share URL to clipboard, prompting for name if missing.
+  copyShareLink() {
+    const settings = slice.getComponent('SettingsService');
+    const autor = settings.getState().autor?.trim();
+
+    const doCopy = (name) => {
+      const url = this.getShareLink(name);
+      navigator.clipboard.writeText(url).then(() => {
+        slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
+      }, () => {
+        slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error' });
+      });
+    };
+
+    if (autor) { doCopy(autor); return; }
+
+    slice.events.emit('confirm:request', {
+      title: '¿Cuál es tu nombre?',
+      message: 'Se incluye en el enlace compartido.',
+      confirmLabel: 'Compartir',
+      inputLabel: 'Tu nombre',
+      inputPlaceholder: '¿Quién responde?',
+      onConfirm: (name) => {
+        if (!name) return;
+        settings.setAutor(name);
+        doCopy(name);
+      },
+    });
+  }
+
+  // Opens the default email client with the share link, pre-filled to the
+  // Plantilla's configured email (if any).
+  sendShareLinkEmail() {
+    const settings = slice.getComponent('SettingsService');
+    const autor = settings.getState().autor?.trim();
+
+    const doSend = (name) => {
+      const url = this.getShareLink(name);
+      const plantilla = slice.getComponent('PlantillaService');
+      const plantillaNombre = plantilla.getNombre() || 'Conclave';
+      const to = slice.getComponent('SettingsService').getEmail();
+      const subject = encodeURIComponent(`Mis respuestas — ${plantillaNombre}`);
+      const body = encodeURIComponent(
+        `Hola,\n\nAquí están mis respuestas para "${plantillaNombre}":\n${url}\n\nSaludos,\n${name}`
+      );
+      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+    };
+
+    if (autor) { doSend(autor); return; }
+
+    slice.events.emit('confirm:request', {
+      title: '¿Cuál es tu nombre?',
+      message: 'Se incluye en el correo.',
+      confirmLabel: 'Enviar',
+      inputLabel: 'Tu nombre',
+      inputPlaceholder: '¿Quién responde?',
+      onConfirm: (name) => {
+        if (!name) return;
+        settings.setAutor(name);
+        doSend(name);
+      },
+    });
+  }
+
   setTexto(temaId, texto) {
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, texto: { ...prev.texto, [temaId]: texto } }));
   }

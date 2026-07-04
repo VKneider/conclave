@@ -99,7 +99,7 @@ export default class CategoriaRow extends HTMLElement {
     this.$icon.title = isSeleccion ? 'Selección' : 'Texto libre';
     this.$hint.textContent = isSeleccion
       ? 'Ej: un equipo, una charla — las Opciones se ubican acá.'
-      : 'Ej: "¿Qué proponés para el cierre?" — cada persona escribe su respuesta, sin Opciones.';
+      : 'Ej: "¿Qué propones para el cierre?" — cada persona escribe su respuesta, sin Opciones.';
     this.$toggle.hidden = !isSeleccion;
 
     if (this.$nameInput && this.$nameInput.value !== c.nombre) this.$nameInput.value = c.nombre || '';

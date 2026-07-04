@@ -12,9 +12,9 @@ export default class UserMenu extends HTMLElement {
     this.$avatar = this.querySelector('[data-el="avatar"]');
     this.$panel = this.querySelector('[data-el="panel"]');
     this.$autorFieldSlot = this.querySelector('[data-el="autorFieldSlot"]');
+    this.$emailFieldSlot = this.querySelector('[data-el="emailFieldSlot"]');
     this.$themeSlot = this.querySelector('[data-el="themeSlot"]');
-    this.$exportBtn = this.querySelector('[data-el="exportBtn"]');
-    this.$shareLinkBtn = this.querySelector('[data-el="shareLinkBtn"]');
+    this.$shareBtn = this.querySelector('[data-el="shareBtn"]');
     this.$importBtn = this.querySelector('[data-el="importBtn"]');
     this.$importFile = this.querySelector('[data-el="importFile"]');
     this.$resetBtn = this.querySelector('[data-el="resetBtn"]');
@@ -29,8 +29,7 @@ export default class UserMenu extends HTMLElement {
 
     this.$trigger.addEventListener('click', () => this._setOpen(!this._open));
 
-    this.$exportBtn.addEventListener('click', () => this._exportMine());
-    this.$shareLinkBtn.addEventListener('click', () => this._shareLink());
+    this.$shareBtn.addEventListener('click', () => { slice.getComponent('ExportRespuestasModal').show(); this._setOpen(false); });
     this.$importBtn.addEventListener('click', () => this.$importFile.click());
     this.$importFile.addEventListener('change', (e) => this._handleImport(e));
     this.$resetBtn.addEventListener('click', () => this._confirmReset());
@@ -46,6 +45,10 @@ export default class UserMenu extends HTMLElement {
     this.$autorFieldSlot.appendChild(this.$autorField);
     this.$autorField.addEventListener('input', () => slice.getComponent('SettingsService').setAutor(this.$autorField.value));
 
+    this.$emailField = await slice.build('Input', { sliceId: 'user-menu-email', placeholder: 'Tu correo electrónico', type: 'email' });
+    this.$emailFieldSlot.appendChild(this.$emailField);
+    this.$emailField.addEventListener('input', () => slice.getComponent('SettingsService').setEmail(this.$emailField.value));
+
     const themeSwitcher = await slice.build('ThemeSwitcher', {
       sliceId: 'user-menu-theme-switcher',
       themes: ['Light', 'Dark'],
@@ -54,8 +57,10 @@ export default class UserMenu extends HTMLElement {
     });
     this.$themeSlot.appendChild(themeSwitcher);
 
-    slice.context.watch('settings', this, (s) => this._syncAutor(s.autor));
-    this._syncAutor(slice.getComponent('SettingsService').getState().autor);
+    slice.context.watch('settings', this, (s) => { this._syncAutor(s.autor); this._syncEmail(s.email); });
+    const settings = slice.getComponent('SettingsService');
+    this._syncAutor(settings.getState().autor);
+    this._syncEmail(settings.getState().email);
   }
 
   beforeDestroy() {
@@ -76,42 +81,8 @@ export default class UserMenu extends HTMLElement {
     this.$trigger.title = autor?.trim() ? autor.trim() : 'Tu cuenta';
   }
 
-  _exportMine() {
-    slice.getComponent('RespuestasService').exportMineWithPrompt();
-    this._setOpen(false);
-  }
-
-  _shareLink() {
-    const settings = slice.getComponent('SettingsService');
-    const autor = settings.getState().autor?.trim();
-
-    const doShare = (name) => {
-      const respuestas = slice.getComponent('RespuestasService').getState();
-      const data = { tipo: 'respuestas', autor: name, respuestas };
-      const compressed = slice.getComponent('CompressionService').compressToURI(data);
-      const url = `${window.location.origin}${window.location.pathname}#respuestas=${compressed}`;
-      navigator.clipboard.writeText(url).then(() => {
-        slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
-        this._setOpen(false);
-      }, () => {
-        slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error' });
-      });
-    };
-
-    if (autor) { doShare(autor); return; }
-
-    slice.events.emit('confirm:request', {
-      title: '¿Cuál es tu nombre?',
-      message: 'Se incluye en el enlace compartido.',
-      confirmLabel: 'Compartir',
-      inputLabel: 'Tu nombre',
-      inputPlaceholder: '¿Quién responde?',
-      onConfirm: (name) => {
-        if (!name) return;
-        settings.setAutor(name);
-        doShare(name);
-      },
-    });
+  _syncEmail(email) {
+    if (document.activeElement !== this.$emailField?.querySelector('input')) this.$emailField.value = email || '';
   }
 
   _handleImport(e) {

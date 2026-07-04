@@ -128,3 +128,14 @@ slice-modal.confirm-modal .confirm-modal__field { display: flex; flex-direction:
 /* See GOTCHAS.md §18 — .hidden is toggled on this element (shown only for
    confirm:request calls that pass inputLabel). */
 slice-modal.confirm-modal .confirm-modal__field[hidden] { display: none; }
+
+/* ExportRespuestasModal — three action buttons stacked vertically */
+slice-modal.export-respuestas-modal .export-modal__desc {
+  margin: 0 0 18px; font-size: 14px; color: var(--font-secondary-color); line-height: 1.4;
+}
+slice-modal.export-respuestas-modal .export-modal__actions {
+  display: flex; flex-direction: column; gap: 10px;
+}
+slice-modal.export-respuestas-modal .export-modal__action {
+  font-size: 14px; padding: 11px 18px; text-align: center;
+}
