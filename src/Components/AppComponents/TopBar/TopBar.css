@@ -55,6 +55,8 @@ slice-topbar .topbar.open .hamburger-line:nth-child(3) { transform: translateY(-
   slice-topbar .topbar { flex-wrap: nowrap; padding: 14px 24px; gap: 20px; }
   slice-topbar .brand { flex: 0; }
   slice-topbar .user-menu-slot { order: 1; margin-left: auto; }
-  slice-topbar .tabs { display: flex; width: auto; order: 0; padding: 0; }
+  slice-topbar .tabs { display: flex; flex-direction: row; width: auto; order: 0; padding: 0; }
+  slice-topbar .tab { padding: 7px 13px; border-radius: 999px; text-align: initial; font-size: 13px; }
+  slice-topbar .tab.active { transform: rotate(-2deg); }
   slice-topbar .hamburger { display: none; }
 }
