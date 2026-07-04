@@ -123,7 +123,8 @@ export default class RespuestasService {
   // Generates a compressed share URL for the current respuestas.
   getShareLink(autor) {
     const respuestas = this.getState();
-    const packed = slice.getComponent('CompressionService').packForURI({ tipo: 'respuestas', autor: autor || '', respuestas });
+    const email = slice.getComponent('SettingsService').getEmail();
+    const packed = slice.getComponent('CompressionService').packForURI({ tipo: 'respuestas', autor: autor || '', email, respuestas });
     const compressed = slice.getComponent('CompressionService').compressToURI(packed);
     return `${window.location.origin}${window.location.pathname}#respuestas=${compressed}`;
   }
@@ -168,12 +169,11 @@ export default class RespuestasService {
       const url = this.getShareLink(name);
       const plantilla = slice.getComponent('PlantillaService');
       const plantillaNombre = plantilla.getNombre() || 'Conclave';
-      const to = slice.getComponent('SettingsService').getEmail();
       const subject = encodeURIComponent(`Mis respuestas — ${plantillaNombre}`);
       const body = encodeURIComponent(
-        `Hola,\n\nAquí están mis respuestas para "${plantillaNombre}":\n${url}\n\nSaludos,\n${name}`
+        `Hola,\n\n${name} ha compartido sus respuestas para "${plantillaNombre}":\n${url}\n\nSaludos`
       );
-      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
     };
 
     if (autor) { doSend(autor); return; }

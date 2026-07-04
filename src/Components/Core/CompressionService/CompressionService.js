@@ -1,7 +1,7 @@
 import LZString from '../../../libs/lz-string/lz-string.js';
 
 const FULL_TO_SHORT = {
-  tipo: 'p', nombre: 'n', email: 'e',
+  tipo: 't', nombre: 'n', email: 'e',
   temas: 'ts', opciones: 'os', atributos: 'at',
   respuestas: 'rs', autor: 'a',
   seleccion: 'sl', texto: 'tx', voto: 'vt', ranking: 'rk',

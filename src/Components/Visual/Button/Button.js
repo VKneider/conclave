@@ -88,7 +88,7 @@ export default class Button extends HTMLElement {
    }
 
    set onClick(value) {
-      if (typeof value === 'function') this._onClick = value;
+      this._onClick = typeof value === 'function' ? value : null;
    }
 
    // Deprecated alias for onClick.

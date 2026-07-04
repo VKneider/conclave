@@ -71,7 +71,10 @@ export default class DashboardView extends HTMLElement {
       </div>`;
 
     let html = `
-      <h2 class="view-title">Dashboard</h2>
+      <div class="dash-header">
+        <h2 class="view-title">Dashboard</h2>
+        <div data-el="shareBtnSlot"></div>
+      </div>
       <div class="dash-plantilla" data-el="plantillaLine"></div>
       <p class="view-sub" data-el="sub"></p>
       <div class="stat-grid">
@@ -127,6 +130,16 @@ export default class DashboardView extends HTMLElement {
       cardProblema: this.$root.querySelector('[data-el="cardProblema"]'),
       completionPct: this.$root.querySelector('[data-el="completionPct"]'),
     };
+    this._els.shareBtnSlot = this.$root.querySelector('[data-el="shareBtnSlot"]');
+    if (this._els.shareBtnSlot) {
+      const shareBtn = await slice.build('Button', {
+        sliceId: 'dash-share-btn',
+        value: '📤 Compartir respuestas',
+        variant: 'filled',
+        onClick: () => slice.getComponent('ExportRespuestasModal').show(),
+      });
+      if (shareBtn instanceof Node) this._els.shareBtnSlot.appendChild(shareBtn);
+    }
 
     if (this._charts.isAvailable()) {
       const canvas = this.$root.querySelector('[data-el="completionCanvas"]');

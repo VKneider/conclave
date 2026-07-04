@@ -1,3 +1,8 @@
+/* Header row: title + share button */
+slice-dashboardview .dash-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+
 /* Plantilla identity line — no rigid "tipo" field exists (a Plantilla can
    mix modo Selección/Texto libre freely), so this shows the actual name +
    a live composition summary instead of forcing an artificial category. */

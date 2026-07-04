@@ -77,6 +77,9 @@ export default class AppShell extends HTMLElement {
       return;
     }
 
+    const autor = data.autor || '';
+    const email = data.email || '';
+
     const proceed = () => {
       try {
         roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos);
@@ -90,10 +93,11 @@ export default class AppShell extends HTMLElement {
     // Hash already consumed — clean it so a page refresh doesn't re-import.
     history.replaceState(null, '', window.location.pathname + window.location.search);
 
+    const autorLine = autor ? `Creada por ${html.esc(autor)}${email ? ` (${html.esc(email)})` : ''}. ` : '';
     if (prepared.impact) {
       slice.events.emit('confirm:request', {
         title: '¿Importar la Plantilla desde el enlace?',
-        message: `Se reemplazarán tus Temas y Opciones por los de «${html.esc(data.nombre || 'sin nombre')}». Se limpiarán ${prepared.impact} respuesta${prepared.impact !== 1 ? 's' : ''} que ya no aplicarían. Esta acción no se puede deshacer.`,
+        message: `${autorLine}Se reemplazarán tus Temas y Opciones por los de «${html.esc(data.nombre || 'sin nombre')}». Se limpiarán ${prepared.impact} respuesta${prepared.impact !== 1 ? 's' : ''} que ya no aplicarían. Esta acción no se puede deshacer.`,
         confirmLabel: 'Importar',
         danger: true,
         onConfirm: proceed,
@@ -119,6 +123,7 @@ export default class AppShell extends HTMLElement {
 
     const html = slice.getComponent('HtmlService');
     const autor = data.autor || 'Alguien';
+    const email = data.email || '';
 
     const proceed = () => {
       slice.getComponent('RespuestasImportService').import(data, autor);
@@ -133,8 +138,9 @@ export default class AppShell extends HTMLElement {
     // Hash already consumed — clean it so a page refresh doesn't re-import.
     history.replaceState(null, '', window.location.pathname + window.location.search);
 
+    const autorLine = autor ? `${html.esc(autor)}${email ? ` (${html.esc(email)})` : ''}` : 'Alguien';
     slice.events.emit('confirm:request', {
-      title: `¿Agregar respuestas de «${html.esc(autor)}»?`,
+      title: `¿Agregar respuestas de «${autorLine}»?`,
       message: 'Se agregarán a tu lista de comparación. Podés quitarlas después desde la vista Comparar.',
       confirmLabel: 'Agregar',
       onConfirm: proceed,

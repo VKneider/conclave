@@ -53,8 +53,11 @@ export default class SharePlantillaModal {
 
   _exportPlantilla() {
     const p = slice.getComponent('PlantillaService');
+    const settings = slice.getComponent('SettingsService');
     const data = {
       nombre: p.getNombre() || 'Plantilla sin nombre',
+      autor: settings.getState().autor || '',
+      email: settings.getEmail(),
       atributos: p.getAtributos(),
       temas: p.getTemas(),
       opciones: p.getOpciones(),
@@ -67,12 +70,13 @@ export default class SharePlantillaModal {
     const p = slice.getComponent('PlantillaService');
     const nombre = p.getNombre() || 'Plantilla';
     const url = p.getShareLink();
-    const to = slice.getComponent('SettingsService').getEmail();
+    const settings = slice.getComponent('SettingsService');
+    const autor = settings.getState().autor || 'Alguien';
     const subject = encodeURIComponent(`Plantilla: ${nombre}`);
     const body = encodeURIComponent(
-      `Hola,\n\nComparto la plantilla "${nombre}" para que la revises:\n${url}\n\nSaludos`
+      `${autor} ha compartido la plantilla "${nombre}" para que la revises:\n${url}\n\nSaludos`
     );
-    window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   }
 
   async show() {

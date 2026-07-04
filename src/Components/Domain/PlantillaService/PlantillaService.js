@@ -95,9 +95,12 @@ export default class PlantillaService {
   }
 
   getShareLink() {
+    const settings = slice.getComponent('SettingsService');
     const packed = slice.getComponent('CompressionService').packForURI({
       tipo: 'plantilla',
       nombre: this.getNombre() || 'Plantilla sin nombre',
+      autor: settings.getState().autor || '',
+      email: settings.getEmail(),
       atributos: this.getAtributos(),
       temas: this.getTemas(),
       opciones: this.getOpciones(),

@@ -19,6 +19,7 @@ export default class ExportService {
       tipo: 'plantilla',
       nombre,
       autor: plantilla?.autor || '',
+      email: plantilla?.email || '',
       atributos: plantilla?.atributos || [],
       temas: plantilla?.temas || [],
       opciones: plantilla?.opciones || [],
