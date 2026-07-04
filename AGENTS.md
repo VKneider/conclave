@@ -55,16 +55,22 @@ Conclave is a Slice.js (`slicejs-web-framework` v3.x) app for structured group d
 
 ### Service folder layout (`sliceConfig.json` → `paths.components`)
 
-- **`Core`** — infrastructure, no domain knowledge: `StoreService`, `HtmlService`, `DomService`, `FileDownloadService`, `FetchManager`, `LocalStorageManager`, `IndexedDbManager`, `ChartService`.
+- **`Core`** — infrastructure, no domain knowledge: `StoreService`, `HtmlService`, `DomService`, `FileDownloadService`, `FetchManager`, `LocalStorageManager`, `IndexedDbManager`, `ChartService`, `CompressionService`.
 - **`Domain`** — business logic: `PlantillaService`, `RespuestasService`, `ConsensoService`, `SettingsService`, `RespuestasImportService`, `ExportService`.
-- **`Providers`** — wiring + provider-services that own a Visual: `Providers` (composition root), `ToastProvider`, `ConfirmActionModal`, `DragDropService`.
+- **`Providers`** — wiring + provider-services that own a Visual: `Providers` (composition root), `ToastProvider`, `ConfirmActionModal`, `ExportRespuestasModal`, `SharePlantillaModal`, `DragDropService`.
 - Visual UI stays in `Visual` / `AppComponents` / `DataDisplay`. There is **no `utils/` folder** — shared helpers are Core services. **Visual = UI only; domain logic lives in a Domain service.**
 
 ## Product decisions (not obvious from the code)
 
 - **Over-capacity assignment is allowed on purpose.** `RespuestasService.assignOpcion()` always succeeds. The persistent signal is the `over`/danger badge, computed live from state. See `DESIGN.md` §Capacity alerts.
 - **Confirmation dialogs use the `confirm:request` event**, never native `confirm()`/`prompt()`/`alert()`. Error notifications use `toast:show` with `type: 'error'`.
-- **The "Tu nombre" field lives in the topbar's `UserMenu`** (SettingsView is retired). `UserMenu._exportMine()` also prompts for it via `ConfirmActionModal`'s `inputLabel` when empty at export time.
+- **The "Tu nombre" field lives in the topbar's `UserMenu`** (SettingsView is retired). Prompts for it via `ConfirmActionModal`'s `inputLabel` when empty at export time.
+- **Email is a user-level preference** (`SettingsService.email`, stored per-device), not per-Plantilla. Used to identify the creator in shared Plantilla/respuestas links.
+- **Export/Share modals are lazy-built singletons.** `ExportRespuestasModal` and `SharePlantillaModal` build their `<slice-modal>` on first `show()` call, never in `init()`. A promise guard (`_modalPromise`) prevents races on concurrent calls. Both are registered as Providers (category required for `singleton: true`).
+- **The share button in UserMenu, RespuestasView, and DashboardView all open the same `ExportRespuestasModal`** — single entry point for all respuestas sharing actions.
+- **Plantilla share links carry creator identity.** `PlantillaService.getShareLink()` packs `autor` + `email` from `SettingsService` into the URL. On import, `AppShell._tryImportPlantilla()` shows "Creada por Nombre (email@...)" in the confirmation dialog.
+- **Short keys in share URLs.** `CompressionService.packForURI()` maps long keys (e.g. `nombre→n`, `temas→ts`) before LZ compression, producing shorter hashes. `unpackFromURI()` reverses it, passing unknown keys through unchanged (backward compatible with old full-key URLs).
+- **`mailto:` share links leave the `to` field empty** — the user fills in the recipient manually. The body includes the sharer's name and the link.
 - **All seed data is fictional** (Categoría/Opción names were replaced for public demo). Structure is preserved exactly from the original retreat data. Generic names are intentional, not bugs.
 - **Plantilla data lives entirely in the browser.** There is no server-side storage for Categorías/Opciones and no plan to add any — sharing a Plantilla is exporting/importing its JSON file, same as Respuestas.
 

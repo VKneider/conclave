@@ -74,7 +74,7 @@ The data model deliberately allows a single Plantilla to have both modo Selecci�
 - Same inline "escribir + Enter" add row and patch-on-change / confirm-with-impact-count delete pattern as Categorías.
 
 ### Export / import / reset
-- **"⬇ Exportar Plantilla"**: downloads the current Categorías + Opciones as the Plantilla envelope (see DATA.md) via `ExportService.downloadPlantilla()`.
+- **"📤 Compartir plantilla"**: opens `SharePlantillaModal` with three options: download JSON (via `ExportService.downloadPlantilla()` with `autor` + `email`), copy compressed link (via `PlantillaService.copyShareLink()`), or send email (`mailto:` with the link).
 - **"📂 Importar Plantilla"**: bulk-replaces Categorías/Opciones from a JSON file — same `PlantillaService.prepareImport()` validation (shape + `isSafeId`) and confirm-of-impact dialog as `CompareView`'s Plantilla import (see below), offered here too since starting a new Plantilla from someone else's shared file is a natural thing to do right where you'd otherwise build one from scratch.
 - **"🔄 Restaurar ejemplo"**: resets to seed data (7 Categorías, 15 Opciones) with a confirmation dialog, via `PlantillaService.resetToSeed()`.
 
@@ -82,9 +82,9 @@ The data model deliberately allows a single Plantilla to have both modo Selecci�
 
 File: `src/Components/AppComponents/RespuestasView/RespuestasView.js`
 
-Composes three sub-views — `MisRespuestasView` (carousel), `PorCategoriaView` (drag-and-drop board), `RespuestasTextoView` (free-text answers) — all built unconditionally, behind a **two-level tab hierarchy** (same shape as `CompareView`'s kind/mode tabs, see its own FEATURES.md section): PRIMARY tabs "🎯 Selección" / "📝 Texto libre" (only shown when the Plantilla has both `PlantillaService.getOpciones().length > 0` and `getCategoriasTexto().length > 0` — genuinely different tasks, not alternative views of the same one), and SECONDARY tabs "Carrusel" / "Por categoría" nested inside Selección (real peer alternatives for the same assignment task). A flat 3-tab row (the previous shape) implied all three were interchangeable, which was misleading — Texto libre isn't reachable from the other two and doesn't answer the same question. Watches `plantilla` to keep the tabs/empty-state in sync if Categorías/Opciones change while this view is mounted. If neither Opciones nor texto_libre Categorías exist (fresh/empty Plantilla), `.av-empty` replaces the tabs+content entirely with a message and a "Ir a Plantilla" button, instead of showing empty tabs over blank content.
+Composes five sub-views — `MisRespuestasView` (carousel), `PorTemaView` (drag-and-drop board), `RespuestasVotacionView` (votación pick-one), `RespuestasRankingView` (ranking order), `RespuestasTextoView` (free-text answers) — all built unconditionally, behind a **two-level tab hierarchy** (same shape as `CompareView`'s kind/mode tabs, see its own FEATURES.md section). PRIMARY kind tabs "🎯 Asignación" / "🗳️ Votación" / "🏆 Ranking" / "📝 Texto libre" (only shown when the Plantilla has more than one available kind), and SECONDARY mode tabs "Carrusel" / "Por tema" nested inside Asignación (peer alternatives for the same assignment task). A "📤 Compartir respuestas" button (`slice.build('Button', ...)` → `ExportRespuestasModal`) sits in the header alongside the title.
 
-## Carousel assignment feedback (MisRespuestasView)
+Next-section indicator: when the current kind tab is fully answered, a success-bordered banner appears with a button to jump to the next unfinished kind tab. When all sections are complete, shows "¡Todas las secciones están completas! 🎉" with a disabled button. Uses the `Button` component (with `onClick` set dynamically and `.disabled` toggled via `$button.disabled` — see GOTCHAS §30 about clearing `onClick`).
 
 File: `src/Components/AppComponents/MisRespuestasView/MisRespuestasView.js`
 CSS: `src/Components/AppComponents/MisRespuestasView/MisRespuestasView.css`
@@ -143,12 +143,42 @@ File: `src/Components/DataDisplay/TextCompareCards/TextCompareCards.js`
 
 The spec's "tercera vista": for a comparison to be useful for open-ended proposals (not just team assignment), everyone's free-text answer for one Categoría at a time is shown as a large, readable card — not a table cell. Navigation is by **Categoría** (prev/next, or none if there's only one), and within a Categoría every source's proposal renders as its own big card side by side, so "ver todas las ideas de los demás" (see everyone's ideas at once) actually holds. Each card has a "Marcar como elegida" button; the chosen one gets a visible "Elegida" tag and a success-colored border, driven by `ConsensoService.setResolutionTexto()`/`finalTextoFor()`.
 
+## Export/Share Modals
+
+### ExportRespuestasModal
+
+File: `src/Components/Providers/ExportRespuestasModal/ExportRespuestasModal.js`
+
+A lazy-built modal (Provider, singleton) with three sharing options for the current user's respuestas:
+
+1. **⬇ Descargar JSON** — calls `RespuestasService.exportMineWithPrompt()` (prompts for name if missing).
+2. **🔗 Copiar enlace** — calls `RespuestasService.copyShareLink()` (generates compressed URL with `CompressionService.packForURI` + `compressToURI`, copies to clipboard).
+3. **✉️ Enviar por correo** — calls `RespuestasService.sendShareLinkEmail()` (opens `mailto:` with the link, `to` left empty for the user to fill).
+
+Opened from `UserMenu`'s "📤 Compartir respuestas" button, `RespuestasView`'s header button, and `DashboardView`'s header button — all three open the same modal instance.
+
+### SharePlantillaModal
+
+File: `src/Components/Providers/SharePlantillaModal/SharePlantillaModal.js`
+
+Same pattern for Plantilla sharing:
+
+1. **⬇ Descargar JSON** — builds the Plantilla envelope (`{ nombre, autor, email, atributos, temas, opciones }`) and calls `ExportService.downloadPlantilla()`.
+2. **🔗 Copiar enlace** — calls `PlantillaService.copyShareLink()` (generates compressed URL with `packForURI`, copies to clipboard). The packed data includes `autor` + `email` from `SettingsService` so the recipient knows who created it.
+3. **✉️ Enviar por correo** — opens `mailto:` with the link and the sharer's name, `to` left empty.
+
+Opened from `PlantillaBuilderView`'s "📤 Compartir plantilla" button.
+
+### Creator identity in shared links
+
+Both Plantilla share links and Plantilla JSON downloads carry the creator's identity (`autor` = `SettingsService.autor`, `email` = `SettingsService.email`). When someone opens a shared Plantilla link, `AppShell._tryImportPlantilla()` shows "Creada por Nombre (email@...)" in the import confirmation dialog. Same for respuestas share links — the creator's name and email appear in the import prompt.
+
 ## UserMenu & ConfirmActionModal
 
 File: `src/Components/AppComponents/UserMenu/UserMenu.js`
 Service: `src/Components/Service/ConfirmActionModal/ConfirmActionModal.js`
 
-Built once from `TopBar` (always mounted, reachable from any route) — a popover triggered by an avatar button, replacing both the old standalone `SettingsView` route and `AppShell`'s footer. Contents: Tu nombre (autor), tema (`ThemeSwitcher`, `variant: 'menu-item'`), and every "mis Respuestas" action — Exportar, Importar (reemplaza `respuestas` wholesale via `RespuestasService.importMine()`, for picking up where you left off on another device), and Reiniciar. Doesn't edit the Plantilla at all (that's `PlantillaBuilderView`'s job) — removing the old inline-edit path in the retired `SettingsView` also removed a pre-existing bug where those edits mutated Categoría objects directly without persisting until something else saved.
+Built once from `TopBar` (always mounted, reachable from any route) — a popover triggered by an avatar button, replacing both the old standalone `SettingsView` route and `AppShell`'s footer. Contents: Tu nombre (autor), tu correo electrónico (`Input type="email"`), tema (`ThemeSwitcher`, `variant: 'menu-item'`), and every "mis Respuestas" action — Compartir (opens `ExportRespuestasModal`), Importar (reemplaza `respuestas` wholesale via `RespuestasService.importMine()`, for picking up where you left off on another device), and Reiniciar. The email field is persisted to `SettingsService.email` and synced via `slice.context.watch('settings')` — doesn't overwrite while the user is actively typing (`document.activeElement` check). Doesn't edit the Plantilla at all (that's `PlantillaBuilderView`'s job) — removing the old inline-edit path in the retired `SettingsView` also removed a pre-existing bug where those edits mutated Categoría objects directly without persisting until something else saved.
 
 All confirmation prompts use the custom `confirm:request` event instead of native `confirm()`/`prompt()`. See GOTCHAS.md §12 for the event API.
 
@@ -185,3 +215,5 @@ Builds `StatusBadge` components lazily (via `first/rest` pattern, see GOTCHAS.md
 A header line shows the Plantilla's actual name (`PlantillaService.getNombre()`) plus a live composition summary ("🎯 N de selección · 📝 M de texto libre") instead of a fixed "tipo" field — there is no single type to show since a Plantilla can freely mix modos (see FEATURES.md's "Cuándo mezclar modos" note above). The stat-grid's first card is a completion doughnut (`ChartService`, built once in `_buildShell()`, updated in place on every `_refresh()` — never rebuilt) showing Asignadas vs. Sin asignar, with the percentage overlaid as plain text since Chart.js has no built-in center-label support. The "Hombres"/"Mujeres" stat cards (and the team-member modal's gender dot) hide via `SettingsService.isSexoEnabled()`.
 
 **Guard**: `getEffectiveLider(t.id)` can return `{ member: null }` — the `.lider` textContent uses `lider && lider.member` check to avoid crash.
+
+The header also contains a "📤 Compartir respuestas" button (`slice.build('Button', ...)`) that opens `ExportRespuestasModal` — same entry point as UserMenu and RespuestasView. Built in `_buildShell()` and rebuilt on shell changes (via `_rebuild()` → `destroyByContainer` cleans it up).

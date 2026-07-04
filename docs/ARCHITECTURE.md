@@ -9,13 +9,15 @@
 > - **`Core`** (infra): `StoreService` (context wrapper — `ensure/get/set/watch`,
 >   replaces `utils/context.js`), `HtmlService` (`esc` + `sanitize`, replaces
 >   FormatService/SanitizeService + `utils/format.js`), `DomService`
->   (`reconcile`), `ChartService`, `FetchManager`, `FileDownloadService`,
+>   (`reconcile`), `CompressionService` (`packForURI`/`unpackFromURI` + LZ
+>   compress), `ChartService`, `FetchManager`, `FileDownloadService`,
 >   `IndexedDbManager`, `LocalStorageManager`.
 > - **`Domain`** (business): `PlantillaService`, `RespuestasService`,
 >   `ConsensoService`, `SettingsService`, `RespuestasImportService`,
 >   `ExportService`.
 > - **`Providers`** (wiring + provider-services): `Providers`, `ToastProvider`,
->   `ConfirmActionModal`, `DragDropService`.
+>   `ConfirmActionModal`, `ExportRespuestasModal`, `SharePlantillaModal`,
+>   `DragDropService`.
 > - There is no `utils/` folder. Visual = UI only; domain logic lives in a
 >   Domain service. Every context-owning Domain service calls
 >   `StoreService.ensure()` **once** in `init()`.
@@ -23,7 +25,7 @@
 > **Contexts** now carry the four-modo model — see `docs/DATA.md` for shapes:
 > `plantilla { nombre, atributos, temas, opciones }`, `respuestas`/`decisionFinal`
 > `{ seleccion, texto, voto, ranking }`, `respuestasImportadas`, `settings
-> { autor, lideres, lideresEnabled }`.
+> { autor, email, lideres, lideresEnabled }`.
 >
 > **Views** (`AppComponents`): `LandingView`, `DashboardView`, `RespuestasView`
 > (tab shell → `MisRespuestasView` carousel, `PorTemaView` board,
@@ -45,19 +47,23 @@ Every route in `src/routes.js` points to `AppShell`; `AppShell` builds its own i
 AppShell.init() → slice.build('Providers')
   → Providers.init():
       1. slice.events.register() — declares toast:show, confirm:request
-      2. PlantillaService — ensures `plantilla` context, seed fallback
-      3. FormatService — stateless, HTML-escaping helper (esc)
-      4. SanitizeService — wraps vendored DOMPurify, final innerHTML safety net
-      5. FileDownloadService — stateless, download helper
-      6. SettingsService — ensures `settings` context
-      7. RespuestasService — ensures `respuestas` context
-      8. ConsensoService — ensures `decisionFinal` context
-      9. ExportService — stateless, download helpers
-     10. RespuestasImportService — ensures `respuestasImportadas` context, normalizes against plantilla
-     11. DragDropService — registered after the above
-     12. ChartService — wraps vendored Chart.js
-     13. ToastProvider — lazy (builds container on first .show())
-     14. ConfirmActionModal — lazy (builds <slice-modal> on first use)
+      2. StoreService — context persistence wrapper
+      3. HtmlService — esc + sanitize (vendored DOMPurify)
+      4. DomService — reconcile (leak-safe list rendering)
+      5. CompressionService — packForURI/unpackFromURI + LZ compress
+      6. PlantillaService — ensures `plantilla` context, seed fallback
+      7. FileDownloadService — stateless, download helper
+      8. SettingsService — ensures `settings` context
+      9. RespuestasService — ensures `respuestas` context
+     10. ConsensoService — ensures `decisionFinal` context
+     11. ExportService — stateless, download helpers
+     12. RespuestasImportService — ensures `respuestasImportadas` context, normalizes against plantilla
+     13. DragDropService — registered after the above
+     14. ChartService — wraps vendored Chart.js
+     15. ToastProvider — lazy (builds container on first .show())
+     16. ConfirmActionModal — lazy (builds <slice-modal> on first use)
+     17. ExportRespuestasModal — lazy (builds <slice-modal> on first show())
+     18. SharePlantillaModal — lazy (builds <slice-modal> on first show())
 ```
 
 `PlantillaService` must finish before anything else reads categoría/opción data — every other Service/view assumes it's already loaded.
@@ -78,6 +84,8 @@ AppShell.init() → slice.build('Providers')
 | `FileDownloadService` | Generic Blob download helper. |
 | `ChartService` | Wraps the vendored Chart.js UMD bundle (`src/libs/chartjs/chart.umd.js`) — `create(canvas, config)`/`destroy(chart)`/`themeColor(varName)` (resolves a CSS custom property to a literal color string, since `<canvas>` can't read `var(--x)` directly). Consumers never import Chart.js themselves. First usage: `DashboardView`'s completion doughnut. |
 
+| `CompressionService` | Stateless LZ-string compress/decompress + key mapping. `packForURI(data)` maps long keys to short ones (`nombre→n`, `temas→ts`, etc.) before compression to produce shorter URL hashes. `unpackFromURI(data)` reverses the map. Unknown keys pass through unchanged (backward compatible with pre-short-key URLs). |
+
 `DataParserService` (CSV/TSV/JSON parsing for the old textarea-based roster editor) was deleted along with `HelpView` in the CRUD-builder rewrite — Categorías/Opciones are edited through real forms now, no bulk text parsing.
 
 ## Views (`Components/AppComponents/`)
@@ -85,13 +93,13 @@ AppShell.init() → slice.build('Providers')
 | View | Route | Key behavior |
 |---|---|---|
 | `LandingView` | `/` | Stats row (opciones/categorías/respondidas counts), quick-action cards, "Cómo funciona" 3-step flow, and "Para qué podés usarla" use-case cards. |
-| `DashboardView` | `/dashboard` | Categoría cards (modo `seleccion`) with bars + status badges, plus a "Texto libre" section showing per-Categoría answered/pending badges (modo `texto_libre`). Reads `respuestas`. Watches `respuestas` + `settings` + `plantilla`. |
+| `DashboardView` | `/dashboard` | Categoría cards (modo `seleccion`) with bars + status badges, plus a "Texto libre" section showing per-Categoría answered/pending badges (modo `texto_libre`). Header has a "📤 Compartir respuestas" button (`slice.build('Button')` → `ExportRespuestasModal`). Reads `respuestas`. Watches `respuestas` + `settings` + `plantilla`. |
 | `RespuestasView` | `/mis-respuestas` | Tab shell composing `MisRespuestasView` (carousel), `PorCategoriaView` (drag-and-drop board), and `RespuestasTextoView` (free-text answers). Carrusel/Por categoría only offered when the Plantilla has ≥1 Opción; Texto libre only when it has ≥1 Categoría in modo `texto_libre`. If neither is true, shows an empty-state pointing to `/plantilla` instead of empty tabs. |
 | `MisRespuestasView` | (sub-tab) | Carousel: one Opción at a time, pick a Categoría pill. Auto-advances after 500ms with animated feedback (bounce + checkmark). Reads/writes `respuestas.seleccion`. |
 | `PorCategoriaView` | (sub-tab) | Drag-and-drop `OpcionChip`s between sidebar and Categoría squares. Reads/writes `respuestas.seleccion`. |
 | `RespuestasTextoView` | (sub-tab) | One textarea per modo `texto_libre` Categoría, saved on blur. Reads/writes `respuestas.texto`. |
 | `CompareView` | `/comparar` | Imports Respuestas from other people (existing `ImportDrop`) plus an optional Plantilla import (collapsible, bulk-replaces Categorías/Opciones with a confirm-of-impact dialog, via `PlantillaService.prepareImport()`). Shows a "Selección"/"Texto libre" kind-tab pair when the Plantilla mixes both modos — Selección keeps the existing table/carousel/team views and the "Final" decision column; Texto libre delegates to `TextCompareCards`. |
-| `PlantillaBuilderView` | `/plantilla` | Real CRUD for Categorías and Opciones — replaces the old CSV/JSON textarea editor entirely. Detalles section (nombre de la Plantilla, líder toggle). Inline "escribir + Enter" add row per list (no modal). Per-row inline edit, modo toggle (seleccion ⇄ texto_libre) with conditional capacidad/min/max fields, per-action delete confirm naming the impact count. Hosts "Exportar Plantilla" and "Importar Plantilla" (same `prepareImport()` path as CompareView's). |
+| `PlantillaBuilderView` | `/plantilla` | Real CRUD for Temas and Opciones. Detalles section (nombre de la Plantilla, líder toggle). Inline "escribir + Enter" add row per list (no modal). Per-row inline edit, modo toggle with conditional fields, per-action delete confirm naming the impact count. Single "📤 Compartir plantilla" button → `SharePlantillaModal`. Also hosts "📂 Importar Plantilla" (same `prepareImport()` path as CompareView's). |
 
 `SettingsView`/`/configuracion` no longer exist — identity (tu nombre), tema, and every "mis Respuestas" action (exportar/importar/reiniciar) moved to `UserMenu`, built once from `TopBar` and reachable from any route (see below).
 
@@ -101,11 +109,11 @@ All `{ persist: true }` (localStorage):
 
 | Context | Key | Shape |
 |---|---|---|
-| `settings` | `conclave-settings-v3` | `{ autor, lideres, lideresEnabled, sexoEnabled, edadEnabled }` |
-| `plantilla` | `conclave-plantilla-v1` | `{ categorias: Categoria[], opciones: Opcion[] }` |
-| `respuestas` | `conclave-respuestas-v1` | `{ seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: string} }` |
-| `decisionFinal` | `conclave-decision-final-v1` | `{ seleccion: {[opcionId]: categoriaId}, texto: {[categoriaId]: {autor, texto}} }` |
-| `respuestasImportadas` | `conclave-respuestas-importadas-v1` | `[{ autor, respuestas: { seleccion, texto } }]` |
+| `settings` | `conclave-settings-v3` | `{ autor, email, lideres, lideresEnabled }` |
+| `plantilla` | `conclave-plantilla-v1` | `{ nombre, atributos, temas: Tema[], opciones: Opcion[] }` |
+| `respuestas` | `conclave-respuestas-v1` | `{ seleccion: {[opcionId]: temaId}, texto: {[temaId]: string}, voto: {[temaId]: opcionId}, ranking: {[temaId]: opcionId[]} }` |
+| `decisionFinal` | `conclave-decision-final-v1` | `{ seleccion, texto, voto, ranking }` (mirrors respuestas shape) |
+| `respuestasImportadas` | `conclave-respuestas-importadas-v1` | `[{ autor, respuestas: { seleccion, texto, voto, ranking } }]` |
 
 Every piece of shared, cross-component state now lives in a real `slice.context` — `plantilla` and `respuestasImportadas` were migrated from ad-hoc in-memory caches + a custom `roster:changed` event to this pattern, per the framework's own guidance (`context-vs-events.md`: "several components read and react to this state" → Context). There is no custom app event left besides `toast:show` and `confirm:request` — reactivity is entirely `slice.context.watch()`.
 

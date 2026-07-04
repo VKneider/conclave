@@ -8,7 +8,7 @@ atributos, voto/ranking). See `REDESIGN.md` for the phased history and
 
 | Key | Owner | Content |
 |---|---|---|
-| `conclave-settings-v3` | `SettingsService` | `{ autor, lideres, lideresEnabled }` |
+| `conclave-settings-v3` | `SettingsService` | `{ autor, email, lideres, lideresEnabled }` |
 | `conclave-plantilla-v1` | `PlantillaService` | `{ nombre, atributos, temas, opciones }` |
 | `conclave-respuestas-v1` | `RespuestasService` | `{ seleccion, texto, voto, ranking }` |
 | `conclave-decision-final-v1` | `ConsensoService` | `{ seleccion, texto, voto, ranking }` |
@@ -101,13 +101,17 @@ filters all four modos against the current Plantilla on import/boot.
 
 ## The two exportable JSON types
 
-- **Plantilla** (`tipo: 'plantilla'`): the shared setup — `{ nombre, atributos,
-  temas, opciones }`. Built by `ExportService.downloadPlantilla`, imported via
-  `PlantillaService.prepareImport` → `loadFromData(temas, opciones, nombre, atributos)`
-  (validates shape + `isSafeId`, computes orphan impact, confirm-gated).
+- **Plantilla** (`tipo: 'plantilla'`): the shared setup — `{ nombre, autor,
+  email, atributos, temas, opciones }`. `autor` and `email` come from
+  `SettingsService` (the creator's identity at share/export time). Built by
+  `ExportService.downloadPlantilla`, imported via `PlantillaService.prepareImport`
+  → `loadFromData(temas, opciones, nombre, atributos)` (validates shape +
+  `isSafeId`, computes orphan impact, confirm-gated). When importing via URL
+  hash, `AppShell._tryImportPlantilla()` displays the creator info in the dialog.
 - **Respuestas** (`tipo: 'respuestas'` / `'respuestas-final'`): one person's
-  answers — `{ respuestas: { seleccion, texto, voto, ranking } }`. Exported per
-  person or as the reconciled final (`ConsensoService.exportFinal`).
+  answers — `{ respuestas: { seleccion, texto, voto, ranking } }`. Also carries
+  `autor` and `email` from `SettingsService`. Exported per person or as the
+  reconciled final (`ConsensoService.exportFinal`).
 
 ## Fixed-ID strategy & cleanup
 
