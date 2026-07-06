@@ -439,7 +439,7 @@ export default class PlantillaBuilderView extends HTMLElement {
       try {
         data = JSON.parse(reader.result);
       } catch (err) {
-        this._showToast(`No se pudo leer ${file.name}: JSON inválido.`, 'error');
+        this._showToast(`No se pudo leer ${file.name}: archivo inválido.`, 'error');
         return;
       }
       let prepared;

@@ -1,0 +1,37 @@
+slice-resumenfinalview .resumen-view { max-width: 820px; }
+slice-resumenfinalview #resumenContent { display: flex; flex-direction: column; gap: 28px; }
+
+/* ── Toolbar ── */
+slice-resumenfinalview .rf-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 22px; flex-wrap: wrap; }
+
+/* ── Section card (hero treatment) ── */
+slice-resumenfinalview .rf-section { background: var(--panel-background-color); border: 2.5px solid var(--font-primary-color); border-radius: var(--card-border-radius); box-shadow: var(--box-shadow-primary); padding: 16px 18px 18px; }
+slice-resumenfinalview .rf-section__title { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin: 0 0 14px; }
+slice-resumenfinalview .rf-empty { color: var(--font-secondary-color); font-size: 13px; font-style: italic; }
+
+/* ── Reparto table (matches cmp-table pattern) ── */
+slice-resumenfinalview .rf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+slice-resumenfinalview .rf-table th, slice-resumenfinalview .rf-table td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border-color); }
+slice-resumenfinalview .rf-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--font-secondary-color); background: var(--panel-alt-background-color); position: sticky; top: 0; z-index: 2; box-shadow: inset 0 -2px 0 var(--font-primary-color); }
+slice-resumenfinalview .rf-table tr:last-child td { border-bottom: 0; }
+
+/* ── Votacion / Ranking / Texto cards (dense elements) ── */
+slice-resumenfinalview .rf-card-list { display: grid; gap: 12px; }
+slice-resumenfinalview .rf-card { padding: 14px 16px; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--panel-alt-background-color); }
+slice-resumenfinalview .rf-card__title { font-weight: 700; font-size: 14px; margin: 0 0 6px; }
+slice-resumenfinalview .rf-card__body { font-size: 13px; color: var(--font-primary-color); line-height: 1.5; overflow-wrap: break-word; word-break: break-word; }
+
+/* ── Ranking list ── */
+slice-resumenfinalview .rf-rank-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+slice-resumenfinalview .rf-rank-item { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+slice-resumenfinalview .rf-rank-pos { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--primary-color); color: var(--primary-color-contrast); font-family: var(--font-display); font-weight: 700; font-size: 12px; flex-shrink: 0; }
+
+/* ── Texto quote ── */
+slice-resumenfinalview .rf-quote { font-family: var(--font-display); font-size: 15px; line-height: 1.6; margin: 0; padding: 10px 14px; background: var(--secondary-background-color); border-radius: 8px; border-left: 4px solid var(--font-primary-color); white-space: pre-wrap; word-break: break-word; }
+slice-resumenfinalview .rf-quote__autor { font-size: 12px; color: var(--font-secondary-color); font-weight: 600; margin-top: 4px; display: block; }
+
+@media (max-width: 760px) {
+  slice-resumenfinalview .rf-section { padding: 14px 16px; }
+  slice-resumenfinalview .rf-table th, slice-resumenfinalview .rf-table td { padding: 8px 10px; }
+  slice-resumenfinalview .rf-card { overflow-wrap: break-word; word-break: break-word; }
+}

@@ -35,14 +35,25 @@ slice-usermenu .user-menu__section-label {
   font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
 }
 
-slice-usermenu .user-menu__action {
-  width: 100%; text-align: left; background: transparent; border: 0; border-radius: 8px;
-  padding: 9px 10px; font-size: 13px; font-weight: 600; color: var(--font-primary-color);
-  cursor: pointer; transition: background .15s;
+slice-usermenu .user-menu__panel slice-button {
+  width: 100%;
 }
-slice-usermenu .user-menu__action:hover { background: var(--tertiary-background-color, var(--secondary-background-color)); }
-slice-usermenu .user-menu__action--danger { color: var(--danger-color); }
-slice-usermenu .user-menu__action--danger:hover { background: color-mix(in srgb, var(--danger-color) 12%, transparent); }
+slice-usermenu .user-menu__panel slice-button .slice_button_container {
+  padding: 0;
+}
+slice-usermenu .user-menu__panel slice-button .slice_button {
+  width: 100%; justify-content: flex-start; text-align: left;
+  border-radius: 8px; padding: 9px 10px; font-size: 13px; font-weight: 600;
+  background: transparent; border: 0; color: var(--font-primary-color);
+  transition: background .15s;
+}
+slice-usermenu .user-menu__panel slice-button .slice_button::after { display: none; }
+slice-usermenu .user-menu__panel slice-button .slice_button:hover {
+  background: var(--tertiary-background-color, var(--secondary-background-color));
+}
+slice-usermenu .user-menu__panel slice-button .slice_button:active {
+  transform: none;
+}
 
 slice-usermenu .user-menu__hint { margin: 8px 0 0; font-size: 11px; line-height: 1.5; color: var(--font-secondary-color); }
 

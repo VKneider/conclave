@@ -30,6 +30,8 @@ export default class CompareView extends HTMLElement {
     importDrop.onFiles = (files) => this._handleFiles(files);
     this.querySelector('.cmp-import-slot').appendChild(importDrop);
 
+    this._buildUrlImport();
+
     this._finalTally = await slice.build('FinalTally', { sliceId: 'cmp-finaltally' });
     this.querySelector('.cmp-finaltally-slot').appendChild(this._finalTally);
 
@@ -376,7 +378,7 @@ export default class CompareView extends HTMLElement {
 
     if (all.length < 2) {
       this.$root.querySelector('.cmp-search-slot').hidden = true;
-      this.$root.querySelector('.cmp-dynamic').innerHTML = '<div class="empty-state">Importa al menos un JSON de otra persona para comparar.<br/>Tu trabajo actual ya cuenta como una fuente.</div>';
+      this.$root.querySelector('.cmp-dynamic').innerHTML = '<div class="empty-state">Importa al menos un archivo de respuestas de otra persona para comparar.<br/>Tu trabajo actual ya cuenta como una fuente.</div>';
       this._finalTally.items = [];
       return;
     }
@@ -468,7 +470,7 @@ export default class CompareView extends HTMLElement {
         <span class="spacer" style="flex:1"></span>
         <button class="btn btn-sm" id="btnFillSug">✓ Autocompletar con sugerencia</button>
         <button class="btn btn-sm" id="btnClearRes">Vaciar decisiones</button>
-        <button class="btn btn-sm btn-primary" id="btnExportFinal">⬇ Exportar lista final (JSON)</button>
+        <button class="btn btn-sm btn-primary" id="btnExportFinal">⬇ Exportar lista final</button>
       </div>
       <div class="cmp-filters">
         <button class="btn btn-sm ${this.cmpFilter === 'all' ? 'btn-primary' : ''}" data-f="all">Todos (${rows.length})</button>
@@ -483,7 +485,7 @@ export default class CompareView extends HTMLElement {
         </label>
         <span class="spacer" style="flex:1"></span>
         <button class="btn btn-sm" id="btnTemaView">◉ Vista por tema</button>
-        <button class="btn btn-sm" id="btnExportCmp">⬇ Exportar comparación (CSV)</button>
+        <button class="btn btn-sm" id="btnExportCmp">⬇ Exportar comparación como hoja de cálculo</button>
       </div>`;
 
     let shown = rows;
@@ -624,6 +626,61 @@ export default class CompareView extends HTMLElement {
     });
   }
 
+  _buildUrlImport() {
+    const details = document.createElement('details');
+    details.className = 'cmp-url-import';
+    details.innerHTML = `<summary>🔗 Importar desde enlaces compartidos</summary>
+      <p class="view-sub" style="margin:8px 0 10px">Pegá los enlaces de respuestas que te compartieron (uno por línea).</p>
+      <textarea class="cmp-url-import__input" placeholder="https://ejemplo.com/#respuestas=…"></textarea>
+      <button class="btn btn-primary cmp-url-import__btn" type="button">Importar</button>
+      <span class="cmp-url-import__status"></span>`;
+    this.querySelector('.cmp-import-slot').appendChild(details);
+
+    const input = details.querySelector('.cmp-url-import__input');
+    const btn = details.querySelector('.cmp-url-import__btn');
+    const status = details.querySelector('.cmp-url-import__status');
+
+    btn.onclick = async () => {
+      const raw = input.value.trim();
+      if (!raw) return;
+      const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean);
+      btn.disabled = true;
+      status.textContent = `Procesando ${lines.length} enlace(s)…`;
+      const compressor = slice.getComponent('CompressionService');
+      let imported = 0, failed = 0, dupes = 0;
+      for (const line of lines) {
+        const hash = line.includes('#') ? line.split('#')[1] : line.startsWith('respuestas=') ? line : null;
+        if (!hash) { failed++; continue; }
+        const compressed = hash.startsWith('respuestas=') ? hash.slice('respuestas='.length) : hash;
+        if (!compressed) { failed++; continue; }
+        let data;
+        try {
+          data = compressor.decompressFromURI(compressed);
+          data = compressor.unpackFromURI(data);
+        } catch (e) {
+          failed++;
+          continue;
+        }
+        if (!data || !data.respuestas) { failed++; continue; }
+        if (this._imports.isDuplicate(data)) {
+          dupes++;
+          continue;
+        }
+        this._imports.import(data, data.autor || 'enlace');
+        imported++;
+      }
+      this.sources = this._imports.getSources();
+      this._render();
+      btn.disabled = false;
+      const parts = [];
+      if (imported) parts.push(`${imported} importado(s)`);
+      if (dupes) parts.push(`${dupes} duplicado(s)`);
+      if (failed) parts.push(`${failed} inválido(s)`);
+      status.textContent = parts.join(', ') || 'Nada que importar';
+      if (imported) slice.events.emit('toast:show', { message: `${imported} fuente(s) importada(s) desde enlaces`, type: 'success' });
+    };
+  }
+
   _handleFiles(fileList) {
     const files = Array.from(fileList || []);
     let pending = files.length;
@@ -645,7 +702,7 @@ export default class CompareView extends HTMLElement {
             totalIgnored += stats.ignored;
           }
         } catch (e) {
-          slice.events.emit('toast:show', { message: `No se pudo leer ${file.name}: JSON inválido.`, type: 'error' });
+          slice.events.emit('toast:show', { message: `No se pudo leer ${file.name}: archivo inválido.`, type: 'error' });
         }
         if (--pending === 0) {
           this.sources = this._imports.getSources();

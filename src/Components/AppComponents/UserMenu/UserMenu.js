@@ -14,10 +14,10 @@ export default class UserMenu extends HTMLElement {
     this.$autorFieldSlot = this.querySelector('[data-el="autorFieldSlot"]');
     this.$emailFieldSlot = this.querySelector('[data-el="emailFieldSlot"]');
     this.$themeSlot = this.querySelector('[data-el="themeSlot"]');
-    this.$shareBtn = this.querySelector('[data-el="shareBtn"]');
-    this.$importBtn = this.querySelector('[data-el="importBtn"]');
+    this.$shareBtnSlot = this.querySelector('[data-el="shareBtnSlot"]');
+    this.$importBtnSlot = this.querySelector('[data-el="importBtnSlot"]');
     this.$importFile = this.querySelector('[data-el="importFile"]');
-    this.$resetBtn = this.querySelector('[data-el="resetBtn"]');
+    this.$resetBtnSlot = this.querySelector('[data-el="resetBtnSlot"]');
 
     this._open = false;
     this._onDocClick = (e) => {
@@ -29,10 +29,7 @@ export default class UserMenu extends HTMLElement {
 
     this.$trigger.addEventListener('click', () => this._setOpen(!this._open));
 
-    this.$shareBtn.addEventListener('click', () => { slice.getComponent('ExportRespuestasModal').show(); this._setOpen(false); });
-    this.$importBtn.addEventListener('click', () => this.$importFile.click());
     this.$importFile.addEventListener('change', (e) => this._handleImport(e));
-    this.$resetBtn.addEventListener('click', () => this._confirmReset());
 
     slice.controller.setComponentProps(this, props);
   }
@@ -56,6 +53,27 @@ export default class UserMenu extends HTMLElement {
       label: 'Tema',
     });
     this.$themeSlot.appendChild(themeSwitcher);
+
+    this.$shareBtn = await slice.build('Button', {
+      value: '\uD83D\uDCE4 Compartir respuestas',
+      variant: 'ghost',
+      onClick: () => { slice.getComponent('ExportRespuestasModal').show(); this._setOpen(false); }
+    });
+    this.$shareBtnSlot.replaceWith(this.$shareBtn);
+
+    this.$importBtn = await slice.build('Button', {
+      value: '\uD83D\uDCC2 Importar mis Respuestas',
+      variant: 'ghost',
+      onClick: () => this.$importFile.click()
+    });
+    this.$importBtnSlot.replaceWith(this.$importBtn);
+
+    this.$resetBtn = await slice.build('Button', {
+      value: '\uD83D\uDDD1 Reiniciar mis Respuestas',
+      variant: 'ghost',
+      onClick: () => this._confirmReset()
+    });
+    this.$resetBtnSlot.replaceWith(this.$resetBtn);
 
     slice.context.watch('settings', this, (s) => { this._syncAutor(s.autor); this._syncEmail(s.email); });
     const settings = slice.getComponent('SettingsService');
@@ -98,7 +116,7 @@ export default class UserMenu extends HTMLElement {
         return;
       }
       if (!data?.respuestas) {
-        slice.events.emit('toast:show', { message: 'Formato no reconocido — se espera un JSON de Respuestas.', type: 'error' });
+        slice.events.emit('toast:show', { message: 'Formato no reconocido — se espera un archivo de respuestas.', type: 'error' });
         return;
       }
       slice.events.emit('confirm:request', {

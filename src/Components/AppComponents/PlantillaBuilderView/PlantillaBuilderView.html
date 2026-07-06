@@ -2,6 +2,12 @@
   <h2 class="view-title">Plantilla</h2>
   <p class="view-sub">Una Plantilla es una lista de <b>Temas</b>. Cada Tema elige su <b>modo</b>: <i>Asignación</i> (repartir una lista de personas u opciones entre equipos), <i>Votación</i> (elegir una), <i>Ranking</i> (ordenar) o <i>Texto libre</i> (responder con una idea). Puedes mezclar modos en la misma Plantilla — o empezar desde un ejemplo:</p>
 
+  <div class="gen-main-actions">
+    <button class="btn btn-primary" id="sharePlantillaBtn">📤 Compartir plantilla</button>
+    <button class="btn btn-ghost" id="importPlantillaBtn">📂 Importar Plantilla</button>
+    <input type="file" id="importPlantillaFile" accept="application/json,.json" hidden />
+  </div>
+
   <details class="pb-presets">
     <summary>✨ Empieza desde una plantilla de ejemplo</summary>
     <div class="pb-presets__grid" id="presetGrid"></div>
@@ -67,11 +73,4 @@
     <div class="empty-state" id="opcEmpty" hidden>Todavía no hay opciones. Escribe un nombre arriba y presiona Enter.</div>
     <div class="pb-list" id="opcList"></div>
   </div>
-
-  <div class="gen-main-actions">
-    <button class="btn btn-primary" id="sharePlantillaBtn">📤 Compartir plantilla</button>
-    <button class="btn btn-ghost" id="importPlantillaBtn">📂 Importar Plantilla</button>
-    <input type="file" id="importPlantillaFile" accept="application/json,.json" hidden />
-  </div>
-  <p class="gen-main-hint" style="margin-top:8px;font-size:13px;color:var(--text-muted);">Comparte tu Plantilla como enlace o archivo JSON; quien lo recibe puede importarla directo.</p>
 </div>

@@ -13,14 +13,13 @@
       <div data-el="nextBtnSlot"></div>
     </div>
   </div>
-  <div class="av-empty" hidden>
-    <div class="av-empty__icon">🗂️</div>
-    <h3>Todavía no hay nada que responder</h3>
-    <p>Tu Plantilla todavía no tiene nada para responder — ni Opciones para asignar, ni Temas de votación o texto libre. Ve a Plantilla para armarla.</p>
-    <button class="btn btn-primary" data-el="goPlantilla">📐 Ir a Plantilla</button>
-  </div>
+  <div data-el="emptySlot"></div>
   <div class="av-kind-tabs" hidden></div>
   <div class="av-mode-tabs" hidden></div>
+  <div class="av-notice" data-el="kindNotice" hidden>
+    <span class="av-notice__icon">ℹ️</span>
+    <span data-el="kindNoticeText"></span>
+  </div>
   <div class="av-slots">
     <div data-slot="carousel"></div>
     <div data-slot="board" hidden></div>

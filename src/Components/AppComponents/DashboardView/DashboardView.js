@@ -53,6 +53,7 @@ export default class DashboardView extends HTMLElement {
   async _buildShell() {
     const roster = this._roster;
     const esc = (s) => this._html.esc(s);
+    const temas = roster.getTemas();
     const temasReparto = roster.getTemasParticipables();
     const temasVotacion = roster.getTemasVotacion();
     const temasRanking = roster.getTemasRanking();
@@ -69,6 +70,25 @@ export default class DashboardView extends HTMLElement {
             <span class="badge" data-el="${prefix}-badge-${c.id}"></span>
           </div>`).join('')}
       </div>`;
+
+    if (!temas.length) {
+      this.$root.innerHTML = this._html.sanitize('<div class="dash-header"><h2 class="view-title">Dashboard</h2></div>');
+      const empty = await slice.build('EmptyState', {
+        icon: '\uD83D\uDCCB',
+        title: 'Todav\u00EDa no hay una Plantilla',
+        description: 'Cre\u00E1 una plantilla con Temas y Opciones para empezar a asignar equipos, votar y m\u00E1s.',
+        buttonLabel: '\uD83D\uDCD0 Ir a Plantilla',
+        buttonRoute: '/plantilla',
+      });
+      if (empty instanceof Node) this.$root.appendChild(empty);
+      this._els = { plantillaLine: null, sub: null, totalTemas: null, answered: null, enRango: null, conProblema: null, cardRango: null, cardProblema: null, completionPct: null, shareBtnSlot: null };
+      this._teamEls = {};
+      this._votoEls = {};
+      this._rankEls = {};
+      this._textoEls = {};
+      this._badges = {};
+      return;
+    }
 
     let html = `
       <div class="dash-header">
@@ -203,6 +223,9 @@ export default class DashboardView extends HTMLElement {
   }
 
   _render() {
+    // Empty state — nothing to render
+    if (!this._els?.sub) return;
+
     const roster = this._roster;
     const temasReparto = roster.getTemasParticipables();
     const asignaciones = slice.getComponent('RespuestasService').getState().seleccion;

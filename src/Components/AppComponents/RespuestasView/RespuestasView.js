@@ -10,19 +10,19 @@ const MODE_TABS = [
 ];
 
 // Multi-modo tab shell (see docs/COMPONENT-PATTERNS.md). PRIMARY kind tabs
-// (Asignación / Votación / Texto libre, variant 'primary') appear only when the
-// Plantilla actually offers more than one — they're genuinely different tasks.
+// (Asignación / Votación / Texto libre, variant 'primary') show ALL kinds,
+// marking completion with ✅ and showing a notice for kinds without temas.
 // SECONDARY mode tabs (Carrusel / Por tema, variant 'secondary') are nested
-// peer views of the SAME Asignación task. The view owns content visibility;
-// each Tabs owns its own active state via onChange.
+// peer views of the SAME Asignación task.
 export default class RespuestasView extends HTMLElement {
   constructor(props) {
     super();
     slice.attachTemplate(this);
-    this.$empty = this.querySelector('.av-empty');
-    this.$goPlantilla = this.querySelector('[data-el="goPlantilla"]');
+    this.$emptySlot = this.querySelector('[data-el="emptySlot"]');
     this.$kindTabs = this.querySelector('.av-kind-tabs');
     this.$modeTabs = this.querySelector('.av-mode-tabs');
+    this.$kindNotice = this.querySelector('[data-el="kindNotice"]');
+    this.$kindNoticeText = this.querySelector('[data-el="kindNoticeText"]');
     this.$slots = this.querySelector('.av-slots');
     this.$carouselSlot = this.querySelector('[data-slot="carousel"]');
     this.$boardSlot = this.querySelector('[data-slot="board"]');
@@ -38,15 +38,24 @@ export default class RespuestasView extends HTMLElement {
     this.$exportSlot = this.querySelector('[data-el="exportSlot"]');
     this._activeKind = 'seleccion';
     this._activeMode = 'carousel';
-    this._kindKey = '';
-
-    this.$goPlantilla.addEventListener('click', () => slice.router.navigate('/plantilla'));
+    this._kindAvail = { seleccion: false, votacion: false, ranking: false, texto: false };
+    this._kindComplete = { seleccion: false, votacion: false, ranking: false, texto: false };
+    this._slotPromptEl = null;
 
     slice.controller.setComponentProps(this, props);
   }
 
   async init() {
     this._plantilla = slice.getComponent('PlantillaService');
+
+    this._emptyCmp = await slice.build('EmptyState', {
+      icon: '\uD83D\uDCC2',
+      title: 'Todav\u00EDa no hay nada que responder',
+      description: 'Tu Plantilla todav\u00EDa no tiene nada para responder \u2014 ni Opciones para asignar, ni Temas de votaci\u00F3n o texto libre. Ve a Plantilla para armarla.',
+      buttonLabel: '\uD83D\uDCD0 Ir a Plantilla',
+      buttonRoute: '/plantilla',
+    });
+    if (this._emptyCmp instanceof Node) this.$emptySlot.appendChild(this._emptyCmp);
 
     this._kindTabsCmp = await slice.build('Tabs', {
       sliceId: 'av-kind-tabs',
@@ -105,36 +114,63 @@ export default class RespuestasView extends HTMLElement {
     slice.context.watch('respuestas', this, () => this._updateProgress());
   }
 
-  _updateProgress() {
+  _computeKindProgress() {
     const p = this._plantilla.getAnswerProgress();
+    return {
+      seleccion: { total: p.reparto.total, answered: p.reparto.answered, complete: p.reparto.total > 0 && p.reparto.answered === p.reparto.total },
+      votacion: { total: p.votacion.total, answered: p.votacion.answered, complete: p.votacion.total > 0 && p.votacion.answered === p.votacion.total },
+      ranking: { total: p.ranking.total, answered: p.ranking.answered, complete: p.ranking.total > 0 && p.ranking.answered === p.ranking.total },
+      texto: { total: p.texto.total, answered: p.texto.answered, complete: p.texto.total > 0 && p.texto.answered === p.texto.total },
+    };
+  }
+
+  _updateTabItems() {
+    const items = (this._availableKinds || KIND_TABS).map((k) => ({
+      id: k.id,
+      label: this._kindComplete[k.id] ? `✅ ${k.label}` : k.label,
+    }));
+    this._kindTabsCmp.items = items;
+  }
+
+  _updateProgress() {
+    const kindProgress = this._computeKindProgress();
+    for (const k of ['seleccion', 'votacion', 'ranking', 'texto']) {
+      this._kindComplete[k] = kindProgress[k].complete;
+    }
+
+    const p = {
+      total: kindProgress.seleccion.total + kindProgress.votacion.total + kindProgress.ranking.total + kindProgress.texto.total,
+      answered: kindProgress.seleccion.answered + kindProgress.votacion.answered + kindProgress.ranking.answered + kindProgress.texto.answered,
+    };
+
+    this._updateTabItems();
+
     if (p.total === 0) { this.$progress.hidden = true; this.$nextSection.hidden = true; return; }
     this.$progress.hidden = false;
     const pct = Math.round((p.answered / p.total) * 100);
     this.$progressBar.style.width = `${pct}%`;
     this.$progressLabel.textContent = `Respondiste ${p.answered} de ${p.total} (${pct}%)`;
-    this._updateNextSection(p);
+    this._updateNextSection(p, kindProgress);
   }
 
-  // Shows/hides the next-section banner: when the current kind tab is fully
-  // answered, offers a button to jump to the next available kind tab.
-  _updateNextSection(progress) {
+  _updateNextSection(progress, kindProgress) {
     const kinds = this._availableKinds;
-    if (!kinds || kinds.length < 2 || !progress) { this.$nextSection.hidden = true; return; }
+    if (!kinds || kinds.length < 2 || !progress) { this.$nextSection.hidden = true; this._removeSlotPrompt(); return; }
 
     const kindMap = { seleccion: 'reparto', votacion: 'votacion', ranking: 'ranking', texto: 'texto' };
     const pk = kindMap[this._activeKind];
-    const p = pk ? progress[pk] : null;
-    const isComplete = p && p.total > 0 && p.answered === p.total;
+    const kp = pk ? kindProgress[pk] : null;
+    const isComplete = kp && kp.total > 0 && kp.answered === kp.total;
 
-    if (!isComplete) { this.$nextSection.hidden = true; return; }
+    if (!isComplete) { this.$nextSection.hidden = true; this._removeSlotPrompt(); return; }
 
     const currentIdx = kinds.findIndex((k) => k.id === this._activeKind);
     if (currentIdx < 0 || currentIdx >= kinds.length - 1) {
       this.$nextSection.hidden = false;
       this.$nextText.textContent = '¡Todas las secciones están completas! 🎉';
       this._nextBtnCmp.value = 'Todo listo';
-      this._nextBtnCmp.$button.disabled = true;
-      this._nextBtnCmp.onClick = null;
+      this._nextBtnCmp.$button.disabled = false;
+      this._nextBtnCmp.onClick = () => slice.getComponent('ExportRespuestasModal').show();
       return;
     }
 
@@ -147,6 +183,43 @@ export default class RespuestasView extends HTMLElement {
       this._render();
     };
     this.$nextText.textContent = '';
+
+    // Show inline prompt inside the active slot
+    this._showSlotPrompt(next);
+  }
+
+  async _showSlotPrompt(next) {
+    this._removeSlotPrompt();
+
+    if (this._activeKind !== 'seleccion' || this._activeMode !== 'carousel') return;
+
+    const prompt = document.createElement('div');
+    prompt.className = 'av-slot-prompt';
+
+    const text = document.createElement('span');
+    text.className = 'av-slot-prompt__text';
+    text.textContent = '✅ ¡Sección completa! Pasá a la siguiente →';
+    prompt.appendChild(text);
+
+    const btn = await slice.build('Button', {
+      value: `Ir a ${next.label} →`,
+      variant: 'filled',
+      onClick: () => {
+        this._activeKind = next.id;
+        this._render();
+      },
+    });
+    if (btn instanceof Node) prompt.appendChild(btn);
+
+    this.$carouselSlot.appendChild(prompt);
+    this._slotPromptEl = prompt;
+  }
+
+  _removeSlotPrompt() {
+    if (this._slotPromptEl) {
+      this._slotPromptEl.remove();
+      this._slotPromptEl = null;
+    }
   }
 
   update() {
@@ -165,48 +238,46 @@ export default class RespuestasView extends HTMLElement {
     slice.controller.destroyByContainer(this.$textoSlot);
     slice.controller.destroyByContainer(this.$kindTabs);
     slice.controller.destroyByContainer(this.$modeTabs);
+    slice.controller.destroyByContainer(this.$emptySlot);
   }
 
   _render() {
-    // Availability by what each kind can actually answer:
-    //  • Asignación (reparto) needs pool Opciones (votación-owned ones don't count).
-    //  • Votación / Texto libre need at least one Tema of that modo.
     const hasReparto = this._plantilla.getTemasParticipables().length > 0 && this._plantilla.getOpcionesPool().length > 0;
     const hasVotacion = this._plantilla.getTemasVotacion().length > 0;
     const hasRanking = this._plantilla.getTemasRanking().length > 0;
     const hasTexto = this._plantilla.getTemasTexto().length > 0;
+    this._kindAvail = { seleccion: hasReparto, votacion: hasVotacion, ranking: hasRanking, texto: hasTexto };
+    const availArr = KIND_TABS.filter((k) => this._kindAvail[k.id]);
+    this._availableKinds = availArr;
 
-    const available = KIND_TABS.filter((k) =>
-      (k.id === 'seleccion' && hasReparto)
-      || (k.id === 'votacion' && hasVotacion)
-      || (k.id === 'ranking' && hasRanking)
-      || (k.id === 'texto' && hasTexto));
-
-    this._availableKinds = available;
-
-    if (!available.length) {
-      this.$empty.hidden = false;
+    // Show kind tabs only when there are multiple kinds to choose from
+    if (!availArr.length) {
+      this.$emptySlot.hidden = false;
       this.$kindTabs.hidden = true;
       this.$modeTabs.hidden = true;
       this.$slots.hidden = true;
+      this.$kindNotice.hidden = true;
       this.$progress.hidden = true;
       this.$nextSection.hidden = true;
       return;
     }
-    this.$empty.hidden = true;
+    this.$emptySlot.hidden = true;
     this.$slots.hidden = false;
+
     this._updateProgress();
 
-    if (!available.some((k) => k.id === this._activeKind)) this._activeKind = available[0].id;
+    // If the active kind is not available, fall back to first available
+    if (!this._kindAvail[this._activeKind]) {
+      this._activeKind = availArr[0].id;
+    }
 
-    if (available.length > 1) {
+    if (availArr.length > 1) {
       this.$kindTabs.hidden = false;
-      const key = available.map((k) => k.id).join(',');
-      if (key !== this._kindKey) { this._kindTabsCmp.items = available; this._kindKey = key; }
-      this._kindTabsCmp.activeTab = this._activeKind;
     } else {
       this.$kindTabs.hidden = true;
     }
+
+    this._kindTabsCmp.activeTab = this._activeKind;
 
     if (this._activeKind === 'seleccion') {
       if (!['carousel', 'board'].includes(this._activeMode)) this._activeMode = 'carousel';
@@ -222,14 +293,24 @@ export default class RespuestasView extends HTMLElement {
   _applyVisibility() {
     const showCarousel = this._activeKind === 'seleccion' && this._activeMode === 'carousel';
     const showBoard = this._activeKind === 'seleccion' && this._activeMode === 'board';
-    const showVotacion = this._activeKind === 'votacion';
-    const showRanking = this._activeKind === 'ranking';
-    const showTexto = this._activeKind === 'texto';
+    const showVotacion = this._activeKind === 'votacion' && this._kindAvail.votacion;
+    const showRanking = this._activeKind === 'ranking' && this._kindAvail.ranking;
+    const showTexto = this._activeKind === 'texto' && this._kindAvail.texto;
     this.$carouselSlot.hidden = !showCarousel;
     this.$boardSlot.hidden = !showBoard;
     this.$votacionSlot.hidden = !showVotacion;
     this.$rankingSlot.hidden = !showRanking;
     this.$textoSlot.hidden = !showTexto;
+
+    // Show notice when kind has no temas to answer
+    if (!this._kindAvail[this._activeKind]) {
+      const labels = { seleccion: 'Asignación', votacion: 'Votación', ranking: 'Ranking', texto: 'Texto libre' };
+      this.$kindNotice.hidden = false;
+      this.$kindNoticeText.textContent = `No hay temas de ${labels[this._activeKind] || this._activeKind} en esta plantilla.`;
+    } else {
+      this.$kindNotice.hidden = true;
+    }
+
     if (showCarousel) this._carouselView?.update();
     if (showBoard) this._boardView?.update();
     if (showVotacion) this._votacionView?.update();

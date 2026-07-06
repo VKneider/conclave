@@ -3,6 +3,7 @@ const ROUTES = [
   { path: '/dashboard', component: 'DashboardView' },
   { path: '/mis-respuestas', component: 'RespuestasView' },
   { path: '/comparar', component: 'CompareView' },
+  { path: '/resumen', component: 'ResumenFinalView' },
   { path: '/plantilla', component: 'PlantillaBuilderView' },
 ];
 

@@ -137,5 +137,11 @@ slice-modal.export-respuestas-modal .export-modal__actions {
   display: flex; flex-direction: column; gap: 10px;
 }
 slice-modal.export-respuestas-modal .export-modal__action {
-  font-size: 14px; padding: 11px 18px; text-align: center;
+  width: 100%;
+}
+slice-modal.export-respuestas-modal slice-button.export-modal__action .slice_button_container {
+  padding: 0;
+}
+slice-modal.export-respuestas-modal slice-button.export-modal__action .slice_button {
+  font-size: 14px; padding: 11px 18px; font-weight: 700; width: 100%;
 }

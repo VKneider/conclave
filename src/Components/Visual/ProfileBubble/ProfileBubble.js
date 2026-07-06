@@ -52,10 +52,10 @@ export default class ProfileBubble extends HTMLElement {
       maxWidth: '420px',
     });
     document.body.appendChild(this._modal);
-    this._buildContent();
+    await this._buildContent();
   }
 
-  _buildContent() {
+  async _buildContent() {
     const body = document.createElement('div');
     body.className = 'profile-bubble__body';
 
@@ -85,11 +85,12 @@ export default class ProfileBubble extends HTMLElement {
 
     this._modal.appendBody(body);
 
-    const visitBtn = document.createElement('button');
-    visitBtn.className = 'btn btn-primary';
-    visitBtn.textContent = 'Visitar mi portfolio →';
-    visitBtn.addEventListener('click', () => {
-      window.open('https://vkneider.dev', '_blank', 'noopener');
+    const visitBtn = await slice.build('Button', {
+      value: 'Visitar mi portfolio \u2192',
+      variant: 'filled',
+      onClick: () => {
+        window.open('https://vkneider.dev', '_blank', 'noopener');
+      }
     });
     this._modal.appendFooter(visitBtn);
   }

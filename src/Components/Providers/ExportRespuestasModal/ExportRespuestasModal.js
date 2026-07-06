@@ -28,34 +28,46 @@ export default class ExportRespuestasModal {
     const actions = document.createElement('div');
     actions.className = 'export-modal__actions';
 
-    this.$downloadBtn = document.createElement('button');
-    this.$downloadBtn.type = 'button';
-    this.$downloadBtn.className = 'btn btn-primary export-modal__action';
-    this.$downloadBtn.innerHTML = '⬇ Descargar JSON';
-    this.$downloadBtn.onclick = () => { this._close(); slice.getComponent('RespuestasService').exportMineWithPrompt(); };
+    this.$downloadBtn = await slice.build('Button', {
+      value: '\u2B07 Descargar archivo de respuestas',
+      variant: 'filled',
+      onClick: () => { this._close(); slice.getComponent('RespuestasService').exportMineWithPrompt(); }
+    });
+    this.$downloadBtn.classList.add('export-modal__action');
 
-    this.$copyBtn = document.createElement('button');
-    this.$copyBtn.type = 'button';
-    this.$copyBtn.className = 'btn export-modal__action';
-    this.$copyBtn.innerHTML = '🔗 Copiar enlace';
-    this.$copyBtn.onclick = () => { this._close(); slice.getComponent('RespuestasService').copyShareLink(); };
+    this.$printBtn = await slice.build('Button', {
+      value: '\uD83D\uDDA8 Imprimir',
+      variant: 'outlined',
+      onClick: () => { this._close(); slice.getComponent('RespuestasService').exportPrint(); }
+    });
+    this.$printBtn.classList.add('export-modal__action');
 
-    this.$emailBtn = document.createElement('button');
-    this.$emailBtn.type = 'button';
-    this.$emailBtn.className = 'btn export-modal__action';
-    this.$emailBtn.innerHTML = '✉️ Enviar por correo';
-    this.$emailBtn.onclick = () => { this._close(); slice.getComponent('RespuestasService').sendShareLinkEmail(); };
+    this.$copyBtn = await slice.build('Button', {
+      value: '\uD83D\uDD17 Copiar enlace',
+      variant: 'outlined',
+      onClick: () => { this._close(); slice.getComponent('RespuestasService').copyShareLink(); }
+    });
+    this.$copyBtn.classList.add('export-modal__action');
+
+    this.$emailBtn = await slice.build('Button', {
+      value: '\u2709\uFE0F Enviar por correo',
+      variant: 'outlined',
+      onClick: () => { this._close(); slice.getComponent('RespuestasService').sendShareLinkEmail(); }
+    });
+    this.$emailBtn.classList.add('export-modal__action');
 
     actions.appendChild(this.$downloadBtn);
+    actions.appendChild(this.$printBtn);
     actions.appendChild(this.$copyBtn);
     actions.appendChild(this.$emailBtn);
 
     if (typeof navigator.share === 'function') {
-      this.$shareBtn = document.createElement('button');
-      this.$shareBtn.type = 'button';
-      this.$shareBtn.className = 'btn btn-primary export-modal__action';
-      this.$shareBtn.innerHTML = '📱 Compartir';
-      this.$shareBtn.onclick = () => { this._close(); this._nativeShare(); };
+      this.$shareBtn = await slice.build('Button', {
+        value: '\uD83D\uDCF1 Compartir',
+        variant: 'filled',
+        onClick: () => { this._close(); this._nativeShare(); }
+      });
+      this.$shareBtn.classList.add('export-modal__action');
       actions.appendChild(this.$shareBtn);
     }
 

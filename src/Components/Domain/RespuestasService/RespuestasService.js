@@ -204,6 +204,94 @@ export default class RespuestasService {
     });
   }
 
+  exportPrint() {
+    const h = slice.getComponent('HtmlService');
+    const roster = slice.getComponent('PlantillaService');
+    const state = this.getState();
+    const settings = slice.getComponent('SettingsService');
+    const autor = settings.getState().autor || 'Tus respuestas';
+    const temas = roster.getTemas();
+    const date = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const lines = [];
+    const repartoTemas = temas.filter(function (t) { return t.modo === 'reparto'; });
+    if (repartoTemas.length) {
+      lines.push('<h2>Asignaciones</h2>');
+      const sel = state.seleccion || {};
+      const opciones = roster.getOpciones();
+      var repartoRows = [];
+      opciones.forEach(function (op) {
+        var temaId = sel[op.id];
+        if (temaId) {
+          var tema = repartoTemas.find(function (t) { return t.id === temaId; });
+          repartoRows.push('<tr><td>' + h.esc(op.nombre) + '</td><td>' + h.esc(tema ? tema.nombre : temaId) + '</td></tr>');
+        }
+      });
+      if (repartoRows.length) {
+        lines.push('<table><thead><tr><th>Persona</th><th>Asignado a</th></tr></thead><tbody>' + repartoRows.join('') + '</tbody></table>');
+      } else {
+        lines.push('<p class="empty">Sin asignaciones</p>');
+      }
+    }
+
+    var votacionTemas = temas.filter(function (t) { return t.modo === 'votacion'; });
+    if (votacionTemas.length) {
+      lines.push('<h2>Votaciones</h2>');
+      var voto = state.voto || {};
+      var vCards = votacionTemas.map(function (tema) {
+        var opcionId = voto[tema.id];
+        var opcion = opcionId ? roster.getOpcionById(opcionId) : null;
+        return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body">' + (opcion ? '<strong>' + h.esc(opcion.nombre) + '</strong>' : '<span class="empty">Sin elegir</span>') + '</div></div>';
+      }).join('');
+      lines.push('<div class="cards">' + vCards + '</div>');
+    }
+
+    var rankingTemas = temas.filter(function (t) { return t.modo === 'ranking'; });
+    if (rankingTemas.length) {
+      lines.push('<h2>Rankings</h2>');
+      var ranking = state.ranking || {};
+      var rCards = rankingTemas.map(function (tema) {
+        var order = ranking[tema.id];
+        if (!Array.isArray(order) || !order.length) {
+          return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body empty">Sin ordenar</div></div>';
+        }
+        var items = order.map(function (id, idx) {
+          var op = roster.getOpcionById(id);
+          return '<li class="rank-item"><span class="rank-pos">' + (idx + 1) + '</span><span>' + h.esc(op ? op.nombre : id) + '</span></li>';
+        }).join('');
+        return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><ol class="rank-list">' + items + '</ol></div>';
+      }).join('');
+      lines.push('<div class="cards">' + rCards + '</div>');
+    }
+
+    var textoTemas = temas.filter(function (t) { return t.modo === 'texto_libre'; });
+    if (textoTemas.length) {
+      lines.push('<h2>Texto libre</h2>');
+      var texto = state.texto || {};
+      var tCards = textoTemas.map(function (tema) {
+        var entry = texto[tema.id];
+        return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body">' + (entry ? '<p class="quote">' + h.esc(entry) + '</p>' : '<span class="empty">Sin responder</span>') + '</div></div>';
+      }).join('');
+      lines.push('<div class="cards">' + tCards + '</div>');
+    }
+
+    var bodyHtml = lines.join('\n');
+    var html = '<!DOCTYPE html>\n<html lang="es">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>Mis respuestas \u2014 Conclave</title>\n<style>\n*,*::before,*::after{box-sizing:border-box}\nbody{font-family:\'Segoe UI\',system-ui,-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:40px 24px;color:#1a1a1a;background:#fff;line-height:1.6;-webkit-font-smoothing:antialiased}\nh1{font-size:24px;margin:0 0 2px}\n.meta{color:#666;font-size:14px;margin:0 0 32px}\nh2{font-size:18px;font-weight:700;margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid #e85d4a}\ntable{width:100%;border-collapse:collapse;margin-bottom:20px}\nth,td{text-align:left;padding:8px 12px;border-bottom:1px solid #e0e0e0}\nth{font-weight:700;text-transform:uppercase;font-size:11px;color:#888;letter-spacing:.04em}\n.cards{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}\n.card{background:#f7f7f7;border-radius:10px;padding:14px 18px;break-inside:avoid}\n.card h3{margin:0 0 4px;font-size:15px;font-weight:700}\n.card-body{font-size:14px;color:#333}\n.empty{color:#aaa;font-style:italic;font-size:13px}\n.rank-list{list-style:none;padding:0;margin:6px 0 0}\n.rank-item{display:flex;align-items:center;gap:8px;padding:4px 0}\n.rank-pos{display:inline-flex;width:24px;height:24px;border-radius:50%;background:#e85d4a;color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}\n.quote{background:#f0f0f0;padding:12px 16px;border-left:4px solid #e85d4a;border-radius:6px;margin:4px 0 0;white-space:pre-wrap}\n@media print{body{margin:0;padding:16px}h2{break-after:avoid}}\n</style>\n</head>\n<body>\n<h1>' + h.esc(autor) + '</h1>\n<p class="meta">Generado el ' + h.esc(date) + '</p>\n' + bodyHtml + '\n</body>\n</html>';
+
+    var iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:0';
+    document.body.appendChild(iframe);
+    var doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+    setTimeout(function () {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      setTimeout(function () { document.body.removeChild(iframe); }, 500);
+    }, 200);
+  }
+
   // "Continue on another device" — wholesale replace of the working
   // respuestas (unlike RespuestasImportService.import, which ADDS a
   // comparison source; this REPLACES your own session). Also adopts the

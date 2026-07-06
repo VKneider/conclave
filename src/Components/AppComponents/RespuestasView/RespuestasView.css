@@ -18,20 +18,6 @@ slice-respuestasview .av-kind-tabs[hidden] { display: none; }
 slice-respuestasview .av-mode-tabs { display: flex; margin: 0 0 18px 10px; }
 slice-respuestasview .av-mode-tabs[hidden] { display: none; }
 
-slice-respuestasview .av-empty {
-  text-align: center; max-width: 420px; margin: 40px auto;
-  background: var(--panel-background-color); border: 2.5px solid var(--font-primary-color);
-  border-radius: var(--card-border-radius); padding: 36px 28px; box-shadow: var(--box-shadow-primary);
-}
-slice-respuestasview .av-empty__icon {
-  width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 16px;
-  background: var(--secondary-background-color); border: 2px solid var(--font-primary-color);
-  display: flex; align-items: center; justify-content: center; font-size: 28px;
-  transform: rotate(-5deg);
-}
-slice-respuestasview .av-empty h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0 0 10px; }
-slice-respuestasview .av-empty p { font-size: 13.5px; line-height: 1.55; color: var(--font-secondary-color); margin: 0 0 20px; }
-
 /* ── Next-section indicator ──────────────────────────────────────
    Hero treatment: bold outline + hard shadow, success-colored when
    the current section is complete. Single instance per screen, so
@@ -52,6 +38,17 @@ slice-respuestasview .av-next__text {
 slice-respuestasview .av-next__banner slice-button .slice_button {
   padding: 9px 16px; min-width: 0; white-space: nowrap; border-radius: 10px;
 }
+
+/* Kind notice — shown when a kind tab is selected but there are no temas */
+slice-respuestasview .av-notice { display: flex; align-items: center; gap: 10px; padding: 14px 18px; margin: 0 0 18px; border-radius: 12px; background: var(--tertiary-background-color, var(--secondary-background-color)); border: 2px solid var(--border-color); font-size: 13.5px; line-height: 1.5; color: var(--font-secondary-color); }
+slice-respuestasview .av-notice[hidden] { display: none; }
+slice-respuestasview .av-notice__icon { font-size: 18px; flex-shrink: 0; }
+
+/* Inline next-step prompt inside content slots */
+slice-respuestasview .av-slot-prompt { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 20px 0 0; padding: 16px 20px; border-radius: 14px; background: var(--panel-background-color); border: 2.5px solid var(--success-color); box-shadow: 4px 4px 0 var(--success-color); }
+slice-respuestasview .av-slot-prompt[hidden] { display: none; }
+slice-respuestasview .av-slot-prompt__text { font-family: var(--font-display); font-size: 14px; font-weight: 600; line-height: 1.3; }
+slice-respuestasview .av-slot-prompt slice-button .slice_button { padding: 8px 16px; min-width: 0; white-space: nowrap; border-radius: 10px; }
 
 /* Answer progress across all modos */
 slice-respuestasview .av-progress { display: flex; align-items: center; gap: 12px; margin: 2px 0 18px; max-width: 520px; }

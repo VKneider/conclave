@@ -2,6 +2,7 @@ const TABS = [
   { path: '/dashboard', label: 'Dashboard' },
   { path: '/mis-respuestas', label: 'Mis respuestas' },
   { path: '/comparar', label: 'Comparar' },
+  { path: '/resumen', label: 'Resumen' },
   { path: '/plantilla', label: 'Plantilla' },
 ];
 

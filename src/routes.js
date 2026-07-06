@@ -6,6 +6,7 @@ const routes = [
    { path: '/dashboard',     component: 'AppShell', metadata: { title: 'Conclave — Dashboard' } },
    { path: '/mis-respuestas', component: 'AppShell', metadata: { title: 'Conclave — Mis respuestas' } },
    { path: '/comparar',      component: 'AppShell', metadata: { title: 'Conclave — Comparar' } },
+   { path: '/resumen',       component: 'AppShell', metadata: { title: 'Conclave — Resumen final' } },
    { path: '/plantilla',     component: 'AppShell', metadata: { title: 'Conclave — Plantilla' } },
    { path: '/404',           component: 'NotFound', metadata: { title: 'Not Found' } }
 ];

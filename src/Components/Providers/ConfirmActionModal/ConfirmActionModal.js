@@ -66,14 +66,17 @@ export default class ConfirmActionModal {
     this.$message.className = 'confirm-modal__message';
     this.$modal.appendBody(this.$message);
 
-    this.$cancelBtn = document.createElement('button');
-    this.$cancelBtn.type = 'button';
-    this.$cancelBtn.className = 'btn btn-ghost';
-    this.$cancelBtn.onclick = () => this._resolve(false);
+    this.$cancelBtn = await slice.build('Button', {
+      value: 'Cancelar',
+      variant: 'ghost',
+      onClick: () => this._resolve(false)
+    });
 
-    this.$confirmBtn = document.createElement('button');
-    this.$confirmBtn.type = 'button';
-    this.$confirmBtn.onclick = () => this._resolve(true);
+    this.$confirmBtn = await slice.build('Button', {
+      value: 'Confirmar',
+      variant: 'filled',
+      onClick: () => this._resolve(true)
+    });
 
     this.$modal.appendFooter(this.$cancelBtn);
     this.$modal.appendFooter(this.$confirmBtn);
@@ -121,9 +124,21 @@ export default class ConfirmActionModal {
     this.$modal.title = title;
     this.$message.textContent = message;
     this.$message.hidden = !message;
-    this.$cancelBtn.textContent = cancelLabel;
-    this.$confirmBtn.textContent = confirmLabel;
-    this.$confirmBtn.className = danger ? 'btn btn-danger' : 'btn btn-primary';
+    this.$cancelBtn.value = cancelLabel;
+    this.$confirmBtn.value = confirmLabel;
+    if (danger) {
+      this.$confirmBtn.variant = 'filled';
+      this.$confirmBtn.customColor = { background: 'var(--danger-color)', text: 'var(--danger-contrast)' };
+    } else {
+      this.$confirmBtn.variant = 'filled';
+      this.$confirmBtn.customColor = { background: '', text: '' };
+      var btn = this.$confirmBtn.querySelector('.slice_button');
+      if (btn) {
+        btn.style.backgroundColor = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }
+    }
 
     if (this._hasInput) {
       await this._ensureInput();
