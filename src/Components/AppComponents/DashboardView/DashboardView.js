@@ -81,7 +81,7 @@ export default class DashboardView extends HTMLElement {
         buttonRoute: '/plantilla',
       });
       if (empty instanceof Node) this.$root.appendChild(empty);
-      this._els = { plantillaLine: null, sub: null, totalTemas: null, answered: null, enRango: null, conProblema: null, cardRango: null, cardProblema: null, completionPct: null, shareBtnSlot: null };
+      this._els = { plantillaName: null, plantillaMeta: null, sub: null, totalTemas: null, answered: null, enRango: null, conProblema: null, cardRango: null, cardProblema: null, completionPct: null, shareBtnSlot: null };
       this._teamEls = {};
       this._votoEls = {};
       this._rankEls = {};
@@ -93,9 +93,12 @@ export default class DashboardView extends HTMLElement {
     let html = `
       <div class="dash-header">
         <h2 class="view-title">Dashboard</h2>
-        <div data-el="shareBtnSlot"></div>
       </div>
-      <div class="dash-plantilla" data-el="plantillaLine"></div>
+      <div class="dash-info-row">
+        <div data-el="shareBtnSlot"></div>
+        <span class="dash-plantilla__name" data-el="plantillaName"></span>
+        <span class="dash-plantilla__meta" data-el="plantillaMeta"></span>
+      </div>
       <p class="view-sub" data-el="sub"></p>
       <div class="stat-grid">
         <div class="stat-card stat-card--chart">
@@ -140,7 +143,8 @@ export default class DashboardView extends HTMLElement {
     this.$root.innerHTML = this._html.sanitize(html);
 
     this._els = {
-      plantillaLine: this.$root.querySelector('[data-el="plantillaLine"]'),
+      plantillaName: this.$root.querySelector('[data-el="plantillaName"]'),
+      plantillaMeta: this.$root.querySelector('[data-el="plantillaMeta"]'),
       sub: this.$root.querySelector('[data-el="sub"]'),
       totalTemas: this.$root.querySelector('[data-el="totalTemas"]'),
       answered: this.$root.querySelector('[data-el="answered"]'),
@@ -246,9 +250,11 @@ export default class DashboardView extends HTMLElement {
       nRanking ? `🏆 ${nRanking} de ranking` : null,
       nTexto ? `📝 ${nTexto} de texto libre` : null,
     ].filter(Boolean).join(' · ');
-    this._els.plantillaLine.innerHTML = this._html.sanitize(
-      `<span class="dash-plantilla__name">📋 ${this._html.esc(nombrePlantilla || 'Plantilla sin nombre')}</span>${composicion ? `<span class="dash-plantilla__meta">${composicion}</span>` : ''}`
-    );
+    const maxName = (nombrePlantilla || 'Plantilla sin nombre').slice(0, 40);
+    this._els.plantillaName.textContent = `📋 ${maxName}${(nombrePlantilla || '').length > 40 ? '…' : ''}`;
+    this._els.plantillaName.title = nombrePlantilla || '';
+    this._els.plantillaMeta.textContent = composicion;
+    this._els.plantillaMeta.hidden = !composicion;
 
     this._els.totalTemas.textContent = roster.getTemas().length;
     this._els.answered.innerHTML = `${progress.answered} <small>/ ${progress.total}</small>`;
