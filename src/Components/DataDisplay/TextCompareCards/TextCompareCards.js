@@ -17,7 +17,10 @@ export default class TextCompareCards extends HTMLElement {
     // Read a proposal fullscreen (delegated — the cards are re-rendered).
     this.$fsClose.addEventListener('click', () => this._closeFs());
     this.$fs.addEventListener('click', (e) => { if (e.target === this.$fs) this._closeFs(); });
-    this._onKeydown = (e) => { if (e.key === 'Escape' && !this.$fs.hidden) this._closeFs(); };
+    this._onKeydown = (e) => {
+      if (e.key === 'Escape' && !this.$fs.hidden) { e.preventDefault(); this._closeFs(); return; }
+      if (e.key === 'Tab' && !this.$fs.hidden) this._trapFocus(e);
+    };
 
     slice.controller.setComponentProps(this, props);
   }
@@ -47,6 +50,15 @@ export default class TextCompareCards extends HTMLElement {
     if (this.$fs.hidden) return;
     this.$fs.hidden = true;
     document.body.style.overflow = '';
+  }
+
+  _trapFocus(e) {
+    const focusable = this.$fs.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
 
   set sources(arr) {

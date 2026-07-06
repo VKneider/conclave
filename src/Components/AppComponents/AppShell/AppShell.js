@@ -82,7 +82,7 @@ export default class AppShell extends HTMLElement {
 
     const proceed = () => {
       try {
-        roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos);
+        roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, autor, email);
         slice.events.emit('toast:show', { message: 'Plantilla importada desde el enlace', type: 'success' });
         slice.router.navigate('/mis-respuestas');
       } catch (err) {

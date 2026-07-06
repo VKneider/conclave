@@ -43,7 +43,7 @@ slice-textcomparecards .tcc-text {
 
 slice-textcomparecards .tcc-pick { align-self: flex-start; }
 
-@media (max-width: 700px) {
+@media (max-width: 760px) {
   slice-textcomparecards .tcc-grid { grid-template-columns: 1fr; }
   slice-textcomparecards .tcc-text { font-size: 15px; }
 }

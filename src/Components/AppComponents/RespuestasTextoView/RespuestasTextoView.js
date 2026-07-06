@@ -22,7 +22,10 @@ export default class RespuestasTextoView extends HTMLElement {
     });
     this.$fsClose.addEventListener('click', () => this._closeFs());
     this.$fs.addEventListener('click', (e) => { if (e.target === this.$fs) this._closeFs(); });
-    this._onKeydown = (e) => { if (e.key === 'Escape' && !this.$fs.hidden) this._closeFs(); };
+    this._onKeydown = (e) => {
+      if (e.key === 'Escape' && !this.$fs.hidden) { e.preventDefault(); this._closeFs(); return; }
+      if (e.key === 'Tab' && !this.$fs.hidden) this._trapFocus(e);
+    };
     this.$fsTextarea.addEventListener('input', () => {
       this.$fsStatus.textContent = 'Escribiendo…';
       clearTimeout(this._fsSaveTimer);
@@ -48,6 +51,7 @@ export default class RespuestasTextoView extends HTMLElement {
   beforeDestroy() {
     clearTimeout(this._statusTimer);
     clearTimeout(this._fsSaveTimer);
+    clearTimeout(this._cardSaveTimer);
     document.removeEventListener('keydown', this._onKeydown);
     document.body.style.overflow = '';
   }
@@ -83,6 +87,15 @@ export default class RespuestasTextoView extends HTMLElement {
     this._syncValues();
   }
 
+  _trapFocus(e) {
+    const focusable = this.$fs.querySelectorAll('button, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
   _render() {
     const temas = this._plantilla.getTemasTexto();
     if (!temas.length) {
@@ -114,12 +127,17 @@ export default class RespuestasTextoView extends HTMLElement {
       const id = card.dataset.temaId;
       const textarea = card.querySelector('.rt-textarea');
       const status = card.querySelector('[data-el="status"]');
-      textarea.onchange = () => {
+      const save = () => {
         slice.getComponent('RespuestasService').setTexto(id, textarea.value);
         status.textContent = '✓ Guardado';
         clearTimeout(this._statusTimer);
         this._statusTimer = setTimeout(() => { status.textContent = ''; }, 1200);
       };
+      textarea.oninput = () => {
+        clearTimeout(this._cardSaveTimer);
+        this._cardSaveTimer = setTimeout(save, 400);
+      };
+      textarea.onblur = save;
       if (id === activeId) {
         textarea.focus();
         textarea.setSelectionRange(selStart, selEnd);

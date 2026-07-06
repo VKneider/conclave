@@ -35,6 +35,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$catFilters = this.querySelector('#catFilters');
     this.$catEmpty = this.querySelector('#catEmpty');
     this.$catFilterEmpty = this.querySelector('#catFilterEmpty');
+    this.$opcCount = this.querySelector('#opcCount');
     this.$opcEmpty = this.querySelector('#opcEmpty');
     this.$opcSection = this.querySelector('#opcSection');
     this.$sharePlantillaBtn = this.querySelector('#sharePlantillaBtn');
@@ -282,7 +283,7 @@ export default class PlantillaBuilderView extends HTMLElement {
       return;
     }
     const apply = () => {
-      this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos);
+      this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, '', '');
       slice.events.emit('toast:show', { message: `Plantilla «${preset.nombre}» cargada`, type: 'success' });
     };
     const nTemas = this._plantilla.getTemas().length;
@@ -450,7 +451,7 @@ export default class PlantillaBuilderView extends HTMLElement {
       }
       const proceed = () => {
         try {
-          this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos);
+          this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, data.autor || '', data.email || '');
           this._showToast('Plantilla importada', 'success');
         } catch (err) {
           this._showToast(err.message, 'error');

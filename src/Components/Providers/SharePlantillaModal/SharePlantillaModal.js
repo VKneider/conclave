@@ -48,7 +48,28 @@ export default class SharePlantillaModal {
     actions.appendChild(this.$downloadBtn);
     actions.appendChild(this.$copyBtn);
     actions.appendChild(this.$emailBtn);
+
+    if (typeof navigator.share === 'function') {
+      this.$shareBtn = document.createElement('button');
+      this.$shareBtn.type = 'button';
+      this.$shareBtn.className = 'btn btn-primary export-modal__action';
+      this.$shareBtn.innerHTML = '📱 Compartir';
+      this.$shareBtn.onclick = () => { this._close(); this._nativeShare(); };
+      actions.appendChild(this.$shareBtn);
+    }
+
     this.$modal.appendBody(actions);
+  }
+
+  _nativeShare() {
+    const p = slice.getComponent('PlantillaService');
+    const nombre = p.getNombre() || 'Plantilla';
+    const url = p.getShareLink();
+    navigator.share({
+      title: `Plantilla: ${nombre}`,
+      text: `Comparto la plantilla "${nombre}" de Conclave`,
+      url,
+    }).catch(() => {});
   }
 
   _exportPlantilla() {
@@ -72,11 +93,13 @@ export default class SharePlantillaModal {
     const url = p.getShareLink();
     const settings = slice.getComponent('SettingsService');
     const autor = settings.getState().autor || 'Alguien';
+    const creadoEmail = p.getCreadoEmail();
+    const to = creadoEmail ? encodeURIComponent(creadoEmail) : '';
     const subject = encodeURIComponent(`Plantilla: ${nombre}`);
     const body = encodeURIComponent(
       `${autor} ha compartido la plantilla "${nombre}" para que la revises:\n${url}\n\nSaludos`
     );
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
   }
 
   async show() {

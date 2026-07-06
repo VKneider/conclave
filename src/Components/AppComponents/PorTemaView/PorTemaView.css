@@ -74,7 +74,7 @@ slice-portemaview .dropzone.drag-over { box-shadow: 4px 4px 0 var(--primary-colo
 slice-portemaview .dropzone.drag-over .ps-empty { color: var(--primary-color); font-weight: 600; }
 slice-portemaview .ps-square.is-over.drag-over { box-shadow: 4px 4px 0 var(--danger-color); animation: none; }
 
-@media (max-width: 980px) {
+@media (max-width: 760px) {
   slice-portemaview .ps-layout { grid-template-columns: 1fr; }
   slice-portemaview .ps-sidebar { position: static; max-height: 340px; }
 }

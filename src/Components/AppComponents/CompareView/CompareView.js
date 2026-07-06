@@ -112,6 +112,7 @@ export default class CompareView extends HTMLElement {
       asignaciones: myResp.seleccion,
       texto: myResp.texto,
       voto: myResp.voto || {},
+      ranking: myResp.ranking || {},
       removable: false,
     };
     const imported = this.sources.map((s, i) => ({
@@ -119,6 +120,7 @@ export default class CompareView extends HTMLElement {
       asignaciones: s.respuestas.seleccion,
       texto: s.respuestas.texto || {},
       voto: s.respuestas.voto || {},
+      ranking: s.respuestas.ranking || {},
       color: COLORS[(i + 1) % COLORS.length],
       removable: true,
     }));
@@ -175,7 +177,8 @@ export default class CompareView extends HTMLElement {
   // pick/clear clicks are delegated on the mount (wired once in init).
   _renderVotacion(all) {
     const consenso = slice.getComponent('ConsensoService');
-    const temas = this._roster.getTemasVotacion();
+    const q = this.cmpQuery?.toLowerCase().trim();
+    const temas = this._roster.getTemasVotacion().filter((t) => !q || t.nombre.toLowerCase().includes(q));
     const esc = (s) => this._html.esc(s);
     const mount = this.$root.querySelector('.cmp-votacion-mount');
 
@@ -187,10 +190,11 @@ export default class CompareView extends HTMLElement {
     const html = temas.map((tema) => {
       const opciones = this._roster.getOpcionesDeTema(tema.id);
       const counts = {};
-      opciones.forEach((o) => { counts[String(o.id)] = 0; });
+      const voters = {};
+      opciones.forEach((o) => { counts[String(o.id)] = 0; voters[String(o.id)] = []; });
       all.forEach((src) => {
         const v = src.voto?.[tema.id];
-        if (v != null && counts[String(v)] !== undefined) counts[String(v)]++;
+        if (v != null && counts[String(v)] !== undefined) { counts[String(v)]++; voters[String(v)].push(src.autor); }
       });
       const totalVotes = Object.values(counts).reduce((a, b) => a + b, 0);
       let majId = null, majN = 0;
@@ -203,11 +207,15 @@ export default class CompareView extends HTMLElement {
             const n = counts[String(o.id)];
             const pct = totalVotes ? Math.round((n / totalVotes) * 100) : 0;
             const isFinal = effectiveFinal != null && String(o.id) === effectiveFinal;
+            const voterHtml = voters[String(o.id)].length
+              ? `<span class="cmp-vt-voters">${voters[String(o.id)].map((name) => `<span class="cmp-vt-voter">${esc(name)}</span>`).join(', ')}</span>`
+              : '';
             return `<div class="cmp-vt-opc${isFinal ? ' cmp-vt-opc--final' : ''}">
               <button class="cmp-vt-star" type="button" data-vt-pick data-tema="${esc(tema.id)}" data-opcion="${esc(o.id)}" title="Marcar como decisión final">${isFinal ? '★' : '☆'}</button>
               <span class="cmp-vt-name">${esc(o.nombre)}</span>
               <span class="cmp-vt-bar"><span class="cmp-vt-bar__fill" style="width:${pct}%"></span></span>
               <span class="cmp-vt-count">${n}</span>
+              ${voterHtml}
             </div>`;
           }).join('')
         : '<div class="cmp-vt-noopc">Este tema no tiene opciones cargadas.</div>';
@@ -232,7 +240,8 @@ export default class CompareView extends HTMLElement {
   // The organizer can adopt that order as the final decision, or clear it.
   _renderRanking(all) {
     const consenso = slice.getComponent('ConsensoService');
-    const temas = this._roster.getTemasRanking();
+    const q = this.cmpQuery?.toLowerCase().trim();
+    const temas = this._roster.getTemasRanking().filter((t) => !q || t.nombre.toLowerCase().includes(q));
     const esc = (s) => this._html.esc(s);
     const mount = this.$root.querySelector('.cmp-ranking-mount');
 
@@ -246,6 +255,7 @@ export default class CompareView extends HTMLElement {
       const byId = {}; opciones.forEach((o) => { byId[String(o.id)] = o; });
       const opcIds = opciones.map((o) => String(o.id));
       const points = {}; opcIds.forEach((id) => { points[id] = 0; });
+      const rankers = {}; opcIds.forEach((id) => { rankers[id] = []; });
       let nSources = 0;
       all.forEach((src) => {
         const r = src.ranking?.[tema.id];
@@ -253,7 +263,10 @@ export default class CompareView extends HTMLElement {
         const order = r.map(String).filter((id) => opcIds.includes(id));
         if (!order.length) return;
         nSources++;
-        order.forEach((id, idx) => { points[id] += (order.length - 1 - idx); });
+        order.forEach((id, idx) => {
+          points[id] += (order.length - 1 - idx);
+          rankers[id].push({ autor: src.autor, pos: idx + 1, total: order.length });
+        });
       });
 
       const aggregate = [...opcIds].sort((a, b) => points[b] - points[a]);
@@ -266,10 +279,14 @@ export default class CompareView extends HTMLElement {
         ? effective.map((id, idx) => {
             const o = byId[id];
             if (!o) return '';
+            const voterHtml = rankers[id].length
+              ? `<span class="cmp-rk-voters">${rankers[id].map((v) => `<span class="cmp-rk-voter">${esc(v.autor)} #${v.pos}/${v.total}</span>`).join(', ')}</span>`
+              : '<span class="cmp-rk-voters cmp-rk-voters--none">Sin ordenar</span>';
             return `<div class="cmp-rk-item">
               <span class="cmp-rk-pos">${idx + 1}</span>
               <span class="cmp-rk-name">${esc(o.nombre)}</span>
               <span class="cmp-rk-pts">${points[id]} pts</span>
+              ${voterHtml}
             </div>`;
           }).join('')
         : '<div class="cmp-rk-noopc">Este tema no tiene opciones cargadas.</div>';
@@ -301,7 +318,7 @@ export default class CompareView extends HTMLElement {
     if (!available.some((k) => k.id === this.cmpKind)) this.cmpKind = available.length ? available[0].id : 'seleccion';
     const showKindTabs = available.length > 1;
     this.$root.querySelector('.cmp-kind-tabs').hidden = !showKindTabs;
-    if (showKindTabs && this._kindTabsCmp) {
+    if (this._kindTabsCmp) {
       const key = available.map((k) => k.id).join(',');
       if (key !== this._cmpKindKey) { this._kindTabsCmp.items = available.map((k) => ({ id: k.id, label: k.label })); this._cmpKindKey = key; }
       this._kindTabsCmp.activeTab = this.cmpKind;
@@ -312,7 +329,7 @@ export default class CompareView extends HTMLElement {
 
     if (this.cmpKind === 'votacion') {
       this.$root.querySelector('.cmp-mode-tabs').hidden = true;
-      this.$root.querySelector('.cmp-search-slot').hidden = true;
+      this.$root.querySelector('.cmp-search-slot').hidden = false;
       this.$root.querySelector('.cmp-dynamic').hidden = true;
       this.$root.querySelector('.cmp-carousel-mount').hidden = true;
       this.$root.querySelector('.cmp-text-mount').hidden = true;
@@ -328,7 +345,7 @@ export default class CompareView extends HTMLElement {
 
     if (this.cmpKind === 'ranking') {
       this.$root.querySelector('.cmp-mode-tabs').hidden = true;
-      this.$root.querySelector('.cmp-search-slot').hidden = true;
+      this.$root.querySelector('.cmp-search-slot').hidden = false;
       this.$root.querySelector('.cmp-dynamic').hidden = true;
       this.$root.querySelector('.cmp-carousel-mount').hidden = true;
       this.$root.querySelector('.cmp-text-mount').hidden = true;

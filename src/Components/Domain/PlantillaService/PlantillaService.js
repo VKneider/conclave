@@ -3,7 +3,7 @@ import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../data/seed
 const PALETTE = ['#6d8bff', '#3fb964', '#e2a13a', '#ff7eb6', '#8a6dff', '#42c8c0', '#e25c5c', '#b9c34a', '#f0883e', '#4ec9b0', '#c678dd', '#5aa0ff'];
 const CONTEXT = 'plantilla';
 const STORAGE_KEY = 'conclave-plantilla-v1';
-const SEED_STATE = { nombre: 'Mi Plantilla', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES };
+const SEED_STATE = { nombre: 'Mi Plantilla', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES, creadoPor: '', creadoEmail: '' };
 
 // Owns the `plantilla` context: { nombre, temas, opciones } — the
 // shared setup every response is measured against (generalizes
@@ -76,10 +76,13 @@ export default class PlantillaService {
     let atributos = state.atributos;
     if (!Array.isArray(atributos)) { atributos = DEFAULT_ATRIBUTOS; changed = true; }
 
+    if (state.creadoPor === undefined) { changed = true; }
+    if (state.creadoEmail === undefined) { changed = true; }
+
     if (changed) {
       slice.context.setState(CONTEXT, (prev) => {
         const { categorias, ...rest } = prev;
-        return { ...rest, temas, opciones, atributos };
+        return { ...rest, temas, opciones, atributos, creadoPor: prev.creadoPor || '', creadoEmail: prev.creadoEmail || '' };
       });
     }
   }
@@ -90,6 +93,8 @@ export default class PlantillaService {
   }
 
   getNombre() { return this.getState().nombre || ''; }
+  getCreadoPor() { return this.getState().creadoPor || ''; }
+  getCreadoEmail() { return this.getState().creadoEmail || ''; }
   setNombre(nombre) {
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, nombre: nombre || '' }));
   }
@@ -306,7 +311,7 @@ export default class PlantillaService {
   // normally go through prepareImport() first so this never happens on the
   // import path, but the guard stays here too since this is the actual
   // trust boundary (defense in depth for any future caller).
-  loadFromData(temas, opciones, nombre, atributos) {
+  loadFromData(temas, opciones, nombre, atributos, creadoPor, creadoEmail) {
     const badTema = temas.find((c) => !this.isSafeId(c.id));
     const badOpcion = opciones.find((o) => !this.isSafeId(o.id));
     if (badTema || badOpcion) {
@@ -322,6 +327,8 @@ export default class PlantillaService {
       atributos: atributos !== undefined ? atributos : (p.atributos || []),
       temas,
       opciones,
+      creadoPor: creadoPor !== undefined ? creadoPor : '',
+      creadoEmail: creadoEmail !== undefined ? creadoEmail : '',
     }));
 
     const newTemaIds = new Set(temas.map((c) => c.id));

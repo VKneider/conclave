@@ -49,7 +49,49 @@ export default class ExportRespuestasModal {
     actions.appendChild(this.$downloadBtn);
     actions.appendChild(this.$copyBtn);
     actions.appendChild(this.$emailBtn);
+
+    if (typeof navigator.share === 'function') {
+      this.$shareBtn = document.createElement('button');
+      this.$shareBtn.type = 'button';
+      this.$shareBtn.className = 'btn btn-primary export-modal__action';
+      this.$shareBtn.innerHTML = '📱 Compartir';
+      this.$shareBtn.onclick = () => { this._close(); this._nativeShare(); };
+      actions.appendChild(this.$shareBtn);
+    }
+
     this.$modal.appendBody(actions);
+  }
+
+  _nativeShare() {
+    const rs = slice.getComponent('RespuestasService');
+    const settings = slice.getComponent('SettingsService');
+    const autor = settings.getState().autor?.trim();
+
+    const doShare = (name) => {
+      const url = rs.getShareLink(name);
+      const plantilla = slice.getComponent('PlantillaService');
+      const plantillaNombre = plantilla.getNombre() || 'Conclave';
+      navigator.share({
+        title: `Mis respuestas — ${plantillaNombre}`,
+        text: `${name} ha compartido sus respuestas para "${plantillaNombre}"`,
+        url,
+      }).catch(() => {});
+    };
+
+    if (autor) { doShare(autor); return; }
+
+    slice.events.emit('confirm:request', {
+      title: '¿Cuál es tu nombre?',
+      message: 'Se incluye al compartir tus respuestas.',
+      confirmLabel: 'Compartir',
+      inputLabel: 'Tu nombre',
+      inputPlaceholder: '¿Quién responde?',
+      onConfirm: (name) => {
+        if (!name) return;
+        settings.setAutor(name);
+        doShare(name);
+      },
+    });
   }
 
   async show() {

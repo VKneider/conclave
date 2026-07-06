@@ -121,7 +121,7 @@ slice-landingview .howto-arrow {
   align-self: center; margin-top: 34px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 760px) {
   slice-landingview .howto-arrow { display: none; }
 }
 
@@ -164,7 +164,7 @@ slice-landingview .usecase-icon {
 slice-landingview .usecase-card h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0 0 8px; }
 slice-landingview .usecase-card p { font-size: 13.5px; line-height: 1.55; color: var(--font-secondary-color); margin: 0; }
 
-@media (max-width: 480px) {
+@media (max-width: 760px) {
   slice-landingview .landing-section-title { font-size: 20px; }
   slice-landingview .landing-howto,
   slice-landingview .landing-usecases { margin-top: 48px; }

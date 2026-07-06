@@ -65,6 +65,6 @@ slice-categoriarow slice-select .slice_select { font-size: 12.5px; }
 slice-categoriarow slice-checkbox .slice_checkbox_container { padding: 4px; }
 slice-categoriarow slice-checkbox .checkbox_label { font-size: 12px; }
 
-@media (max-width: 620px) {
+@media (max-width: 760px) {
   slice-categoriarow .cat-row__modo-slot { width: 110px; }
 }

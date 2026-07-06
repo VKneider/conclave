@@ -165,3 +165,16 @@ The `Button` component's original `set onClick(value)` only stored functions: `i
 ### 31. `CompressionService` short-key collisions (FIXED in CompressionService.js)
 
 The `FULL_TO_SHORT` map had a duplicate value: both `tipo` and `participable` mapped to `'p'`. Since `SHORT_TO_FULL` was built by iterating entries, `participable` won, and `tipo` would unpack as `participable` on any round-tripped URL — corrupting the type discriminator used to distinguish plantilla vs respuestas imports. **Fix: `tipo` now maps to `'t'`.** When adding short keys, grep `FULL_TO_SHORT` for the proposed value first — duplicates are silently overwritten by whichever key appears last in iteration order, and the result is data corruption on unpack.
+
+### 33. Breakpoint convention — `760px` is the single mobile/desktop boundary
+
+Every view and component uses `@media (max-width: 760px)` as the sole breakpoint for switching between desktop and mobile layouts. No other breakpoints should be introduced — the app doesn't target tablet-specific layouts or device-specific pixel ratios.
+
+- Desktop: `min-width: 761px` (used only in `TopBar.css` — all other components invert the condition).
+- Mobile: `max-width: 760px` — everything below this is treated as a narrow/touch-first viewport.
+
+**If adding a responsive rule, always use `@media (max-width: 760px)`.** Introducing a different breakpoint (e.g., `620px`, `700px`, `720px`, `480px` which were all consolidated to `760px` in one pass) creates visual inconsistency: one component snaps to mobile layout at a different viewport width than its neighbor, producing a janky transition zone. Keep the boundary in sync with `TopBar.css` (where the hamburger appears/disappears) to avoid layout gaps.
+
+### 34. `slice:doctor` may require `slice:types generate` first
+
+Running `pnpm run slice:doctor` on a fresh clone (or after a `slice get`/`slice sync`) may fail with type-resolution errors — the doctor validates component props against the generated TypeScript declarations, and those declarations (`src/Types/`) only exist after `pnpm run slice:types` (i.e. `node ./node_modules/slicejs-cli/client.js types generate`). **If doctor fails complaining about missing types, run `pnpm run slice:types generate` first, then re-run doctor.** Doctor doesn't invoke type generation itself — it assumes the declarations already exist. (Confirmed by reading the doctor source: it imports from a generated types module, and the CLI's `doctor` command has no implicit `types generate` step.)
