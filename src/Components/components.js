@@ -39,7 +39,6 @@ const components = {
   "CategoriaRow": "Visual",
   "Checkbox": "Visual",
   "DropDown": "Visual",
-  "DropdownMenu": "Visual",
   "EmptyState": "Visual",
   "ImportDrop": "Visual",
   "Input": "Visual",

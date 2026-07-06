@@ -1,10 +1,9 @@
-slice-textcomparecards .tcc-nav {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin-bottom: 18px;
+slice-textcomparecards .tcc-section + .tcc-section { margin-top: 36px; }
+slice-textcomparecards .tcc-section-title {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  margin: 0 0 16px; padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-color);
 }
-slice-textcomparecards .tcc-nav-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; text-align: center; }
-slice-textcomparecards .tcc-nav-count { font-family: var(--font-body); font-size: 13px; color: var(--font-secondary-color); font-weight: 500; }
-slice-textcomparecards .tcc-solo-title { font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0 0 16px; }
 
 slice-textcomparecards .tcc-final-banner {
   display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
@@ -14,10 +13,10 @@ slice-textcomparecards .tcc-final-banner {
 slice-textcomparecards .tcc-final-banner .linkish { background: transparent; border: 0; color: inherit; opacity: .85; cursor: pointer; font-size: 12px; font-weight: 700; }
 slice-textcomparecards .tcc-final-banner .linkish:hover { opacity: 1; }
 
-/* "Cards grandes, texto grande" per spec — big, hero-styled, one or two per
-   row so proposals stay readable at a glance during a live discussion. */
+/* All temas side-by-side on desktop, 3–4 cards/row so 8 people's proposals
+   fit above the fold with minimal scrolling. */
 slice-textcomparecards .tcc-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;
 }
 slice-textcomparecards .tcc-card {
   background: var(--panel-background-color); border: 3px solid var(--font-primary-color);
