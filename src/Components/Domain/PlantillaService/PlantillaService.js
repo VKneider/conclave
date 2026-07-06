@@ -164,7 +164,8 @@ export default class PlantillaService {
   // Responder progress line.
   getAnswerProgress() {
     const resp = slice.getComponent('RespuestasService').getState();
-    const pool = this.getOpcionesDisponibles();
+    const hasRepartoTemas = this.getTemasParticipables().length > 0;
+    const pool = hasRepartoTemas ? this.getOpcionesDisponibles() : [];
     const reparto = { total: pool.length, answered: pool.filter((o) => resp.seleccion[o.id]).length };
     const votacion = this._modoProgress(this.getTemasVotacion(), (t) => resp.voto?.[t.id] != null);
     const ranking = this._modoProgress(this.getTemasRanking(), (t) => (resp.ranking?.[t.id] || []).length > 0);

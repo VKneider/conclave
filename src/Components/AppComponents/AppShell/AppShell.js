@@ -34,6 +34,10 @@ export default class AppShell extends HTMLElement {
     // here must also exist in routes.js (the Router's source of truth).
     const content = await slice.build('MultiRoute', { sliceId: 'app-content', routes: ROUTES });
     this.$content.appendChild(content);
+    // If the hash import already called navigate() before the MultiRoute
+    // existed (e.g. impact=0), the Router couldn't find it yet. Re-render
+    // now so inner navigation catches up with the current URL.
+    await content.renderIfCurrentRoute();
 
     const bubble = await slice.build('ProfileBubble', { sliceId: 'app-profile-bubble' });
     document.body.appendChild(bubble);
