@@ -38,42 +38,47 @@ export default class UserMenu extends HTMLElement {
     document.addEventListener('click', this._onDocClick);
     document.addEventListener('keydown', this._onKeydown);
 
-    this.$autorField = await slice.build('Input', { sliceId: 'user-menu-autor', placeholder: 'Tu nombre' });
-    this.$autorFieldSlot.appendChild(this.$autorField);
-    this.$autorField.addEventListener('input', () => slice.getComponent('SettingsService').setAutor(this.$autorField.value));
+    this._children = [];
 
-    this.$emailField = await slice.build('Input', { sliceId: 'user-menu-email', placeholder: 'Tu correo electrónico', type: 'email' });
-    this.$emailFieldSlot.appendChild(this.$emailField);
-    this.$emailField.addEventListener('input', () => slice.getComponent('SettingsService').setEmail(this.$emailField.value));
+    this.$autorField = await slice.build('Input', { placeholder: 'Tu nombre' });
+    if (this.$autorField instanceof Node) { this.$autorFieldSlot.appendChild(this.$autorField); this._children.push(this.$autorField); }
+    if (this.$autorField?.addEventListener) this.$autorField.addEventListener('input', () => slice.getComponent('SettingsService').setAutor(this.$autorField.value));
+
+    this.$emailField = await slice.build('Input', { placeholder: 'Tu correo electrónico', type: 'email' });
+    if (this.$emailField instanceof Node) { this.$emailFieldSlot.appendChild(this.$emailField); this._children.push(this.$emailField); }
+    if (this.$emailField?.addEventListener) this.$emailField.addEventListener('input', () => slice.getComponent('SettingsService').setEmail(this.$emailField.value));
 
     const themeSwitcher = await slice.build('ThemeSwitcher', {
-      sliceId: 'user-menu-theme-switcher',
       themes: ['Light', 'Dark'],
       variant: 'menu-item',
       label: 'Tema',
     });
-    this.$themeSlot.appendChild(themeSwitcher);
+    if (themeSwitcher instanceof Node) { this.$themeSlot.appendChild(themeSwitcher); this._children.push(themeSwitcher); }
 
     this.$shareBtn = await slice.build('Button', {
       value: '\uD83D\uDCE4 Compartir respuestas',
       variant: 'ghost',
       onClick: () => { slice.getComponent('ExportRespuestasModal').show(); this._setOpen(false); }
     });
-    this.$shareBtnSlot.replaceWith(this.$shareBtn);
+    if (this.$shareBtn instanceof Node) { this._children.push(this.$shareBtn); }
 
     this.$importBtn = await slice.build('Button', {
       value: '\uD83D\uDCC2 Importar mis Respuestas',
       variant: 'ghost',
       onClick: () => this.$importFile.click()
     });
-    this.$importBtnSlot.replaceWith(this.$importBtn);
+    if (this.$importBtn instanceof Node) { this._children.push(this.$importBtn); }
 
     this.$resetBtn = await slice.build('Button', {
       value: '\uD83D\uDDD1 Reiniciar mis Respuestas',
       variant: 'ghost',
       onClick: () => this._confirmReset()
     });
-    this.$resetBtnSlot.replaceWith(this.$resetBtn);
+    if (this.$resetBtn instanceof Node) { this._children.push(this.$resetBtn); }
+
+    if (this.$shareBtn instanceof Node && this.$shareBtnSlot?.parentNode) this.$shareBtnSlot.replaceWith(this.$shareBtn);
+    if (this.$importBtn instanceof Node && this.$importBtnSlot?.parentNode) this.$importBtnSlot.replaceWith(this.$importBtn);
+    if (this.$resetBtn instanceof Node && this.$resetBtnSlot?.parentNode) this.$resetBtnSlot.replaceWith(this.$resetBtn);
 
     slice.context.watch('settings', this, (s) => { this._syncAutor(s.autor); this._syncEmail(s.email); });
     const settings = slice.getComponent('SettingsService');
@@ -84,6 +89,7 @@ export default class UserMenu extends HTMLElement {
   beforeDestroy() {
     document.removeEventListener('click', this._onDocClick);
     document.removeEventListener('keydown', this._onKeydown);
+    this._children?.forEach((c) => { try { slice.controller.destroyComponent(c); } catch (e) { /* already destroyed */ } });
   }
 
   _setOpen(open) {
