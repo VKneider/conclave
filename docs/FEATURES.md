@@ -120,7 +120,29 @@ Uses official `DragDropService` for pointer-based drag-and-drop. Key design deci
 
 File: `src/Components/AppComponents/RespuestasTextoView/RespuestasTextoView.js`
 
-The modo `texto_libre` counterpart to the carousel/board — one card per Categoría, each with a single textarea. Saves on `change` (blur), calling `RespuestasService.setTexto(categoriaId, texto)`. `_syncValues()` reflects external changes (e.g. a session import) into the textareas without stealing focus from whichever one the user is actively typing in.
+The modo `texto_libre` counterpart to the carousel/board. Uses `CarouselView`
+(see below) to display one `TextoCard` per Tema with three view modes:
+
+- **Una por una** (`'single'` — default): one editor at a time with ‹ › arrows.
+- **Dos columnas** (`'columns'`): two editors side by side with arrows.
+- **Ver todas** (`'grid'`): all editors in a responsive grid (the old behavior).
+
+Each `TextoCard` has an `EnhancedEditor` (Quill) and saves on blur via
+`RespuestasService.setTexto(temaId, texto)`. A mode toggle (▦ ▬ ▬▬) sits in the
+header, hidden when there's only one Tema. `_syncValues()` reflects external
+changes (e.g. a session import) without stealing focus from the active editor.
+A fullscreen overlay (`rt-fs`) provides a distraction-free editor for any card,
+opened via the "⛶" expand button.
+
+## CarouselView — reusable item carousel
+
+File: `src/Components/Visual/CarouselView/CarouselView.js`
+
+A generic Slice component that wraps a list of pre-built DOM/Slice nodes and
+manages navigation and visibility. Used by `RespuestasTextoView` for its
+text-editor layout modes; designed to be reused by any view that needs to
+display items one-by-one or in a grid (see `COMPONENT-PATTERNS.md` §CarouselView
+for the full API and integration guide).
 
 ## CompareView
 

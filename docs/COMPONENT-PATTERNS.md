@@ -155,3 +155,50 @@ own `.css`** (light DOM → internal classes are addressable), never override fr
 each consumer (GOTCHAS §14, §26). Add behavior via a real prop (e.g. `Tabs`'
 `variant`). After any `slice get`/`sync`, re-verify `components.js` categories
 survived (GOTCHAS §25).
+
+### CarouselView — reusable navigation shell
+
+File: `src/Components/Visual/CarouselView/CarouselView.js`
+
+A Slice component (`slice-carouselview`) that wraps a list of pre-built
+DOM/Slice nodes and manages which ones are visible, with arrow/dot/keyboard
+navigation. The parent view builds its own cards and hands them off via the
+`items` setter; CarouselView moves them into its internal stage via
+`appendChild` (moves, never clones).
+
+**View modes** (set via the `mode` property):
+- `'single'` — one item at a time with ‹ › arrows, dot indicators, count text,
+  and keyboard ← → navigation.
+- `'columns'` — two items side by side; arrows advance by 1 (overlapping); dots
+  and count reflect page pairs (`Math.floor(index/2) + 1 de Math.ceil(total/2)`).
+- `'grid'` — all items in a responsive CSS grid (`auto-fit, minmax(360px, 1fr)`);
+  nav bar hidden.
+
+**Visibility** is controlled via `item.style.display` (not CSS class or `hidden`
+attribute) to guarantee it overrides component-level `display` rules like
+`slice-textocard { display: block }`.
+
+**Arrows** (`$prev`/`$next`) have click listeners bound in the constructor.
+**Keyboard** ← → is disabled when focus is inside a textarea, input, or
+contenteditable element. **Dots** are re-bound on every render via event
+delegation on `$dots`.
+
+**Methods:**
+- `items` (setter/getter) — array of DOM/Slice nodes to display.
+- `mode` (setter/getter) — `'single'` | `'columns'` | `'grid'`.
+- `prev()` / `next()` — navigate by one step.
+- `goTo(i)` — jump to a specific index.
+- `refresh()` — force a re-render.
+
+**Usage:**
+```js
+const carousel = await slice.build('CarouselView', { mode: 'single' });
+carousel.items = [card1, card2, card3];
+container.appendChild(carousel);
+
+carousel.mode = 'grid';   // switch view mode
+```
+
+The **mode toggle** (e.g. three buttons ▦ ▬ ▬▬) is provided by the parent view,
+not built into CarouselView — the parent sets `carousel.mode` in its click
+handler.

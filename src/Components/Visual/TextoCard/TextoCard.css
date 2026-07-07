@@ -1,0 +1,17 @@
+slice-textocard { display: block; }
+slice-textocard .rt-card {
+  background: var(--panel-background-color); border: 2.5px solid var(--font-primary-color);
+  border-radius: var(--card-border-radius); padding: 20px 22px; box-shadow: var(--box-shadow-primary);
+}
+slice-textocard .rt-card__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;
+}
+slice-textocard .rt-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0; }
+slice-textocard .rt-expand {
+  flex-shrink: 0; border: 1.5px solid var(--border-color); background: var(--panel-alt-background-color);
+  color: var(--font-secondary-color); cursor: pointer; font-size: 12px; font-weight: 700;
+  padding: 5px 12px; border-radius: 999px; transition: border-color .12s, color .12s;
+}
+slice-textocard .rt-expand:hover { border-color: var(--font-primary-color); color: var(--font-primary-color); }
+slice-textocard .rt-editor-slot { display: contents; }
+slice-textocard .rt-status { min-height: 18px; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--success-color); }

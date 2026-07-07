@@ -6,6 +6,8 @@ const SEED_TEMAS = [
   { id: 'bienvenida', nombre: 'Bienvenida', modo: 'reparto', orden: 5, min: 8, max: 12, participable: true, meta: { numero: 5, lider: null } },
   { id: 'cafeteria', nombre: 'Cafetería', modo: 'reparto', orden: 6, min: 4, max: 6, participable: true, meta: { numero: 6, lider: null } },
   { id: 'anfitriones', nombre: 'Anfitriones', modo: 'reparto', orden: 7, min: 2, max: 2, participable: true, meta: { numero: 12, lider: null } },
+  { id: 'objetivos-generales', nombre: 'Objetivos generales del evento', modo: 'texto_libre', orden: 8, min: null, max: null, participable: true, meta: { numero: 13, lider: null } },
+  { id: 'notas-adicionales', nombre: 'Notas adicionales', modo: 'texto_libre', orden: 9, min: null, max: null, participable: true, meta: { numero: 14, lider: null } },
 ];
 
 const SEED_OPCIONES = [

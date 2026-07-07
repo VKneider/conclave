@@ -42,12 +42,64 @@ export default class ResumenFinalView extends HTMLElement {
 
     this.$importFile.addEventListener('change', () => this._handleImportFile());
 
+    this._initNotes();
+
     slice.context.watch('decisionFinal', this, () => this._render());
     slice.context.watch('plantilla', this, () => this._render());
     this._render();
   }
 
   update() { this._render(); }
+
+  _initNotes() {
+    const STORE_KEY = 'conclave-notas-v1';
+    this.$notesFab = this.$root.querySelector('[data-notes-fab]');
+    this.$notesOverlay = this.$root.querySelector('[data-notes-overlay]');
+    this.$notesTextarea = this.$root.querySelector('[data-notes-textarea]');
+    this.$notesStatus = this.$root.querySelector('.rf-notes-foot > span');
+    this.$notesClose = this.$root.querySelector('[data-notes-close]');
+
+    const saved = localStorage.getItem(STORE_KEY);
+    if (saved) this.$notesTextarea.value = saved;
+
+    this.$notesFab.addEventListener('click', () => {
+      this.$notesOverlay.hidden = false;
+      this.$notesTextarea.focus();
+      this.$notesTextarea.setSelectionRange(this.$notesTextarea.value.length, this.$notesTextarea.value.length);
+      document.body.style.overflow = 'hidden';
+    });
+
+    this._closeNotes = () => {
+      this.$notesOverlay.hidden = true;
+      document.body.style.overflow = '';
+      this._saveNotes();
+    };
+    this.$notesClose.addEventListener('click', this._closeNotes);
+    this.$notesOverlay.addEventListener('click', (e) => { if (e.target === this.$notesOverlay) this._closeNotes(); });
+
+    this._notesTimer = null;
+    this.$notesTextarea.addEventListener('input', () => {
+      this.$notesStatus.textContent = 'Guardando…';
+      clearTimeout(this._notesTimer);
+      this._notesTimer = setTimeout(() => this._saveNotes(), 400);
+    });
+    this._onNotesKeydown = (e) => {
+      if (e.key === 'Escape' && !this.$notesOverlay.hidden) { e.preventDefault(); this._closeNotes(); }
+    };
+    document.addEventListener('keydown', this._onNotesKeydown);
+  }
+
+  _saveNotes() {
+    localStorage.setItem('conclave-notas-v1', this.$notesTextarea.value);
+    this.$notesStatus.textContent = '✓ Guardado';
+    setTimeout(() => { if (!this.$notesOverlay.hidden) this.$notesStatus.textContent = ''; }, 1500);
+  }
+
+  beforeDestroy() {
+    document.removeEventListener('keydown', this._onNotesKeydown);
+    clearTimeout(this._notesTimer);
+    document.body.style.overflow = '';
+  }
 
   _handleImportFile() {
     const file = this.$importFile.files[0];

@@ -1,80 +1,167 @@
-// One textarea per modo `texto_libre` Tema — the free-text counterpart to the
-// carousel/board, for temas with no Opción pool. Each card can expand to a
-// FULLSCREEN editor (⛶) so writing a long answer doesn't feel cramped; the
-// overlay lives outside the innerHTML-rebuilt cards area so a repaint never
-// touches it.
+// Manages a reconciled list of TextoCard Slice components via CarouselView.
+// Mode toggle: grid (all at once), single (one at a time with arrows), columns.
 export default class RespuestasTextoView extends HTMLElement {
   constructor(props) {
     super();
     slice.attachTemplate(this);
-    this.$root = this.querySelector('.respuestas-texto-view');
+    this.$wrap = this.querySelector('.respuestas-texto-wrap');
+    this.$modeToggle = this.querySelector('.rt-mode-toggle');
     this.$fs = this.querySelector('.rt-fs');
     this.$fsTitle = this.querySelector('.rt-fs__title');
-    this.$fsTextarea = this.querySelector('.rt-fs__textarea');
     this.$fsClose = this.querySelector('.rt-fs__close');
-    this.$fsStatus = this.querySelector('.rt-fs__status');
+    this.$fsFoot = this.querySelector('.rt-fs__foot');
+    this.$fsEditorSlot = this.querySelector('.rt-fs__editor-slot');
+    this._cards = new Map();
+    this._fsEditor = null;
     this._fsTemaId = null;
+    this._carousel = null;
 
-    // Expand → fullscreen (delegated, since the cards are re-rendered).
-    this.$root.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-expand]');
-      if (btn) this._openFs(btn.dataset.expand);
-    });
     this.$fsClose.addEventListener('click', () => this._closeFs());
     this.$fs.addEventListener('click', (e) => { if (e.target === this.$fs) this._closeFs(); });
     this._onKeydown = (e) => {
       if (e.key === 'Escape' && !this.$fs.hidden) { e.preventDefault(); this._closeFs(); return; }
       if (e.key === 'Tab' && !this.$fs.hidden) this._trapFocus(e);
     };
-    this.$fsTextarea.addEventListener('input', () => {
-      this.$fsStatus.textContent = 'Escribiendo…';
-      clearTimeout(this._fsSaveTimer);
-      this._fsSaveTimer = setTimeout(() => this._saveFs(), 400);
-    });
 
     slice.controller.setComponentProps(this, props);
   }
 
-  init() {
+  async init() {
     this._plantilla = slice.getComponent('PlantillaService');
-    this._html = slice.getComponent('HtmlService');
+    this._respuestas = slice.getComponent('RespuestasService');
+
+    this._carousel = await slice.build('CarouselView', { mode: 'single' });
+    this.$wrap.insertBefore(this._carousel, this.$fs);
+
+    this._initModeToggle();
+
     document.addEventListener('keydown', this._onKeydown);
-    this._render();
+    await this._render();
     slice.context.watch('plantilla', this, () => this._render());
     slice.context.watch('respuestas', this, () => this._syncValues());
   }
 
-  update() {
-    this._render();
-  }
+  update() { this._render(); }
 
   beforeDestroy() {
-    clearTimeout(this._statusTimer);
-    clearTimeout(this._fsSaveTimer);
-    clearTimeout(this._cardSaveTimer);
     document.removeEventListener('keydown', this._onKeydown);
     document.body.style.overflow = '';
   }
 
-  // ── Fullscreen editor ───────────────────────────────────────
-  _openFs(temaId) {
+  _initModeToggle() {
+    this.$modeToggle.querySelector('[data-rtmode="single"]').classList.add('active');
+    this.$modeToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-rtmode]');
+      if (!btn) return;
+      const mode = btn.dataset.rtmode;
+      this.$modeToggle.querySelectorAll('.rt-mode-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      this._carousel.mode = mode;
+    });
+  }
+
+  async _render() {
+    if (!this._carousel) return;
+    const temas = this._plantilla.getTemasTexto();
+    if (!temas.length) {
+      this._clearCards();
+      this._carousel.items = [];
+      this.$modeToggle.hidden = true;
+      return;
+    }
+
+    const texto = this._respuestas.getState().texto;
+    const neededIds = new Set(temas.map((t) => t.id));
+
+    for (const id of this._cards.keys()) {
+      if (!neededIds.has(id)) {
+        this._cards.get(id).remove();
+        this._cards.delete(id);
+      }
+    }
+
+    for (const tema of temas) {
+      let card = this._cards.get(tema.id);
+      if (!card) {
+        card = await slice.build('TextoCard', {
+          temaId: tema.id,
+          nombre: tema.nombre,
+          value: texto[tema.id] || '',
+          onsave: (id, val) => this._respuestas.setTexto(id, val),
+          onexpand: () => this._openFs(tema.id),
+        });
+        this._cards.set(tema.id, card);
+      } else {
+        card.nombre = tema.nombre;
+        card.value = texto[tema.id] || '';
+      }
+    }
+
+    this._carousel.items = [...this._cards.values()];
+    this._carousel.refresh();
+    this.$modeToggle.hidden = temas.length < 2;
+
+    if (this._activeId && this._cards.has(this._activeId)) {
+      const card = this._cards.get(this._activeId);
+      card.focusEditor();
+      card.setSelectionRange(this._activeSelStart, this._activeSelEnd);
+    }
+    this._activeId = null;
+  }
+
+  _clearCards() {
+    for (const card of this._cards.values()) card.remove();
+    this._cards.clear();
+  }
+
+  _syncValues() {
+    const texto = this._respuestas.getState().texto;
+    for (const [id, card] of this._cards) {
+      const isActive = card.contains(document.activeElement);
+      if (!isActive) {
+        card.value = texto[id] || '';
+      }
+    }
+  }
+
+  // ── Fullscreen editor ────────────────────────────────────
+
+  async _openFs(temaId) {
     const tema = this._plantilla.getTemaById(temaId);
     if (!tema) return;
     this._fsTemaId = temaId;
     this.$fsTitle.textContent = tema.nombre;
-    this.$fsTextarea.value = slice.getComponent('RespuestasService').getState().texto[temaId] || '';
-    this.$fsStatus.textContent = '';
+
+    if (!this._fsEditor) {
+      this._fsEditor = await slice.build('EnhancedEditor', {
+        placeholder: 'Escribe tu propuesta…',
+        oninput: () => {
+          this.$fsFoot.textContent = 'Escribiendo…';
+          clearTimeout(this._fsSaveTimer);
+          this._fsSaveTimer = setTimeout(() => this._saveFs(), 400);
+        },
+        onblur: () => this._saveFs(),
+      });
+      this._fsEditor.style.minHeight = '40vh';
+      const mount = this._fsEditor.querySelector('[data-ee-quill]');
+      if (mount) mount.classList.add('ee-quill--fullscreen');
+      this.$fsEditorSlot.appendChild(this._fsEditor);
+    }
+
+    const val = this._respuestas.getState().texto[temaId] || '';
+    this._fsEditor.value = val;
+    this.$fsFoot.textContent = '';
     this.$fs.hidden = false;
     document.body.style.overflow = 'hidden';
-    this.$fsTextarea.focus();
+    this._fsEditor.focus();
+    this._fsEditor.setSelectionRange(val.length, val.length);
   }
 
   _saveFs() {
-    if (!this._fsTemaId) return;
-    slice.getComponent('RespuestasService').setTexto(this._fsTemaId, this.$fsTextarea.value);
-    this.$fsStatus.textContent = '✓ Guardado';
+    if (!this._fsTemaId || !this._fsEditor) return;
+    this._respuestas.setTexto(this._fsTemaId, this._fsEditor.value);
+    this.$fsFoot.textContent = '✓ Guardado';
     clearTimeout(this._statusTimer);
-    this._statusTimer = setTimeout(() => { if (!this.$fs.hidden) this.$fsStatus.textContent = ''; }, 1200);
+    this._statusTimer = setTimeout(() => { if (!this.$fs.hidden) this.$fsFoot.textContent = ''; }, 1200);
   }
 
   _closeFs() {
@@ -88,72 +175,12 @@ export default class RespuestasTextoView extends HTMLElement {
   }
 
   _trapFocus(e) {
-    const focusable = this.$fs.querySelectorAll('button, textarea, [tabindex]:not([tabindex="-1"])');
+    const focusable = this.$fs.querySelectorAll('button, slice-enhancededitor, [tabindex]:not([tabindex="-1"])');
     if (!focusable.length) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  }
-
-  _render() {
-    const temas = this._plantilla.getTemasTexto();
-    if (!temas.length) {
-      this.$root.innerHTML = '<div class="empty-state">Todavía no hay temas de texto libre en esta Plantilla.</div>';
-      return;
-    }
-
-    // Preserve an in-progress, uncommitted edit across this rebuild (see
-    // _syncValues for the same concern on `respuestas` changes).
-    const active = document.activeElement;
-    const activeId = active?.classList?.contains('rt-textarea') ? active.closest('.rt-card')?.dataset.temaId : null;
-    const activeValue = activeId ? active.value : null;
-    const selStart = activeId ? active.selectionStart : null;
-    const selEnd = activeId ? active.selectionEnd : null;
-
-    const esc = (s) => this._html.esc(s);
-    const texto = slice.getComponent('RespuestasService').getState().texto;
-    this.$root.innerHTML = this._html.sanitize(temas.map((c) => `
-      <div class="rt-card" data-tema-id="${esc(c.id)}">
-        <div class="rt-card__head">
-          <h3 class="rt-title">${esc(c.nombre)}</h3>
-          <button class="rt-expand" type="button" data-expand="${esc(c.id)}" title="Pantalla completa">⛶ Ampliar</button>
-        </div>
-        <textarea class="rt-textarea" rows="5" placeholder="Escribe tu propuesta…">${esc(c.id === activeId ? activeValue : (texto[c.id] || ''))}</textarea>
-        <div class="rt-status" data-el="status"></div>
-      </div>`).join(''));
-
-    this.$root.querySelectorAll('.rt-card').forEach((card) => {
-      const id = card.dataset.temaId;
-      const textarea = card.querySelector('.rt-textarea');
-      const status = card.querySelector('[data-el="status"]');
-      const save = () => {
-        slice.getComponent('RespuestasService').setTexto(id, textarea.value);
-        status.textContent = '✓ Guardado';
-        clearTimeout(this._statusTimer);
-        this._statusTimer = setTimeout(() => { status.textContent = ''; }, 1200);
-      };
-      textarea.oninput = () => {
-        clearTimeout(this._cardSaveTimer);
-        this._cardSaveTimer = setTimeout(save, 400);
-      };
-      textarea.onblur = save;
-      if (id === activeId) {
-        textarea.focus();
-        textarea.setSelectionRange(selStart, selEnd);
-      }
-    });
-  }
-
-  // Reflects external changes into the textareas without stealing focus from
-  // whichever one the user is typing in.
-  _syncValues() {
-    const texto = slice.getComponent('RespuestasService').getState().texto;
-    this.$root.querySelectorAll('.rt-card').forEach((card) => {
-      const id = card.dataset.temaId;
-      const textarea = card.querySelector('.rt-textarea');
-      if (document.activeElement !== textarea) textarea.value = texto[id] || '';
-    });
   }
 }
 

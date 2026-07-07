@@ -17,6 +17,9 @@ export default class CompareView extends HTMLElement {
     this.cmpMode = 'table';
     this.cmpView = 'opcion';
     this.cmpKind = 'seleccion';
+    this._anonMode = false;
+    this._revealedSources = new Set();
+    this._STORE_KEY = 'conclave-notas-v1';
     slice.controller.setComponentProps(this, props);
   }
 
@@ -38,7 +41,10 @@ export default class CompareView extends HTMLElement {
     this._carousel = await slice.build('CompareCarousel', { sliceId: 'cmp-carousel' });
     this.$root.querySelector('.cmp-carousel-mount').appendChild(this._carousel);
 
-    this._textCards = await slice.build('TextCompareCards', { sliceId: 'cmp-textcards' });
+    this._textCards = await slice.build('TextCompareCards', {
+      sliceId: 'cmp-textcards',
+      sources: this._buildComparisonSources(),
+    });
     this.$root.querySelector('.cmp-text-mount').appendChild(this._textCards);
 
     // Built once, shared by _renderOpcionView/_renderTemaView (which one is
@@ -67,6 +73,26 @@ export default class CompareView extends HTMLElement {
     });
     if (this._modeTabsCmp instanceof Node) this.$root.querySelector('.cmp-mode-tabs').appendChild(this._modeTabsCmp);
 
+    this._fsBtn = await slice.build('Button', {
+      sliceId: 'cmp-fs-btn',
+      value: '⛶ Enfocar',
+      variant: 'filled',
+      onClick: () => {
+        this._fullscreen = !this._fullscreen;
+        this.$root.classList.toggle('cmp-fullscreen', this._fullscreen);
+        this._fsBtn.value = this._fullscreen ? '✕ Salir' : '⛶ Enfocar';
+      },
+    });
+    this.$root.querySelector('.cmp-fs-slot').appendChild(this._fsBtn);
+    this._onFsKeydown = (e) => {
+      if (e.key === 'Escape' && this._fullscreen) {
+        this._fullscreen = false;
+        this.$root.classList.remove('cmp-fullscreen');
+        this._fsBtn.value = '⛶ Enfocar';
+      }
+    };
+    document.addEventListener('keydown', this._onFsKeydown);
+
     // Votación comparison: pick/clear the final decision per tema (delegated on
     // the mount so it survives the innerHTML repaints of _renderVotacion).
     this.$root.querySelector('.cmp-votacion-mount').addEventListener('click', (e) => {
@@ -94,11 +120,29 @@ export default class CompareView extends HTMLElement {
       if (clear) consenso.clearResolutionRanking(clear.dataset.rkClear);
     });
 
+    await this._initNotes();
+
+    this._anonSwitch = await slice.build('Switch', {
+      sliceId: 'cmp-anon',
+      label: '👤 Identificado',
+      checked: false,
+      labelPlacement: 'left',
+      onChange: (checked) => {
+        this._anonMode = checked;
+        this._revealedSources.clear();
+        this._render();
+      },
+    });
+    this.querySelector('.source-list').after(this._anonSwitch);
+
+    // Watch imported sources BEFORE the first _render() so TextCompareCards
+    // receives populated data on its first render, not an empty array.
+    slice.context.watch('respuestasImportadas', this, (sources) => { this.sources = sources; this._render(); });
+
     await this._render();
     slice.context.watch('respuestas', this, () => this._render());
     slice.context.watch('decisionFinal', this, () => this._render());
     slice.context.watch('plantilla', this, () => this._render());
-    slice.context.watch('respuestasImportadas', this, (sources) => { this.sources = sources; this._render(); });
   }
 
   update() {
@@ -126,7 +170,71 @@ export default class CompareView extends HTMLElement {
       color: COLORS[(i + 1) % COLORS.length],
       removable: true,
     }));
-    return [mine, ...imported];
+    const all = [mine, ...imported];
+    this._anonLabels = {};
+    all.forEach((src, i) => { this._anonLabels[src.autor] = `Participante ${i + 1}`; });
+    return all;
+  }
+
+  _displayName(srcAutor) {
+    if (!this._anonMode) return srcAutor;
+    if (this._revealedSources.has(srcAutor)) return srcAutor;
+    return this._anonLabels[srcAutor] || srcAutor;
+  }
+
+  async _initNotes() {
+    this.$notesFab = this.$root.querySelector('[data-notes-fab]');
+    this.$notesOverlay = this.$root.querySelector('[data-notes-overlay]');
+    this.$notesEditorSlot = this.$root.querySelector('[data-notes-editor]');
+    this.$notesEditor = await slice.build('EnhancedEditor', {
+      placeholder: 'Escribí tus observaciones, acuerdos o dudas a medida que comparás las respuestas…',
+    });
+    this.$notesEditorSlot.appendChild(this.$notesEditor);
+    this.$notesStatus = this.$root.querySelector('.cmp-notes-foot > span');
+    this.$notesClose = this.$root.querySelector('[data-notes-close]');
+
+    const saved = localStorage.getItem(this._STORE_KEY);
+    if (saved) this.$notesEditor.value = saved;
+
+    this.$notesFab.addEventListener('click', () => {
+      this.$notesOverlay.hidden = false;
+      this.$notesEditor.focus();
+      this.$notesEditor.setSelectionRange(this.$notesEditor.value.length, this.$notesEditor.value.length);
+      document.body.style.overflow = 'hidden';
+    });
+
+    this._closeNotes = () => {
+      this.$notesOverlay.hidden = true;
+      document.body.style.overflow = '';
+      this._saveNotes();
+    };
+    this.$notesClose.addEventListener('click', this._closeNotes);
+    this.$notesOverlay.addEventListener('click', (e) => { if (e.target === this.$notesOverlay) this._closeNotes(); });
+
+    this._notesTimer = null;
+    this.$notesEditor.oninput = () => {
+      this.$notesStatus.textContent = 'Guardando…';
+      clearTimeout(this._notesTimer);
+      this._notesTimer = setTimeout(() => this._saveNotes(), 400);
+    };
+    this.$notesEditor.onblur = () => this._saveNotes();
+    this._onNotesKeydown = (e) => {
+      if (e.key === 'Escape' && !this.$notesOverlay.hidden) { e.preventDefault(); this._closeNotes(); }
+    };
+    document.addEventListener('keydown', this._onNotesKeydown);
+  }
+
+  beforeDestroy() {
+    document.removeEventListener('keydown', this._onNotesKeydown);
+    document.removeEventListener('keydown', this._onFsKeydown);
+    clearTimeout(this._notesTimer);
+    document.body.style.overflow = '';
+  }
+
+  _saveNotes() {
+    localStorage.setItem(this._STORE_KEY, this.$notesEditor.value);
+    this.$notesStatus.textContent = '✓ Guardado';
+    setTimeout(() => { if (!this.$notesOverlay.hidden) this.$notesStatus.textContent = ''; }, 1500);
   }
 
   _buildRows(all) {
@@ -196,7 +304,7 @@ export default class CompareView extends HTMLElement {
       opciones.forEach((o) => { counts[String(o.id)] = 0; voters[String(o.id)] = []; });
       all.forEach((src) => {
         const v = src.voto?.[tema.id];
-        if (v != null && counts[String(v)] !== undefined) { counts[String(v)]++; voters[String(v)].push(src.autor); }
+        if (v != null && counts[String(v)] !== undefined) { counts[String(v)]++; voters[String(v)].push(this._displayName(src.autor)); }
       });
       const totalVotes = Object.values(counts).reduce((a, b) => a + b, 0);
       let majId = null, majN = 0;
@@ -267,7 +375,7 @@ export default class CompareView extends HTMLElement {
         nSources++;
         order.forEach((id, idx) => {
           points[id] += (order.length - 1 - idx);
-          rankers[id].push({ autor: src.autor, pos: idx + 1, total: order.length });
+          rankers[id].push({ autor: this._displayName(src.autor), pos: idx + 1, total: order.length });
         });
       });
 
@@ -369,7 +477,10 @@ export default class CompareView extends HTMLElement {
       this.$root.querySelector('.cmp-final-heading').hidden = true;
       this.$root.querySelector('.cmp-final-heading + .view-sub').hidden = true;
       this.$root.querySelector('.cmp-finaltally-slot').hidden = true;
-      this._textCards.sources = all;
+      this._textCards.sources = all.map((src) => ({
+        ...src,
+        autorLabel: this._displayName(src.autor),
+      }));
       return;
     }
     this.$root.querySelector('.cmp-mode-tabs').hidden = false;
@@ -413,7 +524,16 @@ export default class CompareView extends HTMLElement {
       const count = Object.values(src.asignaciones).filter(Boolean).length
         + Object.keys(src.voto || {}).length
         + Object.keys(src.texto || {}).length;
-      return `<div class="source-tag"><span class="swatch" style="background:${src.color}"></span>${this._html.esc(src.autor)} <span style="color:var(--font-secondary-color)">(${count})</span>${src.removable ? `<button data-rm="${this._html.esc(src.autor)}" title="Quitar">✕</button>` : ''}</div>`;
+      const display = this._displayName(src.autor);
+      const revealAttr = this._anonMode && !this._revealedSources.has(src.autor)
+        ? ` data-reveal="${this._html.esc(src.autor)}" title="Revelar identidad" style="cursor:pointer"`
+        : '';
+      return `<div class="source-tag${revealAttr ? ' source-tag--anon' : ''}"${revealAttr}>
+        <span class="swatch" style="background:${src.color}"></span>
+        <span class="source-tag__name">${this._html.esc(display)}</span>
+        <span style="color:var(--font-secondary-color)">(${count})</span>
+        ${src.removable ? `<button data-rm="${this._html.esc(src.autor)}" title="Quitar">✕</button>` : ''}
+      </div>`;
     }).join(''));
     container.querySelectorAll('[data-rm]').forEach((b) => {
       b.onclick = () => {
@@ -422,6 +542,13 @@ export default class CompareView extends HTMLElement {
         this._render();
       };
     });
+    container.querySelectorAll('[data-reveal]').forEach((el) => {
+      el.onclick = () => { this._revealedSources.add(el.dataset.reveal); this._render(); };
+    });
+    if (this._anonSwitch) {
+      this._anonSwitch.checked = this._anonMode;
+      this._anonSwitch.label = this._anonMode ? '🔒 Anónimo' : '👤 Identificado';
+    }
   }
 
   _renderOpcionView(all, rows, prevScrollTop) {

@@ -1,13 +1,19 @@
 <div class="respuestas-texto-wrap">
-  <div class="respuestas-texto-view"></div>
+  <div class="rt-header">
+    <div class="rt-mode-toggle" hidden>
+      <button class="rt-mode-btn" data-rtmode="grid" title="Ver todas">▦</button>
+      <button class="rt-mode-btn" data-rtmode="single" title="Una por una">▬</button>
+      <button class="rt-mode-btn" data-rtmode="columns" title="Dos columnas">▬▬</button>
+    </div>
+  </div>
   <div class="rt-fs" hidden>
     <div class="rt-fs__panel">
       <div class="rt-fs__head">
         <h3 class="rt-fs__title"></h3>
         <button class="rt-fs__close" type="button" aria-label="Cerrar pantalla completa">✕ Cerrar</button>
       </div>
-      <textarea class="rt-fs__textarea" placeholder="Escribe tu propuesta…"></textarea>
-      <div class="rt-fs__foot"><span class="rt-fs__status"></span></div>
+      <div class="rt-fs__editor-slot"></div>
+      <div class="rt-fs__foot"></div>
     </div>
   </div>
 </div>

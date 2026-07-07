@@ -1,0 +1,72 @@
+/* Reskinned for Sticker Book: bold ink outline, hard shadow, no soft
+   backgrounds, no animations. Matches the "press" interaction from
+   DESIGN.md §Motion. */
+
+slice-switch { display: inline-flex; }
+
+slice-switch .slice_switch {
+  --button-height: 28px;
+  --button-width: 56px;
+  --toggle-diameter: 18px;
+  --button-toggle-offset: 3px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+slice-switch .switch_label {
+  font-family: var(--font-body);
+  color: var(--font-primary-color);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+slice-switch .slider {
+  cursor: pointer;
+  display: inline-block;
+  width: var(--button-width);
+  height: var(--button-height);
+  background: var(--panel-background-color);
+  border: 2.5px solid var(--font-primary-color);
+  border-radius: calc(var(--button-height) / 2);
+  position: relative;
+  box-sizing: border-box;
+  box-shadow: 2px 2px 0 var(--font-primary-color);
+  transition: transform .08s, box-shadow .08s, background .1s;
+}
+
+slice-switch .slider::after {
+  content: "";
+  display: inline-block;
+  width: var(--toggle-diameter);
+  height: var(--toggle-diameter);
+  background: var(--font-primary-color);
+  border-radius: 50%;
+  position: absolute;
+  top: var(--button-toggle-offset);
+  left: var(--button-toggle-offset);
+  transition: transform .1s;
+}
+
+slice-switch .slice_switch input[type="checkbox"]:checked + .slider {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 2px 2px 0 var(--primary-color);
+}
+
+slice-switch .slice_switch input[type="checkbox"]:checked + .slider::after {
+  background: var(--primary-color-contrast);
+  transform: translateX(calc(var(--button-width) - var(--toggle-diameter) - var(--button-toggle-offset) * 2));
+}
+
+slice-switch .slice_switch input[type="checkbox"] { display: none; }
+
+/* Press interaction — lift on hover, press on active */
+slice-switch .slider:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
+slice-switch .slice_switch input[type="checkbox"]:checked + .slider:hover { box-shadow: 3px 3px 0 var(--primary-color); }
+slice-switch .slider:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--font-primary-color); }
+slice-switch .slice_switch input[type="checkbox"]:checked + .slider:active { box-shadow: 1px 1px 0 var(--primary-color); }

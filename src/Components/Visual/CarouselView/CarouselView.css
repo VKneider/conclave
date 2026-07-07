@@ -1,0 +1,56 @@
+slice-carouselview { display: block; }
+
+/* ── Nav bar ── */
+slice-carouselview .cv-nav {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 16px;
+}
+slice-carouselview .cv-nav[hidden] { display: none; }
+slice-carouselview .cv-arrow {
+  flex: none; width: 44px; height: 44px; border-radius: 50%;
+  font-size: 20px; font-weight: 700;
+  border: 2.5px solid var(--font-primary-color);
+  background: var(--panel-background-color);
+  color: var(--font-primary-color); cursor: pointer;
+  box-shadow: 3px 3px 0 var(--font-primary-color);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+slice-carouselview .cv-arrow:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--font-primary-color); }
+slice-carouselview .cv-arrow:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--font-primary-color); }
+slice-carouselview .cv-arrow:disabled { opacity: .35; cursor: not-allowed; box-shadow: 2px 2px 0 var(--font-primary-color); }
+
+slice-carouselview .cv-center {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+slice-carouselview .cv-count {
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .03em; color: var(--font-secondary-color);
+}
+
+/* ── Dots ── */
+slice-carouselview .cv-dots { display: flex; gap: 8px; }
+slice-carouselview .cv-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--border-color); cursor: pointer;
+  border: 2px solid var(--font-primary-color);
+  transition: background .15s;
+}
+slice-carouselview .cv-dot.active { background: var(--font-primary-color); }
+
+/* ── Stage ── */
+slice-carouselview .cv-stage {}
+
+slice-carouselview .cv-stage--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 18px;
+}
+slice-carouselview .cv-stage--columns {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+}
+
+@media (max-width: 760px) {
+  slice-carouselview .cv-arrow { width: 36px; height: 36px; font-size: 16px; }
+  slice-carouselview .cv-stage--grid { grid-template-columns: 1fr; }
+  slice-carouselview .cv-stage--columns { grid-template-columns: 1fr; }
+}
