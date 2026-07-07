@@ -1,25 +1,10 @@
-/* Carousel-by-tema — arrows + dots added, one tema at a time.
-   Card styles are the original (colored top border, bold outline,
-   hard shadow, big readable text). */
-
-/* ── Row: arrows flanking the section ── */
-slice-textcomparecards .tcc-row { display: flex; align-items: flex-start; gap: 14px; }
-
-/* Arrow buttons */
-slice-textcomparecards .tcc-arrow { flex: none; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; border: 2.5px solid var(--font-primary-color); background: var(--panel-background-color); color: var(--font-primary-color); cursor: pointer; box-shadow: 3px 3px 0 var(--font-primary-color); transition: transform .08s ease, box-shadow .08s ease; margin-top: 4px; }
-slice-textcomparecards .tcc-arrow:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--font-primary-color); }
-slice-textcomparecards .tcc-arrow:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--font-primary-color); }
-slice-textcomparecards .tcc-arrow:disabled { opacity: .35; cursor: not-allowed; box-shadow: 2px 2px 0 var(--font-primary-color); }
-
-/* ── Section ── */
-slice-textcomparecards .tcc-section { flex: 1; min-width: 0; }
-slice-textcomparecards .tcc-section-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+/* Section — title + cards per tema */
+slice-textcomparecards .tcc-section { min-width: 0; }
 slice-textcomparecards .tcc-section-title {
   font-family: var(--font-display); font-size: 22px; font-weight: 600;
-  margin: 0 0 16px; padding-bottom: 8px; flex: 1;
+  margin: 0 0 16px; padding-bottom: 8px;
   border-bottom: 2px solid var(--border-color);
 }
-slice-textcomparecards .tcc-count { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--font-secondary-color); white-space: nowrap; }
 
 /* Final banner */
 slice-textcomparecards .tcc-final-banner {
@@ -30,12 +15,12 @@ slice-textcomparecards .tcc-final-banner {
 slice-textcomparecards .tcc-final-banner .linkish { background: transparent; border: 0; color: inherit; opacity: .85; cursor: pointer; font-size: 12px; font-weight: 700; }
 slice-textcomparecards .tcc-final-banner .linkish:hover { opacity: 1; }
 
-/* Grid — wider cards, more breathing room */
+/* Card grid */
 slice-textcomparecards .tcc-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px;
 }
 
-/* Original card styles — bold outline, colored top border, hard shadow */
+/* Card styles — bold outline, colored top border, hard shadow */
 slice-textcomparecards .tcc-card {
   background: var(--panel-background-color); border: 3px solid var(--font-primary-color);
   border-top: 8px solid var(--tcc-color, var(--primary-color));
@@ -65,7 +50,7 @@ slice-textcomparecards .tcc-text {
 }
 slice-textcomparecards .tcc-pick { align-self: flex-start; font-size: 12.5px; }
 
-/* Fullscreen reader overlay — original */
+/* Fullscreen reader overlay */
 slice-textcomparecards .tcc-fs {
   position: fixed; inset: 0; z-index: 1000;
   background: color-mix(in srgb, var(--font-primary-color) 55%, transparent);
@@ -93,10 +78,6 @@ slice-textcomparecards .tcc-fs__text {
 }
 
 @media (max-width: 760px) {
-  slice-textcomparecards .tcc-row { gap: 8px; }
-  slice-textcomparecards .tcc-arrow { width: 36px; height: 36px; font-size: 16px; box-shadow: 2px 2px 0 var(--font-primary-color); }
-  slice-textcomparecards .tcc-arrow:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
-  slice-textcomparecards .tcc-arrow:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--font-primary-color); }
   slice-textcomparecards .tcc-grid { grid-template-columns: 1fr; gap: 12px; }
   slice-textcomparecards .tcc-card { padding: 18px 18px; }
   slice-textcomparecards .tcc-text { font-size: 15px; }

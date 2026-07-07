@@ -53,11 +53,7 @@ export default class CarouselView extends HTMLElement {
   set items(arr) {
     this._items = arr || [];
     this._index = 0;
-    for (const item of this._items) {
-      if (item.parentNode !== this.$stage) {
-        this.$stage.appendChild(item);
-      }
-    }
+    this.$stage.replaceChildren(...this._items);
     this._render();
   }
 

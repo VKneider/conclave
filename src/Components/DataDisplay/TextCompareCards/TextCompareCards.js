@@ -1,17 +1,16 @@
-// Carousel-by-tema view for modo `texto_libre`: shows every source's
-// proposal for one tema at a time with < > arrows and dot navigation.
-// Fully replaces the old stacked-all-temas-at-once layout.
+// Carousel-by-tema for modo `texto_libre` using CarouselView.
+// Shows every source's proposal for one tema at a time.
 export default class TextCompareCards extends HTMLElement {
   constructor(props) {
     super();
     slice.attachTemplate(this);
-    this.$root = this.querySelector('.tcc-root');
+    this.$wrap = this.querySelector('.tcc-wrap');
     this.$fs = this.querySelector('.tcc-fs');
     this.$fsAutor = this.querySelector('.tcc-fs__autor');
     this.$fsText = this.querySelector('.tcc-fs__text');
     this.$fsClose = this.querySelector('.tcc-fs__close');
     this._sources = [];
-    this._index = 0;
+    this._carousel = null;
 
     this.$fsClose.addEventListener('click', () => this._closeFs());
     this.$fs.addEventListener('click', (e) => { if (e.target === this.$fs) this._closeFs(); });
@@ -20,8 +19,12 @@ export default class TextCompareCards extends HTMLElement {
     slice.controller.setComponentProps(this, props);
   }
 
-  init() {
+  async init() {
     this._html = slice.getComponent('HtmlService');
+
+    this._carousel = await slice.build('CarouselView', { mode: 'single' });
+    this.$wrap.insertBefore(this._carousel, this.$fs);
+
     document.addEventListener('keydown', this._onKeydown);
     slice.context.watch('decisionFinal', this, () => this._render());
     slice.context.watch('plantilla', this, () => this._render());
@@ -35,12 +38,7 @@ export default class TextCompareCards extends HTMLElement {
 
   _onKeydown(e) {
     if (e.key === 'Escape' && !this.$fs.hidden) { e.preventDefault(); this._closeFs(); return; }
-    if (e.key === 'Tab' && !this.$fs.hidden) { this._trapFocus(e); return; }
-    if (this.$fs.hidden && !this.closest('[hidden]')) {
-      const temas = this._plantilla().getTemasTexto();
-      if (e.key === 'ArrowLeft' && this._index > 0) { this._index--; this._render(); }
-      if (e.key === 'ArrowRight' && this._index < temas.length - 1) { this._index++; this._render(); }
-    }
+    if (e.key === 'Tab' && !this.$fs.hidden) { this._trapFocus(e); }
   }
 
   _openFs(autor, texto) {
@@ -68,7 +66,6 @@ export default class TextCompareCards extends HTMLElement {
 
   set sources(arr) {
     this._sources = arr || [];
-    this._index = 0;
     if (this.isConnected) this._render();
   }
 
@@ -76,103 +73,87 @@ export default class TextCompareCards extends HTMLElement {
   _consenso() { return slice.getComponent('ConsensoService'); }
 
   _render() {
-    if (!this._html) return;
+    if (!this._html || !this._carousel) return;
     const temas = this._plantilla().getTemasTexto();
     const sources = this._sources;
     const esc = (s) => this._html.esc(s);
 
     if (!temas.length) {
-      this.$root.innerHTML = '<div class="empty-state">Esta Plantilla no tiene temas de texto libre.</div>';
+      this._carousel.items = [];
       return;
     }
 
-    if (this._index >= temas.length) this._index = Math.max(0, temas.length - 1);
-    const tema = temas[this._index];
     const consenso = this._consenso();
-    const final = consenso.finalTextoFor(tema.id);
-    const withText = sources.filter((s) => (s.texto?.[tema.id] || '').trim());
+    const items = temas.map((tema) => {
+      const final = consenso.finalTextoFor(tema.id);
+      const withText = sources.filter((s) => (s.texto?.[tema.id] || '').trim());
 
-    let html = `<div class="tcc-row">
-      <button class="tcc-arrow" data-tccdir="prev" type="button"${this._index === 0 ? ' disabled' : ''} title="Tema anterior">‹</button>
-      <div class="tcc-section">
-        <div class="tcc-section-head">
-          <h3 class="tcc-section-title">${esc(tema.nombre)}</h3>
-          <span class="tcc-count">${this._index + 1} de ${temas.length}</span>
-        </div>`;
+      let html = `<div class="tcc-section">
+        <h3 class="tcc-section-title">${esc(tema.nombre)}</h3>`;
 
-    if (final) {
-      const finalSrc = sources.find((s) => s.autor === final.autor);
-      const finalLabel = (finalSrc && finalSrc.autorLabel) || final.autor;
-      html += `<div class="tcc-final-banner" data-tema="${esc(tema.id)}">✓ Elegida: <b>${esc(finalLabel)}</b> <button class="linkish" data-tccact="clear-final">Quitar ✕</button></div>`;
-    }
+      if (final) {
+        const finalSrc = sources.find((s) => s.autor === final.autor);
+        const finalLabel = (finalSrc && finalSrc.autorLabel) || final.autor;
+        html += `<div class="tcc-final-banner" data-tema="${esc(tema.id)}">✓ Elegida: <b>${esc(finalLabel)}</b> <button class="linkish" data-tccact="clear-final">Quitar ✕</button></div>`;
+      }
 
-    if (!withText.length) {
-      html += '<div class="empty-state">Nadie propuso todavía una respuesta para este tema.</div>';
-    } else {
-      html += `<div class="tcc-grid">${withText.map((s) => {
-        const texto = s.texto[tema.id];
-        const label = s.autorLabel || s.autor;
-        const isFinal = final && final.autor === s.autor && final.texto === texto;
-        return `
-        <div class="tcc-card${isFinal ? ' is-final' : ''}" style="--tcc-color:${s.color}" data-tema="${esc(tema.id)}">
-          <div class="tcc-card-head">
-            <span class="tcc-swatch" style="background:${s.color}"></span>
-            <span class="tcc-autor">${esc(label)}</span>
-            ${isFinal ? '<span class="tcc-final-tag">Elegida</span>' : ''}
-            <button class="tcc-read" type="button" data-tccread="${esc(s.autor)}" title="Leer en pantalla completa">⛶</button>
-          </div>
-          <p class="tcc-text">${esc(texto)}</p>
-          <button class="btn btn-sm tcc-pick" data-tccpick="${esc(s.autor)}">${isFinal ? '✓ Elegida' : 'Marcar como elegida'}</button>
-        </div>`;
-      }).join('')}</div>`;
-    }
+      if (!withText.length) {
+        html += '<div class="empty-state">Nadie propuso todavía una respuesta para este tema.</div>';
+      } else {
+        html += `<div class="tcc-grid">${withText.map((s) => {
+          const texto = s.texto[tema.id];
+          const label = s.autorLabel || s.autor;
+          const isFinal = final && final.autor === s.autor && final.texto === texto;
+          return `
+          <div class="tcc-card${isFinal ? ' is-final' : ''}" style="--tcc-color:${s.color}" data-tema="${esc(tema.id)}">
+            <div class="tcc-card-head">
+              <span class="tcc-swatch" style="background:${s.color}"></span>
+              <span class="tcc-autor">${esc(label)}</span>
+              ${isFinal ? '<span class="tcc-final-tag">Elegida</span>' : ''}
+              <button class="tcc-read" type="button" data-tccread="${esc(s.autor)}" title="Leer en pantalla completa">⛶</button>
+            </div>
+            <p class="tcc-text">${esc(texto)}</p>
+            <button class="btn btn-sm tcc-pick" data-tccpick="${esc(s.autor)}">${isFinal ? '✓ Elegida' : 'Marcar como elegida'}</button>
+          </div>`;
+        }).join('')}</div>`;
+      }
 
-    html += `</div>
-      <button class="tcc-arrow" data-tccdir="next" type="button"${this._index === temas.length - 1 ? ' disabled' : ''} title="Tema siguiente">›</button>
-    </div>`;
+      html += '</div>';
+      return this._buildItem(html, tema.id, sources);
+    });
 
-    this.$root.innerHTML = this._html.sanitize(html);
-    this._bindInteractions(sources);
+    this._carousel.items = items;
   }
 
-  _bindInteractions(sources) {
-    const temas = this._plantilla().getTemasTexto();
+  _buildItem(html, temaId, sources) {
+    const div = document.createElement('div');
+    div.style.padding = '2px 0';
+    div.innerHTML = this._html.sanitize(html);
 
-    // Arrows
-    this.$root.querySelector('[data-tccdir="prev"]')?.addEventListener('click', () => {
-      if (this._index > 0) { this._index--; this._render(); }
-    });
-    this.$root.querySelector('[data-tccdir="next"]')?.addEventListener('click', () => {
-      if (this._index < temas.length - 1) { this._index++; this._render(); }
-    });
-
-    // Clear final
-    this.$root.querySelectorAll('[data-tccact="clear-final"]').forEach((btn) => {
-      const temaId = btn.closest('.tcc-final-banner')?.dataset.tema;
+    div.querySelectorAll('[data-tccact="clear-final"]').forEach((btn) => {
       btn.onclick = () => {
-        if (temaId) { this._consenso().clearResolutionTexto(temaId); this._render(); }
+        this._consenso().clearResolutionTexto(temaId);
+        this._render();
       };
     });
 
-    // Pick final
-    this.$root.querySelectorAll('.tcc-pick').forEach((btn) => {
-      const card = btn.closest('.tcc-card');
-      const temaId = card?.dataset.tema;
+    div.querySelectorAll('.tcc-pick').forEach((btn) => {
       btn.onclick = () => {
         const src = sources.find((s) => s.autor === btn.dataset.tccpick);
-        if (!src || !temaId) return;
+        if (!src) return;
         this._consenso().setResolutionTexto(temaId, src.autor, src.texto[temaId]);
         this._render();
       };
     });
 
-    // Fullscreen reader
-    this.$root.querySelectorAll('.tcc-read').forEach((btn) => {
+    div.querySelectorAll('.tcc-read').forEach((btn) => {
       btn.onclick = () => {
         const src = sources.find((s) => s.autor === btn.dataset.tccread);
-        if (src) this._openFs(src.autorLabel || src.autor, src.texto[btn.closest('.tcc-card')?.dataset.tema]);
+        if (src) this._openFs(src.autorLabel || src.autor, src.texto[temaId]);
       };
     });
+
+    return div;
   }
 }
 
