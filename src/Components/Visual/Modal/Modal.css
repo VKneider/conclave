@@ -30,10 +30,11 @@ slice-modal .slice-modal {
   color: var(--modal-text, var(--font-primary-color, #1a0b2e));
   box-shadow: 6px 6px 0 var(--font-primary-color);
   max-width: var(--modal-max-width, 520px);
+  max-height: min(85vh, 640px);
   width: var(--modal-width, min(90vw, 520px));
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
   animation: slice-modal_enter 0.2s ease;
   position: relative;
 }
@@ -88,9 +89,11 @@ slice-modal .slice-modal__body {
   padding: 1rem 1.5rem;
   font-size: 0.9rem;
   line-height: 1.6;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 slice-modal .slice-modal__footer {
