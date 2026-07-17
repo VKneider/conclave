@@ -26,7 +26,7 @@ export default class MisRespuestasView extends HTMLElement {
     // Built once in the static toolbar (outside .mrv-dynamic, which _render()
     // rebuilds wholesale on every change) — no more focus/cursor-position
     // restore hack after each keystroke.
-    this.$searchInput = await slice.build('Input', { sliceId: 'mrv-search', placeholder: 'Buscar…' });
+    this.$searchInput = await slice.build('Input', { sliceId: 'mrvSearch', placeholder: 'Buscar…' });
     this.$searchSlot.appendChild(this.$searchInput);
     this.$searchInput.addEventListener('input', () => {
       this.searchQuery = this.$searchInput.value;

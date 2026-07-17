@@ -116,7 +116,7 @@ export default class PorTemaView extends HTMLElement {
       empty: this.$root.querySelector('[data-empty="unassigned"]'),
     };
 
-    this.$searchInput = await slice.build('Input', { sliceId: 'pcv-search', placeholder: 'Buscar…' });
+    this.$searchInput = await slice.build('Input', { sliceId: 'pcvSearch', placeholder: 'Buscar…' });
     this.$root.querySelector('.sidebar-search-slot').appendChild(this.$searchInput);
     this.$searchInput.addEventListener('input', () => {
       this.searchQuery = this.$searchInput.value;
@@ -124,7 +124,7 @@ export default class PorTemaView extends HTMLElement {
     });
 
     const badgeKeys = ['unassigned', ...temas.map((t) => t.id)];
-    const badgeProps = badgeKeys.map((key) => ({ sliceId: `byteam-badge-${key}`, status: 'empty', label: '' }));
+    const badgeProps = badgeKeys.map((key) => ({ sliceId: `byteamBadge${key}`, status: 'empty', label: '' }));
     const [firstBadge, ...restBadges] = badgeProps;
     const firstBadgeNode = await slice.build('StatusBadge', firstBadge);
     const restBadgeNodes = await Promise.all(restBadges.map((p) => slice.build('StatusBadge', p)));
@@ -137,7 +137,7 @@ export default class PorTemaView extends HTMLElement {
     });
 
     const opciones = roster.getOpcionesDisponibles();
-    const chipProps = opciones.map((m) => ({ sliceId: `byteam-chip-${m.id}`, opcion: m, draggable: true }));
+    const chipProps = opciones.map((m) => ({ sliceId: `byteamChip${m.id}`, opcion: m, draggable: true }));
     const [firstChip, ...restChips] = chipProps;
     const firstChipNode = await slice.build('OpcionChip', firstChip);
     const restChipNodes = await Promise.all(restChips.map((p) => slice.build('OpcionChip', p)));
@@ -179,7 +179,7 @@ export default class PorTemaView extends HTMLElement {
     const opciones = roster.getOpcionesDisponibles();
     const missing = opciones.filter((m) => !this._chips[m.id]);
     if (missing.length === 0) return;
-    const build = (m) => slice.build('OpcionChip', { sliceId: `byteam-chip-${m.id}`, opcion: m, draggable: true });
+    const build = (m) => slice.build('OpcionChip', { sliceId: `byteamChip${m.id}`, opcion: m, draggable: true });
     const [first, ...rest] = missing;
     const firstChip = await build(first);
     const restChips = await Promise.all(rest.map(build));

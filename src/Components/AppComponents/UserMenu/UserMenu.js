@@ -59,7 +59,7 @@ export default class UserMenu extends HTMLElement {
       value: '\uD83D\uDCE4 Compartir respuestas',
       variant: 'ghost',
       onClick: () => {
-        const modal = slice.getComponent('export-respuestas-modal');
+        const modal = slice.getComponent('exportRespuestasModal');
         if (modal?.show) modal.show();
         this._setOpen(false);
       }

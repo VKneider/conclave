@@ -46,7 +46,7 @@ export default class ProfileBubble extends HTMLElement {
   async _ensureModal() {
     if (this._modal) return;
     this._modal = await slice.build('Modal', {
-      sliceId: 'profile-bubble-modal',
+      sliceId: 'profileBubbleModal',
       title: '👋 ¡Hola!',
       dismissable: true,
       maxWidth: '420px',

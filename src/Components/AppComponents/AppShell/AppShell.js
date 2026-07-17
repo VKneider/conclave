@@ -27,19 +27,19 @@ export default class AppShell extends HTMLElement {
     // the imported data is ready for all views).
     await this._tryImportFromHash();
 
-    const topBar = await slice.build('TopBar', { sliceId: 'app-topbar' });
+    const topBar = await slice.build('TopBar', { sliceId: 'appTopbar' });
     this.$content.before(topBar);
 
     // Content area — a MultiRoute swaps the matching view by URL. Every path
     // here must also exist in routes.js (the Router's source of truth).
-    const content = await slice.build('MultiRoute', { sliceId: 'app-content', routes: ROUTES });
+    const content = await slice.build('MultiRoute', { sliceId: 'appContent', routes: ROUTES });
     this.$content.appendChild(content);
     // If the hash import already called navigate() before the MultiRoute
     // existed (e.g. impact=0), the Router couldn't find it yet. Re-render
     // now so inner navigation catches up with the current URL.
     await content.renderIfCurrentRoute();
 
-    const bubble = await slice.build('ProfileBubble', { sliceId: 'app-profile-bubble' });
+    const bubble = await slice.build('ProfileBubble', { sliceId: 'appProfileBubble' });
     document.body.appendChild(bubble);
   }
   // Checks for #plantilla=<lz-compressed> or #respuestas=<lz-compressed>
@@ -85,11 +85,11 @@ export default class AppShell extends HTMLElement {
     const autor = data.autor || '';
     const email = data.email || '';
 
-    const proceed = () => {
+    const proceed = async () => {
       try {
         roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, autor, email);
         slice.events.emit('toast:show', { message: 'Plantilla importada desde el enlace', type: 'success' });
-        slice.router.navigate('/mis-respuestas');
+        await slice.router.navigate('/mis-respuestas');
       } catch (err) {
         slice.events.emit('toast:show', { message: err.message, type: 'error' });
       }
@@ -108,7 +108,12 @@ export default class AppShell extends HTMLElement {
         onConfirm: proceed,
       });
     } else {
-      proceed();
+      // Navigate via pushState+renderIfCurrentRoute (below) instead of
+      // slice.router.navigate() to avoid a race between the router's 10ms
+      // debounce and this init() building its children (TopBar/MultiRoute).
+      roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, autor, email);
+      slice.events.emit('toast:show', { message: 'Plantilla importada desde el enlace', type: 'success' });
+      history.pushState(null, '', '/mis-respuestas');
     }
   }
 
@@ -130,14 +135,14 @@ export default class AppShell extends HTMLElement {
     const autor = data.autor || 'Alguien';
     const email = data.email || '';
 
-    const proceed = () => {
+    const proceed = async () => {
       slice.getComponent('RespuestasImportService').import(data, autor);
       slice.events.emit('toast:show', {
         message: `Respuestas de «${html.esc(autor)}» agregadas para comparar`,
         type: 'success',
       });
       // Navigate to CompareView after import so the user sees the result.
-      slice.router.navigate('/comparar');
+      await slice.router.navigate('/comparar');
     };
 
     // Hash already consumed — clean it so a page refresh doesn't re-import.

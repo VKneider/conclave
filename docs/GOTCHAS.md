@@ -28,7 +28,7 @@ The CLI's `DependencyAnalyzer` (Babel AST-based) only recognizes the exact patte
 
 The fix used throughout the app: **inline the two-step pattern directly** so the first `slice.build(...)` call is visible to the analyzer:
 ```js
-const propsList = items.map(i => ({ sliceId: `comp-${i.id}`, ... }));
+const propsList = items.map(i => ({ sliceId: `comp${i.id}`, ... }));
 const [first, ...rest] = propsList;
 const firstNode = await slice.build('MyComponent', first);
 const restNodes = await Promise.all(rest.map(p => slice.build('MyComponent', p)));
@@ -98,7 +98,7 @@ Both `DragDropService` and `ToastProvider` (registry Services) defined a `destro
 
 ### 17. Guard a lazily-built singleton resource with the in-flight PROMISE, not a truthiness flag
 
-`ConfirmActionModal._ensureModal()` used to guard its one-time `await slice.build('Modal', { sliceId: 'confirm-action-dialog' })` with `if (this.$modal) return;`. Two `confirm:request` events arriving close enough together (e.g. two different components each asking for a confirmation near-simultaneously) can both pass that check before the first `slice.build` call resolves — the second call then also runs `slice.build` with the same fixed `sliceId`, which throws ("already registered"). The fix: store the **promise itself**, not a post-await flag — `if (!this._modalPromise) this._modalPromise = this._buildModal(); await this._modalPromise;`. Assigning the promise is synchronous (there's no `await` between the check and the assignment), so the second caller sees it already set and just awaits the same in-flight build instead of starting a duplicate one. Applied the same pattern to the lazily-built confirm-dialog `Input` (`_ensureInput()`). This is the general pattern for any lazily-built singleton resource in Slice — the same shape as `ToastProvider._getContainer()`, except that one is synchronous (`document.createElement`, no `await`) so it doesn't need this guard.
+`ConfirmActionModal._ensureModal()` used to guard its one-time `await slice.build('Modal', { sliceId: 'confirmActionDialog' })` with `if (this.$modal) return;`. Two `confirm:request` events arriving close enough together (e.g. two different components each asking for a confirmation near-simultaneously) can both pass that check before the first `slice.build` call resolves — the second call then also runs `slice.build` with the same fixed `sliceId`, which throws ("already registered"). The fix: store the **promise itself**, not a post-await flag — `if (!this._modalPromise) this._modalPromise = this._buildModal(); await this._modalPromise;`. Assigning the promise is synchronous (there's no `await` between the check and the assignment), so the second caller sees it already set and just awaits the same in-flight build instead of starting a duplicate one. Applied the same pattern to the lazily-built confirm-dialog `Input` (`_ensureInput()`). This is the general pattern for any lazily-built singleton resource in Slice — the same shape as `ToastProvider._getContainer()`, except that one is synchronous (`document.createElement`, no `await`) so it doesn't need this guard.
 
 ### 18. `element.hidden = true` silently does nothing if ANY author CSS sets that element's `display` unconditionally
 
@@ -178,3 +178,38 @@ Every view and component uses `@media (max-width: 760px)` as the sole breakpoint
 ### 34. `slice:doctor` may require `slice:types generate` first
 
 Running `pnpm run slice:doctor` on a fresh clone (or after a `slice get`/`slice sync`) may fail with type-resolution errors — the doctor validates component props against the generated TypeScript declarations, and those declarations (`src/Types/`) only exist after `pnpm run slice:types` (i.e. `node ./node_modules/slicejs-cli/client.js types generate`). **If doctor fails complaining about missing types, run `pnpm run slice:types generate` first, then re-run doctor.** Doctor doesn't invoke type generation itself — it assumes the declarations already exist. (Confirmed by reading the doctor source: it imports from a generated types module, and the CLI's `doctor` command has no implicit `types generate` step.)
+
+### 35. Never call `slice.router.navigate()` inside `AppShell.init()` — it races with child registration
+
+The Router's `onRouteChange()` (`Router.js:415`) debounces route handling with `setTimeout(..., 10)`. If you call `slice.router.navigate()` during `AppShell.init()` — e.g. to redirect to `/mis-respuestas` after importing from a URL hash — the 10ms timeout can fire **before** `init()` finishes building the shell's children (TopBar, MultiRoute, ProfileBubble). When that happens:
+
+1. The Router looks for an existing `AppShell` via `slice.controller.getComponent('route-AppShell')` — but the first one isn't registered yet (`registerComponent` runs AFTER `init()` returns, in `_build()`).
+2. Finding none, the Router calls `slice.build('AppShell', ...)` to create a **second** AppShell.
+3. The second AppShell's `init()` runs and successfully registers its own children (`appTopbar`, `appContent`, `appProfileBubble`).
+4. The first `init()` resumes and tries to build the same child components with the same `sliceId` values — `verifyComponentIds()` sees them already in `activeComponents` and returns `false`, so `slice.build()` returns `null`.
+5. `this.$content.appendChild(null)` throws `TypeError: Failed to execute 'appendChild' on 'Node': parameter 1 is not of type 'Node'`.
+
+**Symptoms in the console:**
+```
+A component with the same slice id attribute is already registered: appTopbar
+Error registering instance TopBar appTopbar
+A component with the same slice id attribute is already registered: appContent
+Error registering instance MultiRoute appContent
+Error creating instance AppShell TypeError: Failed to execute 'appendChild' on 'Node': parameter 1 is not of type 'Node'.
+```
+
+**Fix:** For navigations that happen during `init()`, avoid the Router's async machinery entirely — use `history.pushState()` to update the URL synchronously, then let `MultiRoute.renderIfCurrentRoute()` (called at the end of `init()`) pick up the new path:
+
+```js
+// DON'T — races with init():
+await slice.router.navigate('/mis-respuestas');
+
+// DO — synchronous URL change, picked up by renderIfCurrentRoute():
+history.pushState(null, '', '/mis-respuestas');
+```
+
+This is safe because `pushState` is synchronous — `window.location.pathname` reflects the new value immediately. The `renderIfCurrentRoute()` call (already present at `AppShell.js:40`) will match the new path and render the correct view.
+
+`slice.router.navigate()` is safe to call AFTER `init()` completes (e.g. from a `confirm:request` callback triggered by a modal button click), because by then the AppShell and all its children are fully built and registered. The Router will find the existing instance and reuse it without creating a duplicate.
+
+Introduced in commit `6137519` (feat: mobile TopBar restructure) which added `slice.router.navigate('/mis-respuestas')` inside `_tryImportPlantilla`'s `proceed()` callback. Previously the data was loaded with no navigation, so no race existed. Commit `5492026` attempted to mitigate the rendering half with `renderIfCurrentRoute()` but didn't fix the duplicate registration.

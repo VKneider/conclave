@@ -17,7 +17,7 @@ export default class ConfirmActionModal extends HTMLElement {
 
   async _buildModal() {
     this.$modal = await slice.build('Modal', {
-      sliceId: 'confirm-action-dialog',
+      sliceId: 'confirmActionDialog',
       dismissable: true,
       onClose: () => this._handleClose(),
     });
@@ -55,7 +55,7 @@ export default class ConfirmActionModal extends HTMLElement {
     this.$inputSpan = document.createElement('span');
     this.$inputLabel.appendChild(this.$inputSpan);
     this.$modal.appendBody(this.$inputLabel);
-    this.$input = await slice.build('Input', { sliceId: 'confirm-action-input' });
+    this.$input = await slice.build('Input', { sliceId: 'confirmActionInput' });
     this.$input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') this._resolve(true);
     });

@@ -41,7 +41,7 @@ export default class TopBar extends HTMLElement {
   }
 
   async init() {
-    const userMenu = await slice.build('UserMenu', { sliceId: 'app-user-menu' });
+    const userMenu = await slice.build('UserMenu', { sliceId: 'appUserMenu' });
     this.$userMenuSlot.appendChild(userMenu);
 
     this.events = slice.events.bind(this);

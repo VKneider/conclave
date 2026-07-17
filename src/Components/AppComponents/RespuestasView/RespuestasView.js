@@ -58,7 +58,7 @@ export default class RespuestasView extends HTMLElement {
     if (this._emptyCmp instanceof Node) this.$emptySlot.appendChild(this._emptyCmp);
 
     this._kindTabsCmp = await slice.build('Tabs', {
-      sliceId: 'av-kind-tabs',
+      sliceId: 'avKindTabs',
       variant: 'primary',
       items: KIND_TABS,
       activeTab: this._activeKind,
@@ -67,7 +67,7 @@ export default class RespuestasView extends HTMLElement {
     if (this._kindTabsCmp instanceof Node) this.$kindTabs.appendChild(this._kindTabsCmp);
 
     this._modeTabsCmp = await slice.build('Tabs', {
-      sliceId: 'av-mode-tabs',
+      sliceId: 'avModeTabs',
       variant: 'secondary',
       items: MODE_TABS,
       activeTab: this._activeMode,
@@ -75,23 +75,23 @@ export default class RespuestasView extends HTMLElement {
     });
     if (this._modeTabsCmp instanceof Node) this.$modeTabs.appendChild(this._modeTabsCmp);
 
-    this._carouselView = await slice.build('MisRespuestasView', { sliceId: 'respuestas-carousel' });
+    this._carouselView = await slice.build('MisRespuestasView', { sliceId: 'respuestasCarousel' });
     if (this._carouselView instanceof Node) this.$carouselSlot.appendChild(this._carouselView);
 
-    this._boardView = await slice.build('PorTemaView', { sliceId: 'respuestas-board' });
+    this._boardView = await slice.build('PorTemaView', { sliceId: 'respuestasBoard' });
     if (this._boardView instanceof Node) this.$boardSlot.appendChild(this._boardView);
 
-    this._votacionView = await slice.build('RespuestasVotacionView', { sliceId: 'respuestas-votacion' });
+    this._votacionView = await slice.build('RespuestasVotacionView', { sliceId: 'respuestasVotacion' });
     if (this._votacionView instanceof Node) this.$votacionSlot.appendChild(this._votacionView);
 
-    this._rankingView = await slice.build('RespuestasRankingView', { sliceId: 'respuestas-ranking' });
+    this._rankingView = await slice.build('RespuestasRankingView', { sliceId: 'respuestasRanking' });
     if (this._rankingView instanceof Node) this.$rankingSlot.appendChild(this._rankingView);
 
-    this._textoView = await slice.build('RespuestasTextoView', { sliceId: 'respuestas-texto' });
+    this._textoView = await slice.build('RespuestasTextoView', { sliceId: 'respuestasTexto' });
     if (this._textoView instanceof Node) this.$textoSlot.appendChild(this._textoView);
 
     this._exportBtn = await slice.build('Button', {
-      sliceId: 'av-export-btn',
+      sliceId: 'avExportBtn',
       value: '📤 Compartir respuestas',
       variant: 'filled',
       onClick: () => this._openExportModal(),
@@ -99,7 +99,7 @@ export default class RespuestasView extends HTMLElement {
     if (this._exportBtn instanceof Node) this.$exportSlot.appendChild(this._exportBtn);
 
     this._nextBtnCmp = await slice.build('Button', {
-      sliceId: 'av-next-btn',
+      sliceId: 'avNextBtn',
       variant: 'filled',
       value: '',
     });
@@ -319,7 +319,7 @@ export default class RespuestasView extends HTMLElement {
   }
 
   _openExportModal() {
-    const modal = slice.getComponent('export-respuestas-modal');
+    const modal = slice.getComponent('exportRespuestasModal');
     if (modal?.show) modal.show();
   }
 }

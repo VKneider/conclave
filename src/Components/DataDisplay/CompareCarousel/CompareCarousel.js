@@ -21,7 +21,7 @@ export default class CompareCarousel extends HTMLElement {
 
     // Built once, unlike everything else here (rebuilt in full on every
     // _render()) — survives filter/data changes without a focus-restore hack.
-    this.$searchInput = await slice.build('Input', { sliceId: 'cc-search', placeholder: 'Buscar…' });
+    this.$searchInput = await slice.build('Input', { sliceId: 'ccSearch', placeholder: 'Buscar…' });
     this.$searchSlot.appendChild(this.$searchInput);
     this.$searchInput.addEventListener('input', () => {
       this._query = this.$searchInput.value;

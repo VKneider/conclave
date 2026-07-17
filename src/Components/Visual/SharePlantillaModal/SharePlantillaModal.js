@@ -13,7 +13,7 @@ export default class SharePlantillaModal extends HTMLElement {
 
   async _buildModal() {
     this.$modal = await slice.build('Modal', {
-      sliceId: 'share-plantilla-dialog',
+      sliceId: 'sharePlantillaDialog',
       title: '📤 Compartir plantilla',
       dismissable: true,
     });

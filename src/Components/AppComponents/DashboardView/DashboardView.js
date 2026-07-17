@@ -157,11 +157,11 @@ export default class DashboardView extends HTMLElement {
     this._els.shareBtnSlot = this.$root.querySelector('[data-el="shareBtnSlot"]');
     if (this._els.shareBtnSlot) {
       const shareBtn = await slice.build('Button', {
-        sliceId: 'dash-share-btn',
+        sliceId: 'dashShareBtn',
         value: '📤 Compartir respuestas',
         variant: 'filled',
         onClick: () => {
-          const modal = slice.getComponent('export-respuestas-modal');
+          const modal = slice.getComponent('exportRespuestasModal');
           if (modal?.show) modal.show();
         },
       });
@@ -210,7 +210,7 @@ export default class DashboardView extends HTMLElement {
     // StatusBadges only for reparto temas (guard the first/rest pattern).
     this._badges = {};
     if (temasReparto.length) {
-      const badgeProps = temasReparto.map((t) => ({ sliceId: `dash-badge-${t.id}`, status: 'empty', label: '' }));
+      const badgeProps = temasReparto.map((t) => ({ sliceId: `dashBadge${t.id}`, status: 'empty', label: '' }));
       const [first, ...rest] = badgeProps;
       const firstBadge = await slice.build('StatusBadge', first);
       const restBadges = await Promise.all(rest.map((p) => slice.build('StatusBadge', p)));
@@ -312,7 +312,7 @@ export default class DashboardView extends HTMLElement {
     const liderId = lider?.opcion ? String(lider.opcion.id) : null;
 
     if (!this._teamModal) {
-      this._teamModal = await slice.build('Modal', { sliceId: 'tema-opciones-modal', dismissable: true });
+      this._teamModal = await slice.build('Modal', { sliceId: 'temaOpcionesModal', dismissable: true });
       this._teamModal.classList.add('tema-opciones-modal');
       this._teamOpcionList = document.createElement('div');
       this._teamOpcionList.className = 'tema-opcion-list';

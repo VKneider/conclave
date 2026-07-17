@@ -13,7 +13,7 @@ export default class ExportRespuestasModal extends HTMLElement {
 
   async _buildModal() {
     this.$modal = await slice.build('Modal', {
-      sliceId: 'export-respuestas-dialog',
+      sliceId: 'exportRespuestasDialog',
       title: '📤 Compartir respuestas',
       dismissable: true,
     });

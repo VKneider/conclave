@@ -98,7 +98,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._opcRows = {};
     this._syncQueues = Object.create(null);
 
-    this.$sharePlantillaBtn.onclick = () => slice.getComponent('share-plantilla-modal').show();
+    this.$sharePlantillaBtn.onclick = () => slice.getComponent('sharePlantillaModal').show();
     this.$importBtn.onclick = () => this.$importFile.click();
     this.$importFile.onchange = (e) => this._handleImportFile(e);
 
@@ -111,10 +111,10 @@ export default class PlantillaBuilderView extends HTMLElement {
     const settings = slice.getComponent('SettingsService');
 
     const [nombreInput, lideresCheckbox, addCatInput, addOpcInput] = await Promise.all([
-      slice.build('Input', { sliceId: 'pb-nombre', placeholder: 'Nombre de la Plantilla' }),
-      slice.build('Checkbox', { sliceId: 'pb-lideres', label: '👑 Habilitar responsables de tema' }),
-      slice.build('Input', { sliceId: 'pb-add-cat', placeholder: 'Nuevo tema… — escribe y presiona Enter' }),
-      slice.build('Input', { sliceId: 'pb-add-opc', placeholder: 'Nueva opción… — escribe y presiona Enter' }),
+      slice.build('Input', { sliceId: 'pbNombre', placeholder: 'Nombre de la Plantilla' }),
+      slice.build('Checkbox', { sliceId: 'pbLideres', label: '👑 Habilitar responsables de tema' }),
+      slice.build('Input', { sliceId: 'pbAddCat', placeholder: 'Nuevo tema… — escribe y presiona Enter' }),
+      slice.build('Input', { sliceId: 'pbAddOpc', placeholder: 'Nueva opción… — escribe y presiona Enter' }),
     ]);
     this.$nombreInput = nombreInput;
     this.$lideresCheckbox = lideresCheckbox;

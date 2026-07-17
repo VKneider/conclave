@@ -74,7 +74,7 @@ use a setter directly; for a list, use reconcile.
 
 ```js
 this._dom.reconcile(this.$list, temas, {
-  keyOf:  (t) => `tema-${t.id}`,          // stable sliceId per item
+  keyOf:  (t) => `tema${t.id}`,          // stable sliceId per item
   component: 'TemaRow',
   props:  (t) => ({ tema: t }),           // item → props bag
   // refresh: (node, p) => node.update(p),// optional: use the child's coordinated update() instead of setComponentProps

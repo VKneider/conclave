@@ -33,20 +33,20 @@ export default class CompareView extends HTMLElement {
     this._html = slice.getComponent('HtmlService');
     this.sources = this._imports.getSources();
 
-    const importDrop = await slice.build('ImportDrop', { sliceId: 'cmp-import' });
+    const importDrop = await slice.build('ImportDrop', { sliceId: 'cmpImport' });
     importDrop.onFiles = (files) => this._handleFiles(files);
     this.querySelector('.cmp-import-slot').appendChild(importDrop);
 
     this._buildUrlImport();
 
-    this._finalTally = await slice.build('FinalTally', { sliceId: 'cmp-finaltally' });
+    this._finalTally = await slice.build('FinalTally', { sliceId: 'cmpFinaltally' });
     this.querySelector('.cmp-finaltally-slot').appendChild(this._finalTally);
 
-    this._carousel = await slice.build('CompareCarousel', { sliceId: 'cmp-carousel' });
+    this._carousel = await slice.build('CompareCarousel', { sliceId: 'cmpCarousel' });
     this.$root.querySelector('.cmp-carousel-mount').appendChild(this._carousel);
 
     this._textCards = await slice.build('TextCompareCards', {
-      sliceId: 'cmp-textcards',
+      sliceId: 'cmpTextcards',
       sources: this._buildComparisonSources(),
     });
     this.$root.querySelector('.cmp-text-mount').appendChild(this._textCards);
@@ -55,12 +55,12 @@ export default class CompareView extends HTMLElement {
     // visible toggles, but both use the same cmpQuery/search behavior) —
     // never regenerated, unlike the table below it, so it survives every
     // keystroke without the focus-loss dance a re-templated <input> needs.
-    this.$searchInput = await slice.build('Input', { sliceId: 'cmp-search', placeholder: 'Buscar…' });
+    this.$searchInput = await slice.build('Input', { sliceId: 'cmpSearch', placeholder: 'Buscar…' });
     this.$root.querySelector('.cmp-search-slot').appendChild(this.$searchInput);
     this.$searchInput.addEventListener('input', () => { this.cmpQuery = this.$searchInput.value; this._render(); });
 
     this._kindTabsCmp = await slice.build('Tabs', {
-      sliceId: 'cmp-kind-tabs',
+      sliceId: 'cmpKindTabs',
       variant: 'primary',
       items: [{ id: 'seleccion', label: '🎯 Asignación' }, { id: 'votacion', label: '🗳️ Votación' }, { id: 'ranking', label: '🏆 Ranking' }, { id: 'texto', label: '📝 Texto libre' }],
       activeTab: this.cmpKind,
@@ -69,7 +69,7 @@ export default class CompareView extends HTMLElement {
     if (this._kindTabsCmp instanceof Node) this.$root.querySelector('.cmp-kind-tabs').appendChild(this._kindTabsCmp);
 
     this._modeTabsCmp = await slice.build('Tabs', {
-      sliceId: 'cmp-mode-tabs',
+      sliceId: 'cmpModeTabs',
       variant: 'secondary',
       items: [{ id: 'table', label: '📋 Tabla' }, { id: 'carousel', label: '🔄 Carrusel' }],
       activeTab: this.cmpMode,
@@ -78,13 +78,13 @@ export default class CompareView extends HTMLElement {
     if (this._modeTabsCmp instanceof Node) this.$root.querySelector('.cmp-mode-tabs').appendChild(this._modeTabsCmp);
 
     this._fsBtn = await slice.build('Button', {
-      sliceId: 'cmp-fs-btn',
+      sliceId: 'cmpFsBtn',
       value: '⛶ Enfocar',
       variant: 'filled',
       onClick: () => {
         this._fullscreen = !this._fullscreen;
         this.$root.classList.toggle('cmp-fullscreen', this._fullscreen);
-        const topbar = slice.getComponent('app-topbar');
+        const topbar = slice.getComponent('appTopbar');
         if (topbar) {
           if (this._fullscreen) topbar.hide();
           else topbar.show();
@@ -97,7 +97,7 @@ export default class CompareView extends HTMLElement {
       if (e.key === 'Escape' && this._fullscreen) {
         this._fullscreen = false;
         this.$root.classList.remove('cmp-fullscreen');
-        const topbar = slice.getComponent('app-topbar');
+        const topbar = slice.getComponent('appTopbar');
         if (topbar) topbar.show();
         this._fsBtn.value = '⛶ Enfocar';
       }
@@ -131,13 +131,13 @@ export default class CompareView extends HTMLElement {
       if (clear) consenso.clearResolutionRanking(clear.dataset.rkClear);
     });
 
-    this._notesModal = await slice.build('CompareNotesModal', { sliceId: 'cmp-notes-modal' });
+    this._notesModal = await slice.build('CompareNotesModal', { sliceId: 'cmpNotesModal' });
     this.$root.appendChild(this._notesModal);
     this._loadTemaNotes();
     this._notesModal.fab?.addEventListener('click', () => this._openNotesModal());
 
     this._anonSwitch = await slice.build('Switch', {
-      sliceId: 'cmp-anon',
+      sliceId: 'cmpAnon',
       label: '👤 Identificado',
       checked: false,
       labelPlacement: 'left',
@@ -233,7 +233,7 @@ export default class CompareView extends HTMLElement {
     Object.values(this._noteTimers).forEach((t) => clearTimeout(t));
     document.body.style.overflow = '';
     if (this._fullscreen) {
-      const topbar = slice.getComponent('app-topbar');
+      const topbar = slice.getComponent('appTopbar');
       if (topbar) topbar.show();
     }
   }

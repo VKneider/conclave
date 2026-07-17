@@ -106,9 +106,9 @@ export default class Providers {
     });
 
     // App-wide visual modals built once here and reused via slice.getComponent.
-    this.$confirmModal = await slice.build('ConfirmActionModal', { sliceId: 'confirm-action-modal' });
-    this.$exportRespuestasModal = await slice.build('ExportRespuestasModal', { sliceId: 'export-respuestas-modal' });
-    this.$sharePlantillaModal = await slice.build('SharePlantillaModal', { sliceId: 'share-plantilla-modal' });
+    this.$confirmModal = await slice.build('ConfirmActionModal', { sliceId: 'confirmActionModal' });
+    this.$exportRespuestasModal = await slice.build('ExportRespuestasModal', { sliceId: 'exportRespuestasModal' });
+    this.$sharePlantillaModal = await slice.build('SharePlantillaModal', { sliceId: 'sharePlantillaModal' });
     document.body.appendChild(this.$confirmModal);
     document.body.appendChild(this.$exportRespuestasModal);
     document.body.appendChild(this.$sharePlantillaModal);

@@ -57,7 +57,7 @@ export default class ResumenFinalView extends HTMLElement {
 
     this.$importFile.addEventListener('change', () => this._handleImportFile());
 
-    this._notesModal = await slice.build('CompareNotesModal', { sliceId: 'rf-notes-modal' });
+    this._notesModal = await slice.build('CompareNotesModal', { sliceId: 'rfNotesModal' });
     this.$root.appendChild(this._notesModal);
     this._loadNotes();
     this._notesModal.fab?.addEventListener('click', () => this._openNotesModal());
@@ -134,7 +134,7 @@ export default class ResumenFinalView extends HTMLElement {
     Object.values(this._noteTimers).forEach((t) => clearTimeout(t));
     document.body.style.overflow = '';
     if (this._fullscreen) {
-      const topbar = slice.getComponent('app-topbar');
+      const topbar = slice.getComponent('appTopbar');
       if (topbar) topbar.show();
     }
   }

@@ -32,7 +32,7 @@
       "enabled": true,
       "defaultTheme": "Light",
       "saveThemeLocally": true,
-      "useBrowserTheme": false
+      "useBrowserTheme": true
    },
    "logger": {
       "enabled": true,
