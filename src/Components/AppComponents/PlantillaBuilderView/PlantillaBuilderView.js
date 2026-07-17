@@ -98,7 +98,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._opcRows = {};
     this._syncQueues = Object.create(null);
 
-    this.$sharePlantillaBtn.onclick = () => slice.getComponent('SharePlantillaModal').show();
+    this.$sharePlantillaBtn.onclick = () => slice.getComponent('share-plantilla-modal').show();
     this.$importBtn.onclick = () => this.$importFile.click();
     this.$importFile.onchange = (e) => this._handleImportFile(e);
 
