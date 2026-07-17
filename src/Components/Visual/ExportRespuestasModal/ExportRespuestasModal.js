@@ -1,9 +1,9 @@
-// Modal with three export/sharing options for respuestas: download JSON,
-// copy share link, send via email. Built lazily on first show(), owns
-// one Modal instance appended to <body> (same pattern as ConfirmActionModal).
-export default class ExportRespuestasModal {
-  async init() {
+export default class ExportRespuestasModal extends HTMLElement {
+  constructor(props) {
+    super();
+    slice.attachTemplate(this);
     this._modalPromise = null;
+    slice.controller.setComponentProps(this, props || {});
   }
 
   async _ensureModal() {
@@ -29,28 +29,28 @@ export default class ExportRespuestasModal {
     actions.className = 'export-modal__actions';
 
     this.$downloadBtn = await slice.build('Button', {
-      value: '\u2B07 Descargar archivo de respuestas',
+      value: '⬇ Descargar archivo de respuestas',
       variant: 'filled',
       onClick: () => { this._close(); slice.getComponent('RespuestasService').exportMineWithPrompt(); }
     });
     this.$downloadBtn.classList.add('export-modal__action');
 
     this.$printBtn = await slice.build('Button', {
-      value: '\uD83D\uDDA8 Imprimir',
+      value: '🖨 Imprimir',
       variant: 'outlined',
       onClick: () => { this._close(); slice.getComponent('RespuestasService').exportPrint(); }
     });
     this.$printBtn.classList.add('export-modal__action');
 
     this.$copyBtn = await slice.build('Button', {
-      value: '\uD83D\uDD17 Copiar enlace',
+      value: '🔗 Copiar enlace',
       variant: 'outlined',
       onClick: () => { this._close(); slice.getComponent('RespuestasService').copyShareLink(); }
     });
     this.$copyBtn.classList.add('export-modal__action');
 
     this.$emailBtn = await slice.build('Button', {
-      value: '\u2709\uFE0F Enviar por correo',
+      value: '✉️ Enviar por correo',
       variant: 'outlined',
       onClick: () => { this._close(); slice.getComponent('RespuestasService').sendShareLinkEmail(); }
     });
@@ -63,7 +63,7 @@ export default class ExportRespuestasModal {
 
     if (typeof navigator.share === 'function') {
       this.$shareBtn = await slice.build('Button', {
-        value: '\uD83D\uDCF1 Compartir',
+        value: '📱 Compartir',
         variant: 'filled',
         onClick: () => { this._close(); this._nativeShare(); }
       });
@@ -74,12 +74,42 @@ export default class ExportRespuestasModal {
     this.$modal.appendBody(actions);
   }
 
+  _setLinkActionsEnabled(enabled, maxLen) {
+    const hint = `Deshabilitado: el enlace supera el límite recomendado (${maxLen} caracteres). Usa archivo.`;
+    const copyBtn = this.$copyBtn?.querySelector('button');
+    const emailBtn = this.$emailBtn?.querySelector('button');
+    const shareBtn = this.$shareBtn?.querySelector('button');
+
+    if (copyBtn) {
+      copyBtn.disabled = !enabled;
+      if (!enabled) copyBtn.title = hint;
+      else copyBtn.removeAttribute('title');
+    }
+    if (emailBtn) {
+      emailBtn.disabled = !enabled;
+      if (!enabled) emailBtn.title = hint;
+      else emailBtn.removeAttribute('title');
+    }
+    if (shareBtn) {
+      shareBtn.disabled = !enabled;
+      if (!enabled) shareBtn.title = hint;
+      else shareBtn.removeAttribute('title');
+    }
+  }
+
   _nativeShare() {
     const rs = slice.getComponent('RespuestasService');
     const settings = slice.getComponent('SettingsService');
     const autor = settings.getState().autor?.trim();
 
     const doShare = (name) => {
+      if (!rs.canShareByLink(name)) {
+        slice.events.emit('toast:show', {
+          message: 'Las respuestas son demasiado largas para compartir por enlace. Exporta archivo.',
+          type: 'warning'
+        });
+        return;
+      }
       const url = rs.getShareLink(name);
       const plantilla = slice.getComponent('PlantillaService');
       const plantillaNombre = plantilla.getNombre() || 'Conclave';
@@ -108,6 +138,10 @@ export default class ExportRespuestasModal {
 
   async show() {
     await this._ensureModal();
+    const rs = slice.getComponent('RespuestasService');
+    const settings = slice.getComponent('SettingsService');
+    const autor = settings.getState().autor?.trim() || '';
+    this._setLinkActionsEnabled(rs.canShareByLink(autor), rs.getShareUrlMaxLength());
     this.$modal.open = true;
   }
 
@@ -115,3 +149,5 @@ export default class ExportRespuestasModal {
     this.$modal.open = false;
   }
 }
+
+customElements.define('slice-exportrespuestasmodal', ExportRespuestasModal);

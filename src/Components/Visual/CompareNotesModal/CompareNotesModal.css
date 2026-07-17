@@ -1,0 +1,43 @@
+slice-comparenotesmodal {
+  display: contents;
+}
+
+slice-comparenotesmodal .cmp-notes-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 998;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--panel-background-color);
+  border: 2.5px solid var(--font-primary-color);
+  box-shadow: var(--box-shadow-primary);
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .1s, box-shadow .1s;
+}
+
+slice-comparenotesmodal .cmp-notes-fab:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--font-primary-color);
+}
+
+slice-comparenotesmodal .cmp-notes-fab:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--font-primary-color);
+}
+
+@media (max-width: 760px) {
+  slice-comparenotesmodal .cmp-notes-fab {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    bottom: 16px;
+    right: 16px;
+  }
+}

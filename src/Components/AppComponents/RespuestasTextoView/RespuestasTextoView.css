@@ -56,10 +56,9 @@ slice-respuestastextoview .rt-fs__close:hover { transform: translate(-1px, -1px)
 slice-respuestastextoview .rt-fs__close:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--font-primary-color); }
 slice-respuestastextoview .rt-fs__editor-slot { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor .enhanced-editor { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor .ee-quill { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor .ql-container { flex: 1; }
-slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor .ql-editor { min-height: 200px; }
+slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor .tp-editor { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor .tp-content { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor .ProseMirror { min-height: 200px; }
 slice-respuestastextoview .rt-fs__foot { min-height: 18px; font-size: 12.5px; font-weight: 700; color: var(--success-color); }
 
 @keyframes rtFsIn { from { opacity: 0; } to { opacity: 1; } }

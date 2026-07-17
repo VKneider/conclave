@@ -1,2 +1,5 @@
 allowBuilds:
+  esbuild: false
   slicejs-cli: true
+minimumReleaseAgeExclude:
+  - slicejs-cli@4.1.0

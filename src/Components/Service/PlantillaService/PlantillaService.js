@@ -1,4 +1,4 @@
-import { SEED_CATEGORIAS, SEED_OPCIONES } from '../../../data/seedData.js';
+import { SEED_CATEGORIAS, SEED_OPCIONES } from '../../../public/data/seedData.js';
 import { ensureContext } from '../../../utils/context.js';
 
 const PALETTE = ['#6d8bff', '#3fb964', '#e2a13a', '#ff7eb6', '#8a6dff', '#42c8c0', '#e25c5c', '#b9c34a', '#f0883e', '#4ec9b0', '#c678dd', '#5aa0ff'];

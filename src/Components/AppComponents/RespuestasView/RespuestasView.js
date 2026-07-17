@@ -94,7 +94,7 @@ export default class RespuestasView extends HTMLElement {
       sliceId: 'av-export-btn',
       value: '📤 Compartir respuestas',
       variant: 'filled',
-      onClick: () => slice.getComponent('ExportRespuestasModal').show(),
+      onClick: () => this._openExportModal(),
     });
     if (this._exportBtn instanceof Node) this.$exportSlot.appendChild(this._exportBtn);
 
@@ -170,7 +170,7 @@ export default class RespuestasView extends HTMLElement {
       this.$nextText.textContent = '¡Todas las secciones están completas! 🎉';
       this._nextBtnCmp.value = 'Todo listo';
       this._nextBtnCmp.$button.disabled = false;
-      this._nextBtnCmp.onClick = () => slice.getComponent('ExportRespuestasModal').show();
+      this._nextBtnCmp.onClick = () => this._openExportModal();
       return;
     }
 
@@ -316,6 +316,11 @@ export default class RespuestasView extends HTMLElement {
     if (showVotacion) this._votacionView?.update();
     if (showRanking) this._rankingView?.update();
     if (showTexto) this._textoView?.update();
+  }
+
+  _openExportModal() {
+    const modal = slice.getComponent('export-respuestas-modal');
+    if (modal?.show) modal.show();
   }
 }
 

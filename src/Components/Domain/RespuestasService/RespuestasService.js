@@ -10,6 +10,7 @@
 // defensive ensure is needed (replaces the old utils/context.js pattern).
 const CONTEXT = 'respuestas';
 const STORAGE_KEY = 'conclave-respuestas-v1';
+const SHARE_URL_MAX_LENGTH = 3800;
 // seleccion: reparto (pool → temas). texto: texto_libre answers. voto:
 // votacion (one opción per tema). ranking: ordered opciones per tema. Returning
 // users predate voto/ranking (GOTCHAS §20) — every read/write defaults them, so
@@ -19,6 +20,55 @@ const INITIAL_STATE = { seleccion: {}, texto: {}, voto: {}, ranking: {} };
 export default class RespuestasService {
   init() {
     slice.getComponent('StoreService').ensure(CONTEXT, INITIAL_STATE, STORAGE_KEY);
+    this._normalizeAgainstPlantilla();
+    slice.context.watch('plantilla', this, () => this._normalizeAgainstPlantilla());
+  }
+
+  _normalizeAgainstPlantilla() {
+    const plantilla = slice.getComponent('PlantillaService');
+    const prev = this.getState() || INITIAL_STATE;
+
+    const seleccion = Object.fromEntries(
+      Object.entries(prev.seleccion || {}).filter(([opcionId, temaId]) => {
+        const tema = plantilla.getTemaById(temaId);
+        const opcion = plantilla.getOpcionById(opcionId);
+        return !!(tema && tema.modo === 'reparto' && opcion && opcion.temaId == null);
+      })
+    );
+
+    const texto = Object.fromEntries(
+      Object.entries(prev.texto || {}).filter(([temaId, value]) => {
+        const tema = plantilla.getTemaById(temaId);
+        return !!(tema && tema.modo === 'texto_libre' && String(value || '').trim());
+      })
+    );
+
+    const voto = Object.fromEntries(
+      Object.entries(prev.voto || {}).filter(([temaId, opcionId]) => {
+        const tema = plantilla.getTemaById(temaId);
+        const opcion = plantilla.getOpcionById(opcionId);
+        return !!(tema && tema.modo === 'votacion' && opcion && String(opcion.temaId) === String(temaId));
+      })
+    );
+
+    const ranking = Object.fromEntries(
+      Object.entries(prev.ranking || {}).map(([temaId, ids]) => {
+        const tema = plantilla.getTemaById(temaId);
+        if (!tema || tema.modo !== 'ranking') return [temaId, []];
+        const filtered = (Array.isArray(ids) ? ids : []).filter((id) => {
+          const opcion = plantilla.getOpcionById(id);
+          return opcion && String(opcion.temaId) === String(temaId);
+        });
+        return [temaId, filtered];
+      }).filter(([, ids]) => ids.length > 0)
+    );
+
+    const changed = JSON.stringify(prev.seleccion || {}) !== JSON.stringify(seleccion)
+      || JSON.stringify(prev.texto || {}) !== JSON.stringify(texto)
+      || JSON.stringify(prev.voto || {}) !== JSON.stringify(voto)
+      || JSON.stringify(prev.ranking || {}) !== JSON.stringify(ranking);
+
+    if (changed) slice.context.setState(CONTEXT, () => ({ seleccion, texto, voto, ranking }));
   }
 
   getState() {
@@ -121,12 +171,28 @@ export default class RespuestasService {
   }
 
   // Generates a compressed share URL for the current respuestas.
-  getShareLink(autor) {
+  _buildSharePayload(autor) {
     const respuestas = this.getState();
     const email = slice.getComponent('SettingsService').getEmail();
-    const packed = slice.getComponent('CompressionService').packForURI({ tipo: 'respuestas', autor: autor || '', email, respuestas });
+    return { tipo: 'respuestas', autor: autor || '', email, respuestas };
+  }
+
+  getShareLink(autor) {
+    const packed = slice.getComponent('CompressionService').packForURI(this._buildSharePayload(autor));
     const compressed = slice.getComponent('CompressionService').compressToURI(packed);
     return `${window.location.origin}${window.location.pathname}#respuestas=${compressed}`;
+  }
+
+  getShareUrlLength(autor) {
+    return this.getShareLink(autor).length;
+  }
+
+  canShareByLink(autor) {
+    return this.getShareUrlLength(autor) <= SHARE_URL_MAX_LENGTH;
+  }
+
+  getShareUrlMaxLength() {
+    return SHARE_URL_MAX_LENGTH;
   }
 
   // Copies the share URL to clipboard, prompting for name if missing.
@@ -135,6 +201,13 @@ export default class RespuestasService {
     const autor = settings.getState().autor?.trim();
 
     const doCopy = (name) => {
+      if (!this.canShareByLink(name)) {
+        slice.events.emit('toast:show', {
+          message: 'Las respuestas son demasiado largas para compartir por enlace. Exporta archivo.',
+          type: 'warning'
+        });
+        return;
+      }
       const url = this.getShareLink(name);
       navigator.clipboard.writeText(url).then(() => {
         slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
@@ -166,6 +239,13 @@ export default class RespuestasService {
     const autor = settings.getState().autor?.trim();
 
     const doSend = (name) => {
+      if (!this.canShareByLink(name)) {
+        slice.events.emit('toast:show', {
+          message: 'Las respuestas son demasiado largas para compartir por enlace. Exporta archivo.',
+          type: 'warning'
+        });
+        return;
+      }
       const url = this.getShareLink(name);
       const plantilla = slice.getComponent('PlantillaService');
       const plantillaNombre = plantilla.getNombre() || 'Conclave';
@@ -270,13 +350,13 @@ export default class RespuestasService {
       var texto = state.texto || {};
       var tCards = textoTemas.map(function (tema) {
         var entry = texto[tema.id];
-        return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body">' + (entry ? '<p class="quote">' + h.esc(entry) + '</p>' : '<span class="empty">Sin responder</span>') + '</div></div>';
+        return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body">' + (entry ? '<div class="quote tp-render">' + h.sanitize(entry) + '</div>' : '<span class="empty">Sin responder</span>') + '</div></div>';
       }).join('');
       lines.push('<div class="cards">' + tCards + '</div>');
     }
 
     var bodyHtml = lines.join('\n');
-    var html = '<!DOCTYPE html>\n<html lang="es">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>Mis respuestas \u2014 Conclave</title>\n<style>\n*,*::before,*::after{box-sizing:border-box}\nbody{font-family:\'Segoe UI\',system-ui,-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:40px 24px;color:#1a1a1a;background:#fff;line-height:1.6;-webkit-font-smoothing:antialiased}\nh1{font-size:24px;margin:0 0 2px}\n.meta{color:#666;font-size:14px;margin:0 0 32px}\nh2{font-size:18px;font-weight:700;margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid #e85d4a}\ntable{width:100%;border-collapse:collapse;margin-bottom:20px}\nth,td{text-align:left;padding:8px 12px;border-bottom:1px solid #e0e0e0}\nth{font-weight:700;text-transform:uppercase;font-size:11px;color:#888;letter-spacing:.04em}\n.cards{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}\n.card{background:#f7f7f7;border-radius:10px;padding:14px 18px;break-inside:avoid}\n.card h3{margin:0 0 4px;font-size:15px;font-weight:700}\n.card-body{font-size:14px;color:#333}\n.empty{color:#aaa;font-style:italic;font-size:13px}\n.rank-list{list-style:none;padding:0;margin:6px 0 0}\n.rank-item{display:flex;align-items:center;gap:8px;padding:4px 0}\n.rank-pos{display:inline-flex;width:24px;height:24px;border-radius:50%;background:#e85d4a;color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}\n.quote{background:#f0f0f0;padding:12px 16px;border-left:4px solid #e85d4a;border-radius:6px;margin:4px 0 0;white-space:pre-wrap}\n@media print{body{margin:0;padding:16px}h2{break-after:avoid}}\n</style>\n</head>\n<body>\n<h1>' + h.esc(autor) + '</h1>\n<p class="meta">Generado el ' + h.esc(date) + '</p>\n' + bodyHtml + '\n</body>\n</html>';
+    var html = '<!DOCTYPE html>\n<html lang="es">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>Mis respuestas \u2014 Conclave</title>\n<style>\n*,*::before,*::after{box-sizing:border-box}\nbody{font-family:\'Segoe UI\',system-ui,-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:40px 24px;color:#1a1a1a;background:#fff;line-height:1.6;-webkit-font-smoothing:antialiased}\nh1{font-size:24px;margin:0 0 2px}\n.meta{color:#666;font-size:14px;margin:0 0 32px}\nh2{font-size:18px;font-weight:700;margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid #e85d4a}\ntable{width:100%;border-collapse:collapse;margin-bottom:20px}\nth,td{text-align:left;padding:8px 12px;border-bottom:1px solid #e0e0e0}\nth{font-weight:700;text-transform:uppercase;font-size:11px;color:#888;letter-spacing:.04em}\n.cards{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}\n.card{background:#f7f7f7;border-radius:10px;padding:14px 18px;break-inside:avoid}\n.card h3{margin:0 0 4px;font-size:15px;font-weight:700}\n.card-body{font-size:14px;color:#333}\n.empty{color:#aaa;font-style:italic;font-size:13px}\n.rank-list{list-style:none;padding:0;margin:6px 0 0}\n.rank-item{display:flex;align-items:center;gap:8px;padding:4px 0}\n.rank-pos{display:inline-flex;width:24px;height:24px;border-radius:50%;background:#e85d4a;color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}\n.quote{background:#f0f0f0;padding:12px 16px;border-left:4px solid #e85d4a;border-radius:6px;margin:4px 0 0}\n.tp-render p{margin:0 0 6px}\n.tp-render p:last-child{margin:0}\n.tp-render ul,.tp-render ol{margin:4px 0;padding-left:1.5em}\n.tp-render li{margin-bottom:2px}\n@media print{body{margin:0;padding:16px}h2{break-after:avoid}}\n</style>\n</head>\n<body>\n<h1>' + h.esc(autor) + '</h1>\n<p class="meta">Generado el ' + h.esc(date) + '</p>\n' + bodyHtml + '\n</body>\n</html>';
 
     var iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:0';

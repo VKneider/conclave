@@ -142,8 +142,6 @@ export default class RespuestasTextoView extends HTMLElement {
         onblur: () => this._saveFs(),
       });
       this._fsEditor.style.minHeight = '40vh';
-      const mount = this._fsEditor.querySelector('[data-ee-quill]');
-      if (mount) mount.classList.add('ee-quill--fullscreen');
       this.$fsEditorSlot.appendChild(this._fsEditor);
     }
 

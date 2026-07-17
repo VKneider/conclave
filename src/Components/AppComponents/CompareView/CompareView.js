@@ -19,7 +19,11 @@ export default class CompareView extends HTMLElement {
     this.cmpKind = 'seleccion';
     this._anonMode = false;
     this._revealedSources = new Set();
-    this._STORE_KEY = 'conclave-notas-v1';
+    this._STORE_KEY = 'conclave-notas-por-tema-v1';
+    this._notesByTema = {};
+    this._noteTimers = {};
+    this._activeTemaByKind = {};
+    this._noteContext = null;
     slice.controller.setComponentProps(this, props);
   }
 
@@ -80,18 +84,25 @@ export default class CompareView extends HTMLElement {
       onClick: () => {
         this._fullscreen = !this._fullscreen;
         this.$root.classList.toggle('cmp-fullscreen', this._fullscreen);
+        const topbar = slice.getComponent('app-topbar');
+        if (topbar) {
+          if (this._fullscreen) topbar.hide();
+          else topbar.show();
+        }
         this._fsBtn.value = this._fullscreen ? '✕ Salir' : '⛶ Enfocar';
       },
     });
     this.$root.querySelector('.cmp-fs-slot').appendChild(this._fsBtn);
-    this._onFsKeydown = (e) => {
+    this._boundEsc = (e) => {
       if (e.key === 'Escape' && this._fullscreen) {
         this._fullscreen = false;
         this.$root.classList.remove('cmp-fullscreen');
+        const topbar = slice.getComponent('app-topbar');
+        if (topbar) topbar.show();
         this._fsBtn.value = '⛶ Enfocar';
       }
     };
-    document.addEventListener('keydown', this._onFsKeydown);
+    document.addEventListener('keydown', this._boundEsc);
 
     // Votación comparison: pick/clear the final decision per tema (delegated on
     // the mount so it survives the innerHTML repaints of _renderVotacion).
@@ -120,7 +131,10 @@ export default class CompareView extends HTMLElement {
       if (clear) consenso.clearResolutionRanking(clear.dataset.rkClear);
     });
 
-    await this._initNotes();
+    this._notesModal = await slice.build('CompareNotesModal', { sliceId: 'cmp-notes-modal' });
+    this.$root.appendChild(this._notesModal);
+    this._loadTemaNotes();
+    this._notesModal.fab?.addEventListener('click', () => this._openNotesModal());
 
     this._anonSwitch = await slice.build('Switch', {
       sliceId: 'cmp-anon',
@@ -182,59 +196,122 @@ export default class CompareView extends HTMLElement {
     return this._anonLabels[srcAutor] || srcAutor;
   }
 
-  async _initNotes() {
-    this.$notesFab = this.$root.querySelector('[data-notes-fab]');
-    this.$notesOverlay = this.$root.querySelector('[data-notes-overlay]');
-    this.$notesEditorSlot = this.$root.querySelector('[data-notes-editor]');
-    this.$notesEditor = await slice.build('EnhancedEditor', {
-      placeholder: 'Escribí tus observaciones, acuerdos o dudas a medida que comparás las respuestas…',
-    });
-    this.$notesEditorSlot.appendChild(this.$notesEditor);
-    this.$notesStatus = this.$root.querySelector('.cmp-notes-foot > span');
-    this.$notesClose = this.$root.querySelector('[data-notes-close]');
+  _countSourceAnswers(src) {
+    const plantilla = this._roster;
+    const respuestas = src || {};
 
-    const saved = localStorage.getItem(this._STORE_KEY);
-    if (saved) this.$notesEditor.value = saved;
+    const seleccion = Object.entries(respuestas.asignaciones || {}).filter(([opcionId, temaId]) =>
+      !!(plantilla.getOpcionById(opcionId) && plantilla.getTemaById(temaId))
+    ).length;
 
-    this.$notesFab.addEventListener('click', () => {
-      this.$notesOverlay.hidden = false;
-      this.$notesEditor.focus();
-      this.$notesEditor.setSelectionRange(this.$notesEditor.value.length, this.$notesEditor.value.length);
-      document.body.style.overflow = 'hidden';
-    });
+    const voto = Object.entries(respuestas.voto || {}).filter(([temaId, opcionId]) => {
+      const tema = plantilla.getTemaById(temaId);
+      const opcion = plantilla.getOpcionById(opcionId);
+      return !!(tema && tema.modo === 'votacion' && opcion && String(opcion.temaId) === String(temaId));
+    }).length;
 
-    this._closeNotes = () => {
-      this.$notesOverlay.hidden = true;
-      document.body.style.overflow = '';
-      this._saveNotes();
-    };
-    this.$notesClose.addEventListener('click', this._closeNotes);
-    this.$notesOverlay.addEventListener('click', (e) => { if (e.target === this.$notesOverlay) this._closeNotes(); });
+    const texto = Object.entries(respuestas.texto || {}).filter(([temaId, value]) => {
+      const tema = plantilla.getTemaById(temaId);
+      return !!(tema && tema.modo === 'texto_libre' && String(value || '').trim());
+    }).length;
 
-    this._notesTimer = null;
-    this.$notesEditor.oninput = () => {
-      this.$notesStatus.textContent = 'Guardando…';
-      clearTimeout(this._notesTimer);
-      this._notesTimer = setTimeout(() => this._saveNotes(), 400);
-    };
-    this.$notesEditor.onblur = () => this._saveNotes();
-    this._onNotesKeydown = (e) => {
-      if (e.key === 'Escape' && !this.$notesOverlay.hidden) { e.preventDefault(); this._closeNotes(); }
-    };
-    document.addEventListener('keydown', this._onNotesKeydown);
+    const ranking = Object.entries(respuestas.ranking || {}).filter(([temaId, ids]) => {
+      const tema = plantilla.getTemaById(temaId);
+      if (!tema || tema.modo !== 'ranking') return false;
+      const ordered = (Array.isArray(ids) ? ids : []).filter((id) => {
+        const op = plantilla.getOpcionById(id);
+        return op && String(op.temaId) === String(temaId);
+      });
+      return ordered.length > 0;
+    }).length;
+
+    return seleccion + voto + texto + ranking;
   }
 
   beforeDestroy() {
-    document.removeEventListener('keydown', this._onNotesKeydown);
-    document.removeEventListener('keydown', this._onFsKeydown);
-    clearTimeout(this._notesTimer);
+    document.removeEventListener('keydown', this._boundEsc);
+    Object.values(this._noteTimers).forEach((t) => clearTimeout(t));
     document.body.style.overflow = '';
+    if (this._fullscreen) {
+      const topbar = slice.getComponent('app-topbar');
+      if (topbar) topbar.show();
+    }
   }
 
-  _saveNotes() {
-    localStorage.setItem(this._STORE_KEY, this.$notesEditor.value);
-    this.$notesStatus.textContent = '✓ Guardado';
-    setTimeout(() => { if (!this.$notesOverlay.hidden) this.$notesStatus.textContent = ''; }, 1500);
+  _loadTemaNotes() {
+    try {
+      const raw = localStorage.getItem(this._STORE_KEY);
+      this._notesByTema = raw ? (JSON.parse(raw) || {}) : {};
+    } catch {
+      this._notesByTema = {};
+    }
+  }
+
+  _persistTemaNotes() {
+    localStorage.setItem(this._STORE_KEY, JSON.stringify(this._notesByTema));
+  }
+
+  _setTemaNoteStatus(temaId, text) {
+    this._notesModal?.setStatus?.(temaId, text);
+  }
+
+  _saveTemaNote(temaId, immediate = false) {
+    if (this._noteTimers[temaId]) clearTimeout(this._noteTimers[temaId]);
+    const run = () => {
+      this._persistTemaNotes();
+      this._setTemaNoteStatus(temaId, '✓ Guardado');
+      setTimeout(() => this._setTemaNoteStatus(temaId, ''), 1200);
+    };
+    if (immediate) run();
+    else this._noteTimers[temaId] = setTimeout(run, 350);
+  }
+
+  async _openNotesModal() {
+    if (!this._noteContext) return;
+    await this._notesModal.show({
+      title: this._noteContext.modalTitle,
+      temas: this._noteContext.temas,
+      notesByTema: this._notesByTema,
+      currentTemaId: this._activeTemaByKind[this._noteContext.kind],
+      onTemaChange: (temaId) => {
+        this._activeTemaByKind[this._noteContext.kind] = temaId;
+      },
+      onInput: (temaId, value) => {
+        this._notesByTema[temaId] = value;
+        this._setTemaNoteStatus(temaId, 'Guardando...');
+        this._saveTemaNote(temaId);
+      },
+      onBlur: (temaId, value) => {
+        this._notesByTema[temaId] = value;
+        this._saveTemaNote(temaId, true);
+      },
+    });
+  }
+
+  _setNotesContext({ kind, temas, modalTitle }) {
+    this._noteContext = { kind, temas, modalTitle };
+    let activeTemaId = this._activeTemaByKind[kind];
+    if (!temas.some((t) => String(t.id) === String(activeTemaId))) activeTemaId = temas[0]?.id || null;
+    if (activeTemaId != null) this._activeTemaByKind[kind] = activeTemaId;
+  }
+
+  _temaNotesContextFor(kind) {
+    const q = this.cmpQuery?.toLowerCase().trim();
+    if (kind === 'votacion') {
+      const temas = this._roster.getTemasVotacion().filter((t) => !q || t.nombre.toLowerCase().includes(q));
+      return { kind, temas, modalTitle: '📝 Notas de votación' };
+    }
+    if (kind === 'ranking') {
+      const temas = this._roster.getTemasRanking().filter((t) => !q || t.nombre.toLowerCase().includes(q));
+      return { kind, temas, modalTitle: '📝 Notas de ranking' };
+    }
+    if (kind === 'texto') {
+      const temas = this._roster.getTemasTexto().filter((t) => !q || t.nombre.toLowerCase().includes(q));
+      return { kind, temas, modalTitle: '📝 Notas de texto libre' };
+    }
+    const all = this._roster.getTemasParticipables();
+    const temas = this.cmpService ? all.filter((t) => String(t.id) === String(this.cmpService)) : all;
+    return { kind, temas, modalTitle: '📝 Notas de asignación' };
   }
 
   _buildRows(all) {
@@ -449,6 +526,7 @@ export default class CompareView extends HTMLElement {
       this.$root.querySelector('.cmp-ranking-mount').hidden = true;
       this.$root.querySelector('.cmp-votacion-mount').hidden = false;
       this._renderVotacion(all);
+      this._setNotesContext(this._temaNotesContextFor('votacion'));
       return;
     }
     this.$root.querySelector('.cmp-votacion-mount').hidden = true;
@@ -464,6 +542,7 @@ export default class CompareView extends HTMLElement {
       this.$root.querySelector('.cmp-finaltally-slot').hidden = true;
       this.$root.querySelector('.cmp-ranking-mount').hidden = false;
       this._renderRanking(all);
+      this._setNotesContext(this._temaNotesContextFor('ranking'));
       return;
     }
     this.$root.querySelector('.cmp-ranking-mount').hidden = true;
@@ -481,11 +560,13 @@ export default class CompareView extends HTMLElement {
         ...src,
         autorLabel: this._displayName(src.autor),
       }));
+      this._setNotesContext(this._temaNotesContextFor('texto'));
       return;
     }
     this.$root.querySelector('.cmp-mode-tabs').hidden = false;
     this.$root.querySelector('.cmp-text-mount').hidden = true;
     if (this._modeTabsCmp) this._modeTabsCmp.activeTab = this.cmpMode;
+    this._setNotesContext(this._temaNotesContextFor('seleccion'));
 
     if (all.length < 2) {
       this.$root.querySelector('.cmp-search-slot').hidden = true;
@@ -521,9 +602,7 @@ export default class CompareView extends HTMLElement {
     const container = this.$root.querySelector('.source-list');
     if (!container) return;
     container.innerHTML = this._html.sanitize(all.map((src) => {
-      const count = Object.values(src.asignaciones).filter(Boolean).length
-        + Object.keys(src.voto || {}).length
-        + Object.keys(src.texto || {}).length;
+      const count = this._countSourceAnswers(src);
       const display = this._displayName(src.autor);
       const revealAttr = this._anonMode && !this._revealedSources.has(src.autor)
         ? ` data-reveal="${this._html.esc(src.autor)}" title="Revelar identidad" style="cursor:pointer"`

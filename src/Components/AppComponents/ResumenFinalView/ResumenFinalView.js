@@ -6,8 +6,13 @@ export default class ResumenFinalView extends HTMLElement {
     this.$content = this.querySelector('#resumenContent');
     this.$exportHtmlSlot = this.querySelector('#exportHtmlBtnSlot');
     this.$exportPrintBtnSlot = this.querySelector('#exportPrintBtnSlot');
+    this.$includeNotesCheckboxSlot = this.querySelector('#includeNotesCheckboxSlot');
     this.$jsonDropDownSlot = this.querySelector('#jsonDropDownSlot');
     this.$importFile = this.querySelector('#importJsonFile');
+    this._STORE_KEY = 'conclave-notas-por-tema-v1';
+    this._notesByTema = {};
+    this._noteTimers = {};
+    this._activeTemaId = null;
     slice.controller.setComponentProps(this, props);
   }
 
@@ -19,16 +24,26 @@ export default class ResumenFinalView extends HTMLElement {
     this.$exportHtml = await slice.build('Button', {
       value: 'Descargar HTML',
       variant: 'filled',
-      onClick: () => this._consenso.exportHtml()
+      onClick: () => this._consenso.exportHtml({ includeNotes: this._includeNotes, notesByTema: this._notesByTema })
     });
     this.$exportHtmlSlot.replaceWith(this.$exportHtml);
 
     this.$exportPrint = await slice.build('Button', {
       value: '\uD83D\uDDA8 Imprimir',
       variant: 'filled',
-      onClick: () => this._consenso.exportPrint()
+      onClick: () => this._consenso.exportPrint({ includeNotes: this._includeNotes, notesByTema: this._notesByTema })
     });
     this.$exportPrintBtnSlot.replaceWith(this.$exportPrint);
+
+    this.$includeNotesCheckbox = await slice.build('Checkbox', {
+      label: 'Incluir notas',
+      checked: true,
+    });
+    this.$includeNotes = true;
+    this.$includeNotesCheckbox.addEventListener('change', (e) => {
+      this._includeNotes = !!e.target.checked;
+    });
+    this.$includeNotesCheckboxSlot.replaceWith(this.$includeNotesCheckbox);
 
     this.$jsonDropDown = await slice.build('DropDown', {
       sliceId: 'jsonDropDown',
@@ -42,7 +57,10 @@ export default class ResumenFinalView extends HTMLElement {
 
     this.$importFile.addEventListener('change', () => this._handleImportFile());
 
-    this._initNotes();
+    this._notesModal = await slice.build('CompareNotesModal', { sliceId: 'rf-notes-modal' });
+    this.$root.appendChild(this._notesModal);
+    this._loadNotes();
+    this._notesModal.fab?.addEventListener('click', () => this._openNotesModal());
 
     slice.context.watch('decisionFinal', this, () => this._render());
     slice.context.watch('plantilla', this, () => this._render());
@@ -51,54 +69,74 @@ export default class ResumenFinalView extends HTMLElement {
 
   update() { this._render(); }
 
-  _initNotes() {
-    const STORE_KEY = 'conclave-notas-v1';
-    this.$notesFab = this.$root.querySelector('[data-notes-fab]');
-    this.$notesOverlay = this.$root.querySelector('[data-notes-overlay]');
-    this.$notesTextarea = this.$root.querySelector('[data-notes-textarea]');
-    this.$notesStatus = this.$root.querySelector('.rf-notes-foot > span');
-    this.$notesClose = this.$root.querySelector('[data-notes-close]');
-
-    const saved = localStorage.getItem(STORE_KEY);
-    if (saved) this.$notesTextarea.value = saved;
-
-    this.$notesFab.addEventListener('click', () => {
-      this.$notesOverlay.hidden = false;
-      this.$notesTextarea.focus();
-      this.$notesTextarea.setSelectionRange(this.$notesTextarea.value.length, this.$notesTextarea.value.length);
-      document.body.style.overflow = 'hidden';
-    });
-
-    this._closeNotes = () => {
-      this.$notesOverlay.hidden = true;
-      document.body.style.overflow = '';
-      this._saveNotes();
-    };
-    this.$notesClose.addEventListener('click', this._closeNotes);
-    this.$notesOverlay.addEventListener('click', (e) => { if (e.target === this.$notesOverlay) this._closeNotes(); });
-
-    this._notesTimer = null;
-    this.$notesTextarea.addEventListener('input', () => {
-      this.$notesStatus.textContent = 'Guardando…';
-      clearTimeout(this._notesTimer);
-      this._notesTimer = setTimeout(() => this._saveNotes(), 400);
-    });
-    this._onNotesKeydown = (e) => {
-      if (e.key === 'Escape' && !this.$notesOverlay.hidden) { e.preventDefault(); this._closeNotes(); }
-    };
-    document.addEventListener('keydown', this._onNotesKeydown);
+  _loadNotes() {
+    const raw = localStorage.getItem(this._STORE_KEY);
+    if (!raw) {
+      const legacy = localStorage.getItem('conclave-notas-v1');
+      if (legacy) this._notesByTema = { __global__: legacy };
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        this._notesByTema = parsed;
+        return;
+      }
+    } catch {
+      this._notesByTema = {};
+    }
+    this._notesByTema = { __global__: raw };
   }
 
-  _saveNotes() {
-    localStorage.setItem('conclave-notas-v1', this.$notesTextarea.value);
-    this.$notesStatus.textContent = '✓ Guardado';
-    setTimeout(() => { if (!this.$notesOverlay.hidden) this.$notesStatus.textContent = ''; }, 1500);
+  _setNoteStatus(temaId, text) {
+    this._notesModal?.setStatus?.(temaId, text);
+  }
+
+  _saveNote(temaId, immediate = false) {
+    if (this._noteTimers[temaId]) clearTimeout(this._noteTimers[temaId]);
+    const run = () => {
+      localStorage.setItem(this._STORE_KEY, JSON.stringify(this._notesByTema));
+      this._setNoteStatus(temaId, '✓ Guardado');
+      setTimeout(() => this._setNoteStatus(temaId, ''), 1200);
+    };
+    if (immediate) run();
+    else this._noteTimers[temaId] = setTimeout(run, 350);
+  }
+
+  _noteTemas() {
+    const temas = this._roster.getTemas();
+    if (!temas.length) return [{ id: '__global__', nombre: 'Notas generales' }];
+    return [{ id: '__global__', nombre: 'Notas generales' }, ...temas];
+  }
+
+  async _openNotesModal() {
+    const temas = this._noteTemas();
+    if (!temas.some((t) => String(t.id) === String(this._activeTemaId))) this._activeTemaId = temas[0].id;
+    await this._notesModal.show({
+      title: '📝 Notas del resumen',
+      temas,
+      notesByTema: this._notesByTema,
+      currentTemaId: this._activeTemaId,
+      onTemaChange: (temaId) => { this._activeTemaId = temaId; },
+      onInput: (temaId, value) => {
+        this._notesByTema[temaId] = value;
+        this._setNoteStatus(temaId, 'Guardando...');
+        this._saveNote(temaId);
+      },
+      onBlur: (temaId, value) => {
+        this._notesByTema[temaId] = value;
+        this._saveNote(temaId, true);
+      },
+    });
   }
 
   beforeDestroy() {
-    document.removeEventListener('keydown', this._onNotesKeydown);
-    clearTimeout(this._notesTimer);
+    Object.values(this._noteTimers).forEach((t) => clearTimeout(t));
     document.body.style.overflow = '';
+    if (this._fullscreen) {
+      const topbar = slice.getComponent('app-topbar');
+      if (topbar) topbar.show();
+    }
   }
 
   _handleImportFile() {
@@ -199,7 +237,7 @@ export default class ResumenFinalView extends HTMLElement {
 
     const cards = textoTemas.map((tema) => {
       const entry = texto[tema.id];
-      return '<div class="rf-card"><div class="rf-card__title">' + this._html.esc(tema.nombre) + '</div>' + (entry?.texto ? '<div class="rf-card__body"><p class="rf-quote">' + this._html.esc(entry.texto) + '<span class="rf-quote__autor">\u2014 ' + this._html.esc(entry.autor || '') + '</span></p></div>' : '<div class="rf-card__body rf-empty">Sin texto adoptado</div>') + '</div>';
+      return '<div class="rf-card"><div class="rf-card__title">' + this._html.esc(tema.nombre) + '</div>' + (entry?.texto ? '<div class="rf-card__body"><div class="rf-quote tp-render">' + this._html.sanitize(entry.texto) + '<span class="rf-quote__autor">\u2014 ' + this._html.esc(entry.autor || '') + '</span></div></div>' : '<div class="rf-card__body rf-empty">Sin texto adoptado</div>') + '</div>';
     }).join('');
 
     return '<div class="rf-section"><h3 class="rf-section__title">Texto libre</h3><div class="rf-card-list">' + cards + '</div></div>';

@@ -1,4 +1,4 @@
-import { PRESETS } from '../../../data/presets.js';
+import { PRESETS } from '../../../public/data/presets.js';
 
 // Replaces HelpView's CSV/JSON textarea with real visual CRUD for
 // Temas/Opciones — the "SETUP now lives entirely in the UI, no files
@@ -96,6 +96,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._catFilter = 'all';
     this._catRows = {};
     this._opcRows = {};
+    this._syncQueues = Object.create(null);
 
     this.$sharePlantillaBtn.onclick = () => slice.getComponent('SharePlantillaModal').show();
     this.$importBtn.onclick = () => this.$importFile.click();
@@ -391,38 +392,86 @@ export default class PlantillaBuilderView extends HTMLElement {
   // detects literal names, so variable-based `slice.build(componentName, ...)`
   // can exclude rows from route bundles (see GOTCHAS.md §5).
   async _syncRows(registry, items, container, componentName, applyItem) {
-    const currentIds = new Set(items.map((it) => String(it.id)));
-    Object.keys(registry).forEach((id) => {
-      if (!currentIds.has(id)) {
-        slice.controller.destroyComponent(registry[id]);
-        delete registry[id];
+    const queueKey = container?.id || componentName;
+    const run = async () => {
+      const rowSliceId = (it) => `${this.sliceId}-${container.id}-${it.id}`;
+
+      const findExistingNode = (sliceId) => {
+        if (!container || !sliceId) return null;
+        return container.querySelector(`[slice-id="${sliceId}"]`)
+          || container.querySelector(`[sliceid="${sliceId}"]`)
+          || container.querySelector(`[data-slice-id="${sliceId}"]`);
+      };
+
+      const currentIds = new Set(items.map((it) => String(it.id)));
+      Object.keys(registry).forEach((id) => {
+        if (!currentIds.has(id)) {
+          slice.controller.destroyComponent(registry[id]);
+          delete registry[id];
+        }
+      });
+
+      items.forEach((it) => {
+        const id = String(it.id);
+        if (registry[id]) return;
+        const existing = findExistingNode(rowSliceId(it));
+        if (existing) registry[id] = existing;
+      });
+
+      const toBuild = items.filter((it) => !registry[String(it.id)]);
+      if (toBuild.length) {
+        const [first, ...rest] = toBuild;
+        const registerBuilt = (row, id) => {
+          if (!(row instanceof Node)) return;
+          registry[String(id)] = row;
+        };
+
+        if (componentName === 'TemaRow') {
+          const firstSid = rowSliceId(first);
+          const firstRow = await slice.build('TemaRow', { sliceId: firstSid }).catch(() => findExistingNode(firstSid));
+          const restRows = await Promise.all(rest.map((it) => {
+            const sid = rowSliceId(it);
+            return slice.build('TemaRow', { sliceId: sid }).catch(() => findExistingNode(sid));
+          }));
+          [firstRow, ...restRows].forEach((row, i) => registerBuilt(row, toBuild[i].id));
+        } else if (componentName === 'OpcionRow') {
+          const firstSid = rowSliceId(first);
+          const firstRow = await slice.build('OpcionRow', { sliceId: firstSid }).catch(() => findExistingNode(firstSid));
+          const restRows = await Promise.all(rest.map((it) => {
+            const sid = rowSliceId(it);
+            return slice.build('OpcionRow', { sliceId: sid }).catch(() => findExistingNode(sid));
+          }));
+          [firstRow, ...restRows].forEach((row, i) => registerBuilt(row, toBuild[i].id));
+        } else {
+          const firstSid = rowSliceId(first);
+          const firstRow = await slice.build(componentName, { sliceId: firstSid }).catch(() => findExistingNode(firstSid));
+          const restRows = await Promise.all(rest.map((it) => {
+            const sid = rowSliceId(it);
+            return slice.build(componentName, { sliceId: sid }).catch(() => findExistingNode(sid));
+          }));
+          [firstRow, ...restRows].forEach((row, i) => registerBuilt(row, toBuild[i].id));
+        }
       }
-    });
 
-    const toBuild = items.filter((it) => !registry[String(it.id)]);
-    if (toBuild.length) {
-      const [first, ...rest] = toBuild;
+      items.forEach((it) => {
+        const row = registry[String(it.id)];
+        if (!row) return;
+        applyItem(row, it);
+      });
 
-      if (componentName === 'TemaRow') {
-        const firstRow = await slice.build('TemaRow', { sliceId: `${container.id}-${first.id}` });
-        const restRows = await Promise.all(rest.map((it) => slice.build('TemaRow', { sliceId: `${container.id}-${it.id}` })));
-        [firstRow, ...restRows].forEach((row, i) => { registry[String(toBuild[i].id)] = row; });
-      } else if (componentName === 'OpcionRow') {
-        const firstRow = await slice.build('OpcionRow', { sliceId: `${container.id}-${first.id}` });
-        const restRows = await Promise.all(rest.map((it) => slice.build('OpcionRow', { sliceId: `${container.id}-${it.id}` })));
-        [firstRow, ...restRows].forEach((row, i) => { registry[String(toBuild[i].id)] = row; });
-      } else {
-        const firstRow = await slice.build(componentName, { sliceId: `${container.id}-${first.id}` });
-        const restRows = await Promise.all(rest.map((it) => slice.build(componentName, { sliceId: `${container.id}-${it.id}` })));
-        [firstRow, ...restRows].forEach((row, i) => { registry[String(toBuild[i].id)] = row; });
-      }
-    }
+      // Reorder to match the current item order (covers newly-added rows,
+      // which build() appended at the end regardless of where they belong).
+      items.forEach((it) => {
+        const row = registry[String(it.id)];
+        if (row instanceof Node) container.appendChild(row);
+      });
+    };
 
-    items.forEach((it) => applyItem(registry[String(it.id)], it));
-
-    // Reorder to match the current item order (covers newly-added rows,
-    // which build() appended at the end regardless of where they belong).
-    items.forEach((it) => container.appendChild(registry[String(it.id)]));
+    const pending = this._syncQueues[queueKey] || Promise.resolve();
+    const current = pending.then(run, run);
+    this._syncQueues[queueKey] = current;
+    await current;
+    if (this._syncQueues[queueKey] === current) delete this._syncQueues[queueKey];
   }
 
   // Same JSON-shape/id validation + impact-count confirm as CompareView's

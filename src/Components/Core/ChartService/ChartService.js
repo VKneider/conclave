@@ -1,15 +1,8 @@
-// Encapsulates the vendored Chart.js UMD bundle (src/libs/chartjs) so
-// consumers never import the library directly — same shape as
-// SanitizeService wrapping DOMPurify. The UMD build's only job here is to
-// register `window.Chart` as a side effect; we grab it once at module load
-// and hand out a small, Chart.js-shaped-but-swappable API instead.
-import '../../../libs/chartjs/chart.umd.js';
-
-const ChartLib = typeof window !== 'undefined' ? window.Chart : null;
+import Chart from 'chart.js/auto';
 
 export default class ChartService {
   isAvailable() {
-    return !!ChartLib;
+    return !!Chart;
   }
 
   // Reads a CSS custom property's resolved value off <html> — Chart.js draws
@@ -20,11 +13,7 @@ export default class ChartService {
   }
 
   create(canvas, config) {
-    if (!ChartLib) {
-      slice.logger?.logWarn?.('ChartService', 'Chart.js failed to load — chart not created.');
-      return null;
-    }
-    return new ChartLib(canvas, config);
+    return new Chart(canvas, config);
   }
 
   destroy(chart) {

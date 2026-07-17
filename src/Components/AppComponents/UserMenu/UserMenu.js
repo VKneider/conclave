@@ -58,7 +58,11 @@ export default class UserMenu extends HTMLElement {
     this.$shareBtn = await slice.build('Button', {
       value: '\uD83D\uDCE4 Compartir respuestas',
       variant: 'ghost',
-      onClick: () => { slice.getComponent('ExportRespuestasModal').show(); this._setOpen(false); }
+      onClick: () => {
+        const modal = slice.getComponent('export-respuestas-modal');
+        if (modal?.show) modal.show();
+        this._setOpen(false);
+      }
     });
     if (this.$shareBtn instanceof Node) { this._children.push(this.$shareBtn); }
 

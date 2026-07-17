@@ -160,7 +160,10 @@ export default class DashboardView extends HTMLElement {
         sliceId: 'dash-share-btn',
         value: '📤 Compartir respuestas',
         variant: 'filled',
-        onClick: () => slice.getComponent('ExportRespuestasModal').show(),
+        onClick: () => {
+          const modal = slice.getComponent('export-respuestas-modal');
+          if (modal?.show) modal.show();
+        },
       });
       if (shareBtn instanceof Node) this._els.shareBtnSlot.appendChild(shareBtn);
     }

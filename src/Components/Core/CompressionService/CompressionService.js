@@ -1,4 +1,4 @@
-import LZString from '../../../libs/lz-string/lz-string.js';
+import LZString from 'lz-string';
 
 const FULL_TO_SHORT = {
   tipo: 't', nombre: 'n', email: 'e',

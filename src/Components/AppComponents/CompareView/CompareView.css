@@ -195,58 +195,6 @@ slice-compareview .cmp-rk-final {
 slice-compareview .cmp-rk-final--suggested { color: var(--font-secondary-color); }
 slice-compareview .cmp-rk-final--none { color: var(--font-secondary-color); font-weight: 600; }
 
-/* ── Notas floating button + overlay ── */
-slice-compareview .cmp-notes-fab {
-  position: fixed; bottom: 24px; right: 24px; z-index: 998;
-  width: 52px; height: 52px; border-radius: 50%;
-  background: var(--panel-background-color); border: 2.5px solid var(--font-primary-color);
-  box-shadow: var(--box-shadow-primary); cursor: pointer; font-size: 22px; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform .1s, box-shadow .1s;
-}
-slice-compareview .cmp-notes-fab:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--font-primary-color); }
-slice-compareview .cmp-notes-fab:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--font-primary-color); }
-slice-compareview .cmp-notes-overlay {
-  position: fixed; inset: 0; z-index: 1000;
-  background: color-mix(in srgb, var(--font-primary-color) 55%, transparent);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
-}
-slice-compareview .cmp-notes-overlay[hidden] { display: none; }
-slice-compareview .cmp-notes-panel {
-  width: 100%; max-width: 640px; max-height: 80vh;
-  display: flex; flex-direction: column; gap: 14px;
-  background: var(--panel-background-color); border: 3px solid var(--font-primary-color);
-  border-radius: var(--card-border-radius); box-shadow: var(--box-shadow-primary);
-  padding: 22px 24px;
-}
-slice-compareview .cmp-notes-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-slice-compareview .cmp-notes-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0; }
-slice-compareview .cmp-notes-close {
-  border: 2px solid var(--font-primary-color); background: var(--panel-background-color);
-  color: var(--font-primary-color); cursor: pointer; font-size: 16px; font-weight: 700;
-  padding: 6px 14px; border-radius: 999px; box-shadow: 2px 2px 0 var(--font-primary-color);
-  transition: transform .08s, box-shadow .08s;
-}
-slice-compareview .cmp-notes-close:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
-slice-compareview .cmp-notes-close:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--font-primary-color); }
-slice-compareview .cmp-notes-editor {
-  flex: 1; display: flex; flex-direction: column; min-height: 200px;
-}
-slice-compareview .cmp-notes-editor slice-enhancededitor {
-  flex: 1; display: flex; flex-direction: column;
-}
-slice-compareview .cmp-notes-editor .enhanced-editor {
-  flex: 1; display: flex; flex-direction: column;
-}
-slice-compareview .cmp-notes-editor .ee-quill {
-  flex: 1; display: flex; flex-direction: column;
-}
-slice-compareview .cmp-notes-editor .ql-container {
-  flex: 1;
-}
-slice-compareview .cmp-notes-foot { min-height: 18px; font-size: 12px; font-weight: 700; color: var(--success-color); }
-
 /* ── Anonymous mode ── */
 slice-compareview .source-tag--anon { border-style: dashed; }
 slice-compareview .source-tag--anon:hover { border-style: solid; }
@@ -266,10 +214,10 @@ slice-compareview .compare-view.cmp-fullscreen .cmp-kind-tabs,
 slice-compareview .compare-view.cmp-fullscreen .cmp-mode-tabs,
 slice-compareview .compare-view.cmp-fullscreen .cmp-search-slot,
 slice-compareview .compare-view.cmp-fullscreen .cmp-final-heading,
-slice-compareview .compare-view.cmp-fullscreen .cmp-finaltally-slot,
-slice-compareview .compare-view.cmp-fullscreen .cmp-notes-fab {
+slice-compareview .compare-view.cmp-fullscreen .cmp-finaltally-slot {
   display: none !important;
 }
+
 slice-compareview .compare-view.cmp-fullscreen { padding-top: 44px; }
 slice-compareview .compare-view.cmp-fullscreen .cmp-fs-slot { display: block; }
 slice-compareview .compare-view.cmp-fullscreen .cmp-dynamic,
@@ -278,8 +226,3 @@ slice-compareview .compare-view.cmp-fullscreen .cmp-text-mount,
 slice-compareview .compare-view.cmp-fullscreen .cmp-votacion-mount,
 slice-compareview .compare-view.cmp-fullscreen .cmp-ranking-mount { min-height: calc(100vh - 160px); }
 
-@media (max-width: 760px) {
-  slice-compareview .cmp-notes-fab { width: 44px; height: 44px; font-size: 18px; bottom: 16px; right: 16px; }
-  slice-compareview .cmp-notes-panel { padding: 16px; }
-  slice-compareview .cmp-notes-editor { min-height: 30vh; }
-}

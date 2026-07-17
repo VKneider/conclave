@@ -46,7 +46,7 @@ slice-textcomparecards .tcc-read {
 slice-textcomparecards .tcc-read:hover { border-color: var(--font-primary-color); color: var(--font-primary-color); }
 slice-textcomparecards .tcc-text {
   font-family: var(--font-body); font-size: 17px; line-height: 1.6; color: var(--font-primary-color);
-  margin: 0; white-space: pre-wrap; word-break: break-word; flex: 1;
+  margin: 0; word-break: break-word; flex: 1;
 }
 slice-textcomparecards .tcc-pick { align-self: flex-start; font-size: 12.5px; }
 
@@ -73,9 +73,13 @@ slice-textcomparecards .tcc-fs__close {
 }
 slice-textcomparecards .tcc-fs__close:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
 slice-textcomparecards .tcc-fs__text {
-  flex: 1; overflow-y: auto; margin: 0; white-space: pre-wrap; word-break: break-word;
+  flex: 1; overflow-y: auto; margin: 0; word-break: break-word;
   font-size: 17px; line-height: 1.75; color: var(--font-primary-color);
 }
+slice-textcomparecards .tp-render p { margin: 0 0 8px; }
+slice-textcomparecards .tp-render p:last-child { margin: 0; }
+slice-textcomparecards .tp-render ul, slice-textcomparecards .tp-render ol { margin: 4px 0; padding-left: 1.5em; }
+slice-textcomparecards .tp-render li { margin-bottom: 2px; }
 
 @media (max-width: 760px) {
   slice-textcomparecards .tcc-grid { grid-template-columns: 1fr; gap: 12px; }

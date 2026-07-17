@@ -169,18 +169,18 @@ export default class ConsensoService {
 
   // ── HTML / PDF export ──────────────────────────────────────
 
-  exportHtml() {
-    const html = this._buildExportDoc();
+  exportHtml(options = {}) {
+    const html = this._buildExportDoc(options);
     slice.getComponent('FileDownloadService').download('resumen_final.html', html, 'text/html');
   }
 
-  exportPdf() {
-    const html = this._buildExportDoc();
+  exportPdf(options = {}) {
+    const html = this._buildExportDoc(options);
     slice.getComponent('FileDownloadService').download('resumen_final.html', html, 'text/html');
   }
 
-  exportPrint() {
-    const html = this._buildExportDoc();
+  exportPrint(options = {}) {
+    const html = this._buildExportDoc(options);
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:0';
     document.body.appendChild(iframe);
@@ -195,21 +195,83 @@ export default class ConsensoService {
     }, 200);
   }
 
-  _buildExportDoc() {
+  _buildExportDoc(options = {}) {
     const roster = slice.getComponent('PlantillaService');
     const h = slice.getComponent('HtmlService');
     const temas = roster.getTemas();
     const state = this.getState();
+    const includeNotes = options.includeNotes === true;
+    const notesByTema = options.notesByTema && typeof options.notesByTema === 'object' ? options.notesByTema : null;
     const date = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    const parts = [];
-    parts.push(this._buildReparto(temas, state, roster, h));
-    parts.push(this._buildVotacion(temas, state, roster, h));
-    parts.push(this._buildRanking(temas, state, roster, h));
-    parts.push(this._buildTexto(temas, state, roster, h));
+    const parts = [
+      this._buildReparto(temas, state, roster, h),
+      this._buildVotacion(temas, state, roster, h),
+      this._buildRanking(temas, state, roster, h),
+      this._buildTexto(temas, state, roster, h),
+      includeNotes && notesByTema ? this._buildNotasAdicionales(temas, notesByTema, h) : '',
+    ];
     const bodyHtml = parts.filter(Boolean).join('\n');
 
-    return '<!DOCTYPE html>\n<html lang="es">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>Resumen del consenso final \u2014 Conclave</title>\n<style>\n*,*::before,*::after{box-sizing:border-box}\nbody{font-family:\'Segoe UI\',system-ui,-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:40px 24px;color:#1a1a1a;background:#fff;line-height:1.6;-webkit-font-smoothing:antialiased}\nh1{font-size:28px;margin:0 0 4px}\n.meta{color:#666;font-size:14px;margin:0 0 36px}\nh2{font-size:20px;font-weight:700;margin:32px 0 16px;padding-bottom:8px;border-bottom:3px solid #e85d4a}\ntable{width:100%;border-collapse:collapse;margin-bottom:24px}\nth,td{text-align:left;padding:10px 14px;border-bottom:1px solid #e0e0e0}\nth{font-weight:700;text-transform:uppercase;font-size:11px;color:#888;letter-spacing:.04em}\n.cards{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}\n.card{background:#f7f7f7;border-radius:12px;padding:16px 20px}\n.card h3{margin:0 0 6px;font-size:16px;font-weight:700}\n.card-body{font-size:14px;color:#333}\n.card-body.empty{color:#aaa;font-style:italic}\n.rank-list{list-style:none;padding:0;margin:8px 0 0}\n.rank-item{display:flex;align-items:center;gap:10px;padding:6px 0}\n.rank-pos{display:inline-flex;width:26px;height:26px;border-radius:50%;background:#e85d4a;color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}\n.quote{font-style:italic;background:#f0f0f0;padding:14px 18px;border-left:4px solid #e85d4a;border-radius:8px;margin:6px 0 0;white-space:pre-wrap}\n.quote-autor{font-size:12px;color:#888;font-weight:600;font-style:normal;margin-top:8px;display:block}\n.empty{color:#aaa;font-style:italic;font-size:14px}\n@media print{body{margin:0;padding:20px}h2{break-after:avoid}.card{break-inside:avoid}}\n</style>\n</head>\n<body>\n<h1>Resumen del consenso final</h1>\n<p class="meta">Generado el ' + h.esc(date) + ' por Conclave</p>\n' + bodyHtml + '\n</body>\n</html>';
+    return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Resumen del consenso final - Conclave</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:40px 24px;color:#1a1a1a;background:#fff;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1{font-size:28px;margin:0 0 4px}
+.meta{color:#666;font-size:14px;margin:0 0 36px}
+h2{font-size:20px;font-weight:700;margin:32px 0 16px;padding-bottom:8px;border-bottom:3px solid #e85d4a}
+table{width:100%;border-collapse:collapse;margin-bottom:24px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid #e0e0e0}
+th{font-weight:700;text-transform:uppercase;font-size:11px;color:#888;letter-spacing:.04em}
+.cards{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.card{background:#f7f7f7;border-radius:12px;padding:16px 20px}
+.card h3{margin:0 0 6px;font-size:16px;font-weight:700}
+.card-body{font-size:14px;color:#333}
+.card-body.empty{color:#aaa;font-style:italic}
+.rank-list{list-style:none;padding:0;margin:8px 0 0}
+.rank-item{display:flex;align-items:center;gap:10px;padding:6px 0}
+.rank-pos{display:inline-flex;width:26px;height:26px;border-radius:50%;background:#e85d4a;color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.quote{font-style:italic;background:#f0f0f0;padding:14px 18px;border-left:4px solid #e85d4a;border-radius:8px;margin:6px 0 0}
+.tp-render p{margin:0 0 6px}
+.tp-render p:last-child{margin:0}
+.tp-render ul,.tp-render ol{margin:4px 0;padding-left:1.5em}
+.tp-render li{margin-bottom:2px}
+.quote-autor{font-size:12px;color:#888;font-weight:600;font-style:normal;margin-top:8px;display:block}
+.notes-list{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.note-item{background:#f7f7f7;border-radius:12px;padding:14px 18px}
+.note-title{margin:0 0 6px;font-size:14px;font-weight:700}
+.note-text{white-space:pre-wrap;color:#333}
+.empty{color:#aaa;font-style:italic;font-size:14px}
+@page{size:auto}
+@media print{body{margin:0;padding:20px;max-width:none}h2{break-after:avoid}.card,.note-item{break-inside:avoid}.rank-item{break-inside:avoid}}
+</style>
+</head>
+<body>
+<h1>Resumen del consenso final</h1>
+<p class="meta">Generado el ${h.esc(date)}</p>
+${bodyHtml}
+</body>
+</html>`;
+  }
+
+  _buildNotasAdicionales(temas, notesByTema, h) {
+    const blocks = [];
+    const globalNote = String(notesByTema.__global__ || '').trim();
+    if (globalNote) {
+      blocks.push('<div class="note-item"><h3 class="note-title">Notas generales</h3><div class="note-text">' + h.esc(globalNote) + '</div></div>');
+    }
+    (temas || []).forEach(function (t) {
+      const text = String(notesByTema[t.id] || '').trim();
+      if (!text) return;
+      blocks.push('<div class="note-item"><h3 class="note-title">' + h.esc(t.nombre) + '</h3><div class="note-text">' + h.esc(text) + '</div></div>');
+    });
+    if (!blocks.length) return '';
+    return '<h2>Notas adicionales</h2><div class="notes-list">' + blocks.join('') + '</div>';
   }
 
   _buildReparto(temas, state, roster, h) {
@@ -217,7 +279,7 @@ export default class ConsensoService {
     if (!repartoTemas.length) return '';
     const sel = state.seleccion || {};
     const opcionesConTema = Object.entries(sel).filter(function (entry) { return repartoTemas.some(function (t) { return t.id === entry[1]; }); });
-    if (!opcionesConTema.length) return '<h2>Asignaciones</h2><p class="empty">No hay decisiones finales de asignaci\u00f3n.</p>';
+    if (!opcionesConTema.length) return '<h2>Asignaciones</h2><p class="empty">No hay decisiones finales de asignación.</p>';
 
     const rows = opcionesConTema.map(function (entry) {
       var opcion = roster.getOpcionById(entry[0]);
@@ -266,7 +328,7 @@ export default class ConsensoService {
 
     var cards = textoTemas.map(function (tema) {
       var entry = texto[tema.id];
-      return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body">' + (entry && entry.texto ? '<blockquote class="quote">' + h.esc(entry.texto) + '<span class="quote-autor">\u2014 ' + h.esc(entry.autor || '') + '</span></blockquote>' : '<span class="empty">Sin texto adoptado</span>') + '</div></div>';
+      return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body">' + (entry && entry.texto ? '<div class="quote tp-render">' + h.sanitize(entry.texto) + '<span class="quote-autor">— ' + h.esc(entry.autor || '') + '</span></div>' : '<span class="empty">Sin texto adoptado</span>') + '</div></div>';
     }).join('');
     return '<h2>Texto libre</h2><div class="cards">' + cards + '</div>';
   }

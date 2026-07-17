@@ -43,7 +43,7 @@ export default class TextCompareCards extends HTMLElement {
 
   _openFs(autor, texto) {
     this.$fsAutor.textContent = autor;
-    this.$fsText.textContent = texto;
+    this.$fsText.innerHTML = this._html.sanitize(texto);
     this.$fs.hidden = false;
     document.body.style.overflow = 'hidden';
     this.$fsClose.focus();
@@ -112,7 +112,7 @@ export default class TextCompareCards extends HTMLElement {
               ${isFinal ? '<span class="tcc-final-tag">Elegida</span>' : ''}
               <button class="tcc-read" type="button" data-tccread="${esc(s.autor)}" title="Leer en pantalla completa">⛶</button>
             </div>
-            <p class="tcc-text">${esc(texto)}</p>
+            <div class="tcc-text tp-render">${this._html.sanitize(texto)}</div>
             <button class="btn btn-sm tcc-pick" data-tccpick="${esc(s.autor)}">${isFinal ? '✓ Elegida' : 'Marcar como elegida'}</button>
           </div>`;
         }).join('')}</div>`;

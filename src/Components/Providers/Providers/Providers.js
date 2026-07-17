@@ -105,13 +105,13 @@ export default class Providers {
       toasts.show(payload.message, { type: payload.type, duration: payload.duration });
     });
 
-    // Owns one Modal instance for the whole app; any component can request
-    // a confirmation by emitting 'confirm:request' — see ConfirmActionModal.js.
-    await slice.build('ConfirmActionModal', { singleton: true });
-
-    // Export modal with three sharing options (download JSON, copy link, email).
-    await slice.build('ExportRespuestasModal', { singleton: true });
-    await slice.build('SharePlantillaModal', { singleton: true });
+    // App-wide visual modals built once here and reused via slice.getComponent.
+    this.$confirmModal = await slice.build('ConfirmActionModal', { sliceId: 'confirm-action-modal' });
+    this.$exportRespuestasModal = await slice.build('ExportRespuestasModal', { sliceId: 'export-respuestas-modal' });
+    this.$sharePlantillaModal = await slice.build('SharePlantillaModal', { sliceId: 'share-plantilla-modal' });
+    document.body.appendChild(this.$confirmModal);
+    document.body.appendChild(this.$exportRespuestasModal);
+    document.body.appendChild(this.$sharePlantillaModal);
 
     this._ready = true;
     return this;

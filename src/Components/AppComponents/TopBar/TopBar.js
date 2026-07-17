@@ -65,6 +65,14 @@ export default class TopBar extends HTMLElement {
     });
   }
 
+  hide() {
+    this.$topbar.style.display = 'none';
+  }
+
+  show() {
+    this.$topbar.style.display = '';
+  }
+
   _renderBrandSub(name) {
     this.$sub.textContent = name || 'Configura el nombre de tu Plantilla en Plantilla';
   }

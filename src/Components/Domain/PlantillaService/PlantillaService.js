@@ -1,8 +1,9 @@
-import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../data/seedData.js';
+import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../public/data/seedData.js';
 
 const PALETTE = ['#6d8bff', '#3fb964', '#e2a13a', '#ff7eb6', '#8a6dff', '#42c8c0', '#e25c5c', '#b9c34a', '#f0883e', '#4ec9b0', '#c678dd', '#5aa0ff'];
 const CONTEXT = 'plantilla';
 const STORAGE_KEY = 'conclave-plantilla-v1';
+const SHARE_URL_MAX_LENGTH = 3800;
 const SEED_STATE = { nombre: 'Mi Plantilla', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES, creadoPor: '', creadoEmail: '' };
 
 // Owns the `plantilla` context: { nombre, temas, opciones } — the
@@ -18,12 +19,9 @@ export default class PlantillaService {
     this._ensure();
   }
 
-  // Creates the context on first boot and falls back to seed data if
-  // whatever was persisted is missing/empty — mirrors what the old
-  // RosterService._loadFromStorage() did by hand. Only runs the
-  // empty/invalid check right after creation, never on later reads, so
-  // deliberately emptying temas/opciones via the CRUD (Fase B) doesn't
-  // get silently re-seeded.
+  // Creates the context on first boot and falls back to seed data only if
+  // persisted data is structurally invalid. An intentionally empty Plantilla
+  // (temas/opciones = []) is valid and must survive reloads.
   _ensure() {
     const existed = slice.context.has(CONTEXT);
     slice.getComponent('StoreService').ensure(CONTEXT, SEED_STATE, STORAGE_KEY);
@@ -37,8 +35,7 @@ export default class PlantillaService {
     // (guarded by !existed).
     this._migrate();
     const state = slice.context.getState(CONTEXT);
-    const invalid = !state || !Array.isArray(state.temas) || !Array.isArray(state.opciones)
-      || !state.temas.length || !state.opciones.length;
+    const invalid = !state || !Array.isArray(state.temas) || !Array.isArray(state.opciones);
     if (invalid) {
       slice.context.setState(CONTEXT, () => SEED_STATE);
     }
@@ -99,9 +96,9 @@ export default class PlantillaService {
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, nombre: nombre || '' }));
   }
 
-  getShareLink() {
+  _buildSharePayload() {
     const settings = slice.getComponent('SettingsService');
-    const packed = slice.getComponent('CompressionService').packForURI({
+    return {
       tipo: 'plantilla',
       nombre: this.getNombre() || 'Plantilla sin nombre',
       autor: settings.getState().autor || '',
@@ -109,12 +106,35 @@ export default class PlantillaService {
       atributos: this.getAtributos(),
       temas: this.getTemas(),
       opciones: this.getOpciones(),
-    });
+    };
+  }
+
+  getShareLink() {
+    const packed = slice.getComponent('CompressionService').packForURI(this._buildSharePayload());
     const compressed = slice.getComponent('CompressionService').compressToURI(packed);
     return `${window.location.origin}${window.location.pathname}#plantilla=${compressed}`;
   }
 
+  getShareUrlLength() {
+    return this.getShareLink().length;
+  }
+
+  canShareByLink() {
+    return this.getShareUrlLength() <= SHARE_URL_MAX_LENGTH;
+  }
+
+  getShareUrlMaxLength() {
+    return SHARE_URL_MAX_LENGTH;
+  }
+
   copyShareLink() {
+    if (!this.canShareByLink()) {
+      slice.events.emit('toast:show', {
+        message: 'La plantilla es demasiado grande para compartir por enlace. Exporta archivo.',
+        type: 'warning'
+      });
+      return;
+    }
     const url = this.getShareLink();
     navigator.clipboard.writeText(url).then(() => {
       slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });

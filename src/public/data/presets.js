@@ -78,6 +78,20 @@ const PRESETS = [
       ],
     },
   },
+  {
+    id: 'retro', icon: '🔁', nombre: 'Retrospectiva + plan de acción',
+    descripcion: 'Espacio de escucha para revisar el período y definir próximos pasos, solo con preguntas abiertas.',
+    plantilla: {
+      nombre: 'Revisión del período', atributos: [],
+      temas: [
+        tema('periodo-ideas', '¿Qué ideas, metas o proyectos proponen para el próximo período?', 'texto_libre', { numero: 1, orden: 1 }),
+        tema('periodo-pendiente', '¿Qué se había planificado en la última reunión pero quedó sin hacer?', 'texto_libre', { numero: 2, orden: 2 }),
+        tema('periodo-mejora', '¿Qué no funcionó como esperaban o se podría mejorar?', 'texto_libre', { numero: 3, orden: 3 }),
+        tema('periodo-logros', '¿Qué logros concretos tuvimos en estos últimos 3 meses?', 'texto_libre', { numero: 4, orden: 4 }),
+      ],
+      opciones: [],
+    },
+  },
 ];
 
 export { PRESETS };

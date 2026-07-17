@@ -1,4 +1,4 @@
-import domPurify from '../../../libs/DOMpurify/purify.es.mjs';
+import domPurify from 'dompurify';
 
 // Safe-HTML helpers for views — the fusion of the old FormatService (esc) and
 // SanitizeService (DOMPurify) into one core service, so a view caches ONE

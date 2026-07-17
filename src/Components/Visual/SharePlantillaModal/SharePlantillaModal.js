@@ -1,8 +1,9 @@
-// Modal with three sharing options for a Plantilla: download JSON,
-// copy share link, send via email. Built lazily on first show().
-export default class SharePlantillaModal {
-  async init() {
+export default class SharePlantillaModal extends HTMLElement {
+  constructor(props) {
+    super();
+    slice.attachTemplate(this);
     this._modalPromise = null;
+    slice.controller.setComponentProps(this, props || {});
   }
 
   async _ensureModal() {
@@ -28,28 +29,28 @@ export default class SharePlantillaModal {
     actions.className = 'export-modal__actions';
 
     this.$downloadBtn = await slice.build('Button', {
-      value: '\u2B07 Descargar archivo de plantilla',
+      value: '⬇ Descargar archivo de plantilla',
       variant: 'filled',
       onClick: () => { this._close(); this._exportPlantilla(); }
     });
     this.$downloadBtn.classList.add('export-modal__action');
 
     this.$printBtn = await slice.build('Button', {
-      value: '\uD83D\uDDA8 Imprimir',
+      value: '🖨 Imprimir',
       variant: 'outlined',
       onClick: () => { this._close(); this._printPlantilla(); }
     });
     this.$printBtn.classList.add('export-modal__action');
 
     this.$copyBtn = await slice.build('Button', {
-      value: '\uD83D\uDD17 Copiar enlace',
+      value: '🔗 Copiar enlace',
       variant: 'outlined',
       onClick: () => { this._close(); slice.getComponent('PlantillaService').copyShareLink(); }
     });
     this.$copyBtn.classList.add('export-modal__action');
 
     this.$emailBtn = await slice.build('Button', {
-      value: '\u2709\uFE0F Enviar por correo',
+      value: '✉️ Enviar por correo',
       variant: 'outlined',
       onClick: () => { this._close(); this._sendEmail(); }
     });
@@ -62,7 +63,7 @@ export default class SharePlantillaModal {
 
     if (typeof navigator.share === 'function') {
       this.$shareBtn = await slice.build('Button', {
-        value: '\uD83D\uDCF1 Compartir',
+        value: '📱 Compartir',
         variant: 'filled',
         onClick: () => { this._close(); this._nativeShare(); }
       });
@@ -73,8 +74,38 @@ export default class SharePlantillaModal {
     this.$modal.appendBody(actions);
   }
 
+  _setLinkActionsEnabled(enabled, maxLen) {
+    const hint = `Deshabilitado: el enlace supera el límite recomendado (${maxLen} caracteres). Usa archivo.`;
+    const copyBtn = this.$copyBtn?.querySelector('button');
+    const emailBtn = this.$emailBtn?.querySelector('button');
+    const shareBtn = this.$shareBtn?.querySelector('button');
+
+    if (copyBtn) {
+      copyBtn.disabled = !enabled;
+      if (!enabled) copyBtn.title = hint;
+      else copyBtn.removeAttribute('title');
+    }
+    if (emailBtn) {
+      emailBtn.disabled = !enabled;
+      if (!enabled) emailBtn.title = hint;
+      else emailBtn.removeAttribute('title');
+    }
+    if (shareBtn) {
+      shareBtn.disabled = !enabled;
+      if (!enabled) shareBtn.title = hint;
+      else shareBtn.removeAttribute('title');
+    }
+  }
+
   _nativeShare() {
     const p = slice.getComponent('PlantillaService');
+    if (!p.canShareByLink()) {
+      slice.events.emit('toast:show', {
+        message: 'La plantilla es demasiado grande para compartir por enlace. Exporta archivo.',
+        type: 'warning'
+      });
+      return;
+    }
     const nombre = p.getNombre() || 'Plantilla';
     const url = p.getShareLink();
     navigator.share({
@@ -109,7 +140,7 @@ export default class SharePlantillaModal {
     var lines = ['<h2>Temas</h2>'];
     if (temas.length) {
       var temaRows = temas.map(function (t) {
-        var modoLabel = t.modo === 'reparto' ? 'Asignaci\u00f3n' : t.modo === 'votacion' ? 'Votaci\u00f3n' : t.modo === 'ranking' ? 'Ranking' : 'Texto libre';
+        var modoLabel = t.modo === 'reparto' ? 'Asignación' : t.modo === 'votacion' ? 'Votación' : t.modo === 'ranking' ? 'Ranking' : 'Texto libre';
         return '<tr><td>' + h.esc(t.nombre) + '</td><td>' + modoLabel + '</td></tr>';
       }).join('');
       lines.push('<table><thead><tr><th>Tema</th><th>Modo</th></tr></thead><tbody>' + temaRows + '</tbody></table>');
@@ -124,13 +155,13 @@ export default class SharePlantillaModal {
         var temaNombre = tema ? h.esc(tema.nombre) : 'Pool general';
         return '<tr><td>' + h.esc(op.nombre) + '</td><td>' + temaNombre + '</td></tr>';
       }).join('');
-      lines.push('<table><thead><tr><th>Opci\u00f3n</th><th>Tema</th></tr></thead><tbody>' + opRows + '</tbody></table>');
+      lines.push('<table><thead><tr><th>Opción</th><th>Tema</th></tr></thead><tbody>' + opRows + '</tbody></table>');
     } else {
       lines.push('<p class="empty">Sin opciones</p>');
     }
 
     var bodyHtml = lines.join('\n');
-    var html = '<!DOCTYPE html>\n<html lang="es">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>' + h.esc(nombre) + ' \u2014 Conclave</title>\n<style>\n*,*::before,*::after{box-sizing:border-box}\nbody{font-family:\'Segoe UI\',system-ui,-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:40px 24px;color:#1a1a1a;background:#fff;line-height:1.6}\nh1{font-size:24px;margin:0 0 2px}\n.meta{color:#666;font-size:14px;margin:0 0 32px}\nh2{font-size:18px;font-weight:700;margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid #e85d4a}\ntable{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:14px}\nth,td{text-align:left;padding:8px 12px;border-bottom:1px solid #e0e0e0}\nth{font-weight:700;text-transform:uppercase;font-size:11px;color:#888;letter-spacing:.04em}\n.empty{color:#aaa;font-style:italic}\n@media print{body{margin:0;padding:16px}h2{break-after:avoid}}\n</style>\n</head>\n<body>\n<h1>' + h.esc(nombre) + '</h1>\n<p class="meta">Plantilla generada por Conclave</p>\n' + bodyHtml + '\n</body>\n</html>';
+    var html = '<!DOCTYPE html>\n<html lang="es">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>' + h.esc(nombre) + ' — Conclave</title>\n<style>\n*,*::before,*::after{box-sizing:border-box}\nbody{font-family:\'Segoe UI\',system-ui,-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:40px 24px;color:#1a1a1a;background:#fff;line-height:1.6}\nh1{font-size:24px;margin:0 0 2px}\n.meta{color:#666;font-size:14px;margin:0 0 32px}\nh2{font-size:18px;font-weight:700;margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid #e85d4a}\ntable{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:14px}\nth,td{text-align:left;padding:8px 12px;border-bottom:1px solid #e0e0e0}\nth{font-weight:700;text-transform:uppercase;font-size:11px;color:#888;letter-spacing:.04em}\n.empty{color:#aaa;font-style:italic}\n@media print{body{margin:0;padding:16px}h2{break-after:avoid}}\n</style>\n</head>\n<body>\n<h1>' + h.esc(nombre) + '</h1>\n<p class="meta">Plantilla generada por Conclave</p>\n' + bodyHtml + '\n</body>\n</html>';
 
     var iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:0';
@@ -148,6 +179,13 @@ export default class SharePlantillaModal {
 
   _sendEmail() {
     const p = slice.getComponent('PlantillaService');
+    if (!p.canShareByLink()) {
+      slice.events.emit('toast:show', {
+        message: 'La plantilla es demasiado grande para compartir por enlace. Exporta archivo.',
+        type: 'warning'
+      });
+      return;
+    }
     const nombre = p.getNombre() || 'Plantilla';
     const url = p.getShareLink();
     const settings = slice.getComponent('SettingsService');
@@ -163,6 +201,8 @@ export default class SharePlantillaModal {
 
   async show() {
     await this._ensureModal();
+    const p = slice.getComponent('PlantillaService');
+    this._setLinkActionsEnabled(p.canShareByLink(), p.getShareUrlMaxLength());
     this.$modal.open = true;
   }
 
@@ -170,3 +210,5 @@ export default class SharePlantillaModal {
     this.$modal.open = false;
   }
 }
+
+customElements.define('slice-shareplantillamodal', SharePlantillaModal);
