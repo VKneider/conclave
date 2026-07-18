@@ -1,4 +1,4 @@
-import { SHARE_URL_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
+import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
 import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../public/data/seedData.js';
 
 const PALETTE = ['#6d8bff', '#3fb964', '#e2a13a', '#ff7eb6', '#8a6dff', '#42c8c0', '#e25c5c', '#b9c34a', '#f0883e', '#4ec9b0', '#c678dd', '#5aa0ff'];
@@ -137,9 +137,9 @@ export default class PlantillaService {
     }
     const url = this.getShareLink();
     navigator.clipboard.writeText(url).then(() => {
-      slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
+      slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success'});
     }, () => {
-      slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error' });
+      slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error'});
     });
   }
 
@@ -471,6 +471,16 @@ export default class PlantillaService {
     }
   }
 
+  // Opaque short ids for temas/opciones — stable identity, not legible.
+  // timestamp base36 (uniqueness across ms) + 5 random chars (uniqueness
+  // within the same ms). The old slug-derived ids in localStorage stay
+  // valid (isSafeId accepts them); only newly-created entities use this.
+  // Note: prefix keeps tema/opción ids visually distinct when debugging
+  // exported JSON — it plays no role in identity or lookup.
+  _genId(prefix) {
+    return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+  }
+
   nextTemaId() {
     return Math.max(0, ...this.getTemas().map((c) => {
       const n = parseInt(c.meta?.numero, 10);
@@ -478,8 +488,14 @@ export default class PlantillaService {
     })) + 1;
   }
 
+  // Legacy autoincrement helper. addOpcion no longer relies on it (ids are
+  // opaque now), but any other caller stays safe: opaque ids yield NaN under
+  // Number(), so guard against it instead of letting Math.max return NaN.
   nextOpcionId() {
-    return Math.max(0, ...this.getOpciones().map((o) => Number(o.id) || 0)) + 1;
+    return Math.max(0, ...this.getOpciones().map((o) => {
+      const n = Number(o.id);
+      return Number.isFinite(n) ? n : 0;
+    })) + 1;
   }
 
   updateTema(temaId, changes) {
@@ -498,10 +514,11 @@ export default class PlantillaService {
   }
 
   addOpcion(opcion) {
-    // Only accept an explicit id if it's actually a safe positive integer —
-    // never trust a caller-supplied id blindly (see isSafeId's comment).
-    const explicitId = Number(opcion?.id);
-    const id = opcion?.id != null && Number.isInteger(explicitId) && explicitId > 0 ? explicitId : this.nextOpcionId();
+    // An explicit id (import/preset) is validated, not transformed — this
+    // preserves the imported Plantilla's ids so its respuestas keep resolving.
+    // Manual creation gets a fresh opaque id. Never derives from position or
+    // trusts a caller id blindly (see isSafeId's comment).
+    const id = opcion?.id != null && this.isSafeId(opcion.id) ? String(opcion.id) : this._genId('o');
     // temaId null = global reparto pool; a non-null temaId means this Opción
     // belongs to that votacion/ranking tema (see getOpcionesDeTema).
     const o = { nombre: '', temaId: null, meta: { sexo: '', edad: null, fijo: false, rolFijo: null }, ...opcion, id };
@@ -517,18 +534,15 @@ export default class PlantillaService {
     this._cleanupOrphaned([], [id]);
   }
 
-  // NEW in Fase A — not wired to any UI yet (Fase B's CRUD form is the first
-  // caller), but must exist and behave correctly per the approved plan so
-  // Tema/Opción CRUD is symmetric.
   addTema(tema) {
     const numero = this.nextTemaId();
-    // Always route an explicit id through _slug() too — never trust a
-    // caller-supplied id blindly (see isSafeId's comment).
-    const id = tema?.id ? this._slug(String(tema.id)) : this._slug(tema?.nombre);
+    // An explicit id (import/preset) is validated, not transformed — preserves
+    // the imported Plantilla's ids. Manual creation gets a fresh opaque id.
+    const id = tema?.id && this.isSafeId(tema.id) ? String(tema.id) : this._genId('t');
     const c = {
-      id, nombre: '', modo: 'reparto', orden: numero, min: null, max: null,
+      id, nombre: '', modo: DEFAULT_TEMA_MODO , orden: numero, min: null, max: null,
       participable: true, meta: { lider: null, numero },
-      ...tema, id,
+      ...tema,
     };
     // Prepended, not appended — newest-first, same reasoning as addOpcion.
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, temas: [c, ...prev.temas] }));
@@ -579,9 +593,19 @@ export default class PlantillaService {
   }
 
   // ── Atributos custom (dynamic per-Plantilla Opción fields; Fase 3 UI) ──
+  // The attribute `key` is the property name where each Opción stores its
+  // value (opcion.meta[key]), AND it's part of the exported JSON — so unlike
+  // tema/opción ids it must stay legible and name-derived (deterministic
+  // across devices, and it lets the sexo/edad migration defaults line up
+  // with pre-existing meta values). It only needs to be UNIQUE, not opaque:
+  // suffix on collision so two "Color" attributes don't share one meta slot.
   addAtributo(atributo) {
     const label = atributo?.label || 'Atributo';
-    const a = { key: this._slug(atributo?.key || label), label, type: 'texto', opciones: [], ...atributo };
+    const existing = new Set(this.getAtributos().map((a) => a.key));
+    const base = this._slug(atributo?.key || label, 'atributo');
+    let key = base, n = 2;
+    while (existing.has(key)) key = `${base}-${n++}`;
+    const a = { key, label, type: 'texto', opciones: [], ...atributo };
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, atributos: [...(prev.atributos || []), a] }));
     return a;
   }
@@ -597,11 +621,11 @@ export default class PlantillaService {
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, atributos: (prev.atributos || []).filter((a) => a.key !== key) }));
   }
 
-  _slug(name) {
+  _slug(name, fallback = 'tema') {
     return (name || '')
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') || 'tema';
+      .replace(/^-|-$/g, '') || fallback;
   }
 }

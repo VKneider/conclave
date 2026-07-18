@@ -135,11 +135,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     lideresCheckbox.addEventListener('change', () => settings.setLideresEnabled(lideresCheckbox.checked));
 
     this._bindAddInput(addCatInput, this.querySelector('#addCatBtn'), (name) => {
-      // New temas default to whatever the active filter is focused on
-      // — one less click when bulk-adding a run of the same modo. "Todas"
-      // keeps PlantillaService.addTema's own default (modo: 'reparto').
-      const modo = this._catFilter === 'texto_libre' ? 'texto_libre' : undefined;
-      this._plantilla.addTema(modo ? { nombre: name, modo } : { nombre: name });
+      this._plantilla.addTema({ nombre: name });
     });
     this._bindAddInput(addOpcInput, this.querySelector('#addOpcBtn'), (name) => this._plantilla.addOpcion({ nombre: name }));
 
