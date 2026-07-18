@@ -1,3 +1,26 @@
 slice-exportrespuestasmodal {
   display: contents;
 }
+
+.export-modal__group {
+  margin-top: 16px;
+}
+
+.export-modal__group:first-of-type {
+  margin-top: 0;
+}
+
+.export-modal__group-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #888);
+  margin: 0 0 8px;
+}
+
+.export-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

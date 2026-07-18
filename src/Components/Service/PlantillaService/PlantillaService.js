@@ -141,7 +141,7 @@ export default class PlantillaService {
   // loadFromData(result.categorias, result.opciones, result.nombre).
   prepareImport(data) {
     if (!Array.isArray(data?.categorias) || !Array.isArray(data?.opciones)) {
-      throw new Error('Formato no reconocido — se espera un JSON de Plantilla.');
+      throw new Error('Formato no reconocido — se espera un archivo de plantilla.');
     }
     const badCategoria = data.categorias.find((c) => !this.isSafeId(c.id));
     const badOpcion = data.opciones.find((o) => !this.isSafeId(o.id));

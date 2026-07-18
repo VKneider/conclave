@@ -27,11 +27,20 @@ export default class ExportRespuestasModal extends HTMLElement {
     this.$desc.textContent = 'Elige cómo quieres compartir tus respuestas con el grupo:';
     this.$modal.appendBody(this.$desc);
 
-    const actions = document.createElement('div');
-    actions.className = 'export-modal__actions';
+    // ── Download section (always visible) ───────────────────────
+    this.$downloadGroup = document.createElement('div');
+    this.$downloadGroup.className = 'export-modal__group';
+
+    const downloadTitle = document.createElement('h4');
+    downloadTitle.className = 'export-modal__group-title';
+    downloadTitle.textContent = 'Descargar';
+    this.$downloadGroup.appendChild(downloadTitle);
+
+    const downloadActions = document.createElement('div');
+    downloadActions.className = 'export-modal__actions';
 
     this.$downloadBtn = await slice.build('Button', {
-      value: '⬇ Descargar archivo de respuestas',
+      value: '⬇ Descargar archivo',
       variant: 'filled',
       onClick: () => { this._close(); slice.getComponent('RespuestasService').exportMineWithPrompt(); }
     });
@@ -44,6 +53,23 @@ export default class ExportRespuestasModal extends HTMLElement {
     });
     this.$printBtn.classList.add('export-modal__action');
 
+    downloadActions.appendChild(this.$downloadBtn);
+    downloadActions.appendChild(this.$printBtn);
+    this.$downloadGroup.appendChild(downloadActions);
+    this.$modal.appendBody(this.$downloadGroup);
+
+    // ── Share section (hidden when URL too long) ────────────────
+    this.$shareGroup = document.createElement('div');
+    this.$shareGroup.className = 'export-modal__group';
+
+    const shareTitle = document.createElement('h4');
+    shareTitle.className = 'export-modal__group-title';
+    shareTitle.textContent = 'Compartir';
+    this.$shareGroup.appendChild(shareTitle);
+
+    const shareActions = document.createElement('div');
+    shareActions.className = 'export-modal__actions';
+
     this.$copyBtn = await slice.build('Button', {
       value: '🔗 Copiar enlace',
       variant: 'outlined',
@@ -51,18 +77,7 @@ export default class ExportRespuestasModal extends HTMLElement {
     });
     this.$copyBtn.classList.add('export-modal__action');
 
-    this.$emailBtn = await slice.build('Button', {
-      value: '✉️ Enviar por correo',
-      variant: 'outlined',
-      onClick: () => { this._close(); slice.getComponent('RespuestasService').sendShareLinkEmail(); }
-    });
-    this.$emailBtn.classList.add('export-modal__action');
-
-    actions.appendChild(this.$downloadBtn);
-    actions.appendChild(this.$printBtn);
-    actions.appendChild(this.$copyBtn);
-    actions.appendChild(this.$emailBtn);
-
+    this.$shareBtn = null;
     if (typeof navigator.share === 'function') {
       this.$shareBtn = await slice.build('Button', {
         value: '📱 Compartir',
@@ -70,33 +85,12 @@ export default class ExportRespuestasModal extends HTMLElement {
         onClick: () => { this._close(); this._nativeShare(); }
       });
       this.$shareBtn.classList.add('export-modal__action');
-      actions.appendChild(this.$shareBtn);
+      shareActions.appendChild(this.$shareBtn);
     }
 
-    this.$modal.appendBody(actions);
-  }
-
-  _setLinkActionsEnabled(enabled, maxLen) {
-    const hint = `Deshabilitado: el enlace supera el límite recomendado (${maxLen} caracteres). Usa archivo.`;
-    const copyBtn = this.$copyBtn?.querySelector('button');
-    const emailBtn = this.$emailBtn?.querySelector('button');
-    const shareBtn = this.$shareBtn?.querySelector('button');
-
-    if (copyBtn) {
-      copyBtn.disabled = !enabled;
-      if (!enabled) copyBtn.title = hint;
-      else copyBtn.removeAttribute('title');
-    }
-    if (emailBtn) {
-      emailBtn.disabled = !enabled;
-      if (!enabled) emailBtn.title = hint;
-      else emailBtn.removeAttribute('title');
-    }
-    if (shareBtn) {
-      shareBtn.disabled = !enabled;
-      if (!enabled) shareBtn.title = hint;
-      else shareBtn.removeAttribute('title');
-    }
+    shareActions.appendChild(this.$copyBtn);
+    this.$shareGroup.appendChild(shareActions);
+    this.$modal.appendBody(this.$shareGroup);
   }
 
   _buildFilePayload() {
@@ -175,7 +169,12 @@ export default class ExportRespuestasModal extends HTMLElement {
     const rs = slice.getComponent('RespuestasService');
     const settings = slice.getComponent('SettingsService');
     const autor = settings.getState().autor?.trim() || '';
-    this._setLinkActionsEnabled(rs.canShareByLink(autor), rs.getShareUrlMaxLength());
+    const canLink = rs.canShareByLink(autor);
+    this.$shareGroup.hidden = !canLink;
+    if (canLink && this.$shareBtn) {
+      this.$shareBtn.value = '📱 Compartir';
+      this.$shareBtn.onClick = () => { this._close(); this._nativeShare(); };
+    }
     this.$modal.open = true;
   }
 

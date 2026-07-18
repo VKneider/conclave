@@ -151,7 +151,7 @@ export default class UserMenu extends HTMLElement {
   _confirmReset() {
     slice.events.emit('confirm:request', {
       title: '¿Reiniciar tus Respuestas?',
-      message: 'Se borran todas TUS respuestas en este dispositivo. No afecta los JSON ya exportados.',
+      message: 'Se borran todas TUS respuestas en este dispositivo. No afecta los archivos ya exportados.',
       confirmLabel: 'Reiniciar',
       danger: true,
       onConfirm: () => {
