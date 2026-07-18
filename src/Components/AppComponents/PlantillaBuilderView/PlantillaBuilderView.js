@@ -1,3 +1,4 @@
+import { ACCEPT_ALL } from '../../Core/AppConfig/AppConfig.js';
 import { PRESETS } from '../../../public/data/presets.js';
 
 // Replaces HelpView's CSV/JSON textarea with real visual CRUD for
@@ -106,6 +107,7 @@ export default class PlantillaBuilderView extends HTMLElement {
   }
 
   async init() {
+    this.$importFile.accept = ACCEPT_ALL;
     this._plantilla = slice.getComponent('PlantillaService');
     this._html = slice.getComponent('HtmlService');
     const settings = slice.getComponent('SettingsService');

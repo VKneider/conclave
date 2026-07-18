@@ -1,3 +1,4 @@
+import { EXT_PLANTILLA, EXT_RESPUESTAS } from '../../Core/AppConfig/AppConfig.js';
 import { ensureContext } from '../../../utils/context.js';
 
 const CONTEXT = 'respuestasImportadas';
@@ -48,7 +49,8 @@ export default class RespuestasImportService {
 
   import(data, filename) {
     const plantilla = slice.getComponent('PlantillaService');
-    const autorBase = data?.autor ? String(data.autor) : filename.replace(/\.json$/i, '');
+    const extPattern = new RegExp(`\\.(json|${EXT_PLANTILLA.slice(1)}|${EXT_RESPUESTAS.slice(1)})$`, 'i');
+    const autorBase = data?.autor ? String(data.autor) : filename.replace(extPattern, '');
     const seleccionRaw = data?.respuestas?.seleccion || {};
     const norm = {};
     let recognized = 0;

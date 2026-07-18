@@ -1,3 +1,5 @@
+import { ACCEPT_ALL } from '../../Core/AppConfig/AppConfig.js';
+
 export default class ImportDrop extends HTMLElement {
   constructor(props) {
     super();
@@ -8,6 +10,7 @@ export default class ImportDrop extends HTMLElement {
   }
 
   init() {
+    this.accept = ACCEPT_ALL;
     this.$drop.onclick = () => this.$input.click();
     this.$input.onchange = () => {
       this._onFiles?.(this.$input.files);

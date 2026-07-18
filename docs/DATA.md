@@ -101,6 +101,15 @@ filters all four modos against the current Plantilla on import/boot.
 
 ## The two exportable JSON types
 
+Extensions are defined in `src/Components/Core/AppConfig/AppConfig.js`:
+
+| Type | `tipo` | Extension |
+|---|---|---|
+| Plantilla | `'plantilla'` | `.plantilla` |
+| Respuestas | `'respuestas'` / `'respuestas-final'` | `.respuestas` |
+
+Imports also accept legacy `.json` files (backward compatible).
+
 - **Plantilla** (`tipo: 'plantilla'`): the shared setup — `{ nombre, autor,
   email, atributos, temas, opciones }`. `autor` and `email` come from
   `SettingsService` (the creator's identity at share/export time). Built by

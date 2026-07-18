@@ -2,6 +2,8 @@
 // Toolbar: bold, italic, bullet list, ordered list.
 // Keyboard shortcuts: Ctrl+B, Ctrl+I, Ctrl+Shift+7, Ctrl+Shift+8.
 // Usage: slice.build('EnhancedEditor', { value, placeholder, oninput, onblur })
+import { TEXTO_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
+
 export default class EnhancedEditor extends HTMLElement {
   constructor(props) {
     super();
@@ -40,6 +42,19 @@ export default class EnhancedEditor extends HTMLElement {
     this._onEditorInput = () => {
       this._syncEmptyState();
       if (this._updating) return;
+      const text = this.$mount.textContent.replace(/\u00a0/g, ' ').trim();
+      if (text.length > TEXTO_MAX_LENGTH) {
+        this._updating = true;
+        this.$mount.textContent = text.slice(0, TEXTO_MAX_LENGTH);
+        const sel = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(this.$mount);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        this._updating = false;
+        this._syncEmptyState();
+      }
       if (this._oninput) this._oninput(this.value);
     };
     this._onEditorBlur = () => {

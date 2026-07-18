@@ -1,4 +1,5 @@
 import { ensureContext } from '../../../utils/context.js';
+import { TEXTO_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
 
 // Owns the `respuestas` context: { seleccion: {[opcionId]: categoriaId}, texto: {} }
 // — the user's own working answers. `seleccion` covers modo `seleccion`
@@ -69,7 +70,8 @@ export default class RespuestasService {
 
   setTexto(categoriaId, texto) {
     ensureContext(CONTEXT, INITIAL_STATE, STORAGE_KEY);
-    slice.context.setState(CONTEXT, (prev) => ({ ...prev, texto: { ...prev.texto, [categoriaId]: texto } }));
+    const truncated = texto && texto.length > TEXTO_MAX_LENGTH ? texto.slice(0, TEXTO_MAX_LENGTH) : texto;
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, texto: { ...prev.texto, [categoriaId]: truncated } }));
   }
 
   clearTexto(categoriaId) {

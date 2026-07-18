@@ -1,3 +1,5 @@
+import { ACCEPT_ALL } from '../../Core/AppConfig/AppConfig.js';
+
 // Compact "yo" hub in the topbar — identity (tu nombre), theme, and every
 // "mis Respuestas" action (exportar/importar/reiniciar). Replaces both the
 // old standalone SettingsView route and AppShell's footer: none of this is
@@ -35,6 +37,7 @@ export default class UserMenu extends HTMLElement {
   }
 
   async init() {
+    this.$importFile.accept = ACCEPT_ALL;
     document.addEventListener('click', this._onDocClick);
     document.addEventListener('keydown', this._onKeydown);
 

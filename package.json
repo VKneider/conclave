@@ -31,7 +31,12 @@
     "slice:version": "node ./node_modules/slicejs-cli/client.js version",
     "slice:help": "node ./node_modules/slicejs-cli/client.js --help",
     "slice:types": "node ./node_modules/slicejs-cli/client.js types generate",
-    "run": "node ./node_modules/slicejs-cli/client.js dev"
+    "run": "node ./node_modules/slicejs-cli/client.js dev",
+    "test:e2e": "playwright test --project=components",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:visual": "playwright test --project=visual",
+    "test:e2e:visual:update": "playwright test --project=visual --update-snapshots",
+    "test:e2e:report": "playwright show-report"
   },
   "packageManager": "pnpm@11.9.0",
   "dependencies": {
@@ -56,6 +61,7 @@
     "slicejs-web-framework": "4.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "slicejs-cli": "4.1.0"
   }
 }

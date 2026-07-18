@@ -74,7 +74,7 @@ The data model deliberately allows a single Plantilla to have both modo Selecci�
 - Same inline "escribir + Enter" add row and patch-on-change / confirm-with-impact-count delete pattern as Categorías.
 
 ### Export / import / reset
-- **"📤 Compartir plantilla"**: opens `SharePlantillaModal` with three options: download JSON (via `ExportService.downloadPlantilla()` with `autor` + `email`), copy compressed link (via `PlantillaService.copyShareLink()`), or send email (`mailto:` with the link).
+- **"📤 Compartir plantilla"**: opens `SharePlantillaModal` with three options: download `.plantilla` file (via `ExportService.downloadPlantilla()` with `autor` + `email`), copy compressed link (via `PlantillaService.copyShareLink()`), or send email (`mailto:` with the link).
 - **"📂 Importar Plantilla"**: bulk-replaces Categorías/Opciones from a JSON file — same `PlantillaService.prepareImport()` validation (shape + `isSafeId`) and confirm-of-impact dialog as `CompareView`'s Plantilla import (see below), offered here too since starting a new Plantilla from someone else's shared file is a natural thing to do right where you'd otherwise build one from scratch.
 - **"🔄 Restaurar ejemplo"**: resets to seed data (7 Categorías, 15 Opciones) with a confirmation dialog, via `PlantillaService.resetToSeed()`.
 
@@ -173,7 +173,7 @@ File: `src/Components/Providers/ExportRespuestasModal/ExportRespuestasModal.js`
 
 A lazy-built modal (Provider, singleton) with three sharing options for the current user's respuestas:
 
-1. **⬇ Descargar JSON** — calls `RespuestasService.exportMineWithPrompt()` (prompts for name if missing).
+1. **⬇ Descargar respuestas** — calls `RespuestasService.exportMineWithPrompt()` (prompts for name if missing). The downloaded file has extension `.respuestas`.
 2. **🔗 Copiar enlace** — calls `RespuestasService.copyShareLink()` (generates compressed URL with `CompressionService.packForURI` + `compressToURI`, copies to clipboard).
 3. **✉️ Enviar por correo** — calls `RespuestasService.sendShareLinkEmail()` (opens `mailto:` with the link, `to` left empty for the user to fill).
 
@@ -185,7 +185,7 @@ File: `src/Components/Providers/SharePlantillaModal/SharePlantillaModal.js`
 
 Same pattern for Plantilla sharing:
 
-1. **⬇ Descargar JSON** — builds the Plantilla envelope (`{ nombre, autor, email, atributos, temas, opciones }`) and calls `ExportService.downloadPlantilla()`.
+1. **⬇ Descargar plantilla** — builds the Plantilla envelope (`{ nombre, autor, email, atributos, temas, opciones }`) and calls `ExportService.downloadPlantilla()`. The downloaded file has extension `.plantilla`.
 2. **🔗 Copiar enlace** — calls `PlantillaService.copyShareLink()` (generates compressed URL with `packForURI`, copies to clipboard). The packed data includes `autor` + `email` from `SettingsService` so the recipient knows who created it.
 3. **✉️ Enviar por correo** — opens `mailto:` with the link and the sharer's name, `to` left empty.
 

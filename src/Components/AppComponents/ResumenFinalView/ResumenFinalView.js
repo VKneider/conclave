@@ -1,3 +1,5 @@
+import { ACCEPT_ALL } from '../../Core/AppConfig/AppConfig.js';
+
 export default class ResumenFinalView extends HTMLElement {
   constructor(props) {
     super();
@@ -17,6 +19,7 @@ export default class ResumenFinalView extends HTMLElement {
   }
 
   async init() {
+    this.$importFile.accept = ACCEPT_ALL;
     this._html = slice.getComponent('HtmlService');
     this._roster = slice.getComponent('PlantillaService');
     this._consenso = slice.getComponent('ConsensoService');

@@ -1,3 +1,5 @@
+import { EXT_PLANTILLA, EXT_RESPUESTAS } from '../../Core/AppConfig/AppConfig.js';
+
 const CONTEXT = 'respuestasImportadas';
 const STORAGE_KEY = 'conclave-respuestas-importadas-v1';
 
@@ -67,7 +69,8 @@ export default class RespuestasImportService {
   }
 
   import(data, filename) {
-    const autorBase = data?.autor ? String(data.autor) : filename.replace(/\.json$/i, '');
+    const extPattern = new RegExp(`\\.(json|${EXT_PLANTILLA.slice(1)}|${EXT_RESPUESTAS.slice(1)})$`, 'i');
+    const autorBase = data?.autor ? String(data.autor) : filename.replace(extPattern, '');
     const raw = data?.respuestas || {};
     const rawCount = Object.keys(raw.seleccion || {}).length + Object.keys(raw.texto || {}).length
       + Object.keys(raw.voto || {}).length + Object.keys(raw.ranking || {}).length;

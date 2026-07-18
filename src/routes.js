@@ -2,6 +2,7 @@
 // content area via an internal MultiRoute mirroring these same paths.
 // Dynamic params use ${name} (NOT :name). Keep the 404 route last.
 const routes = [
+   { path: '/__test',        component: 'TestHarness', metadata: { title: 'Test Harness' } },
    { path: '/',              component: 'AppShell', metadata: { title: 'Conclave' } },
    { path: '/dashboard',     component: 'AppShell', metadata: { title: 'Conclave — Dashboard' } },
    { path: '/mis-respuestas', component: 'AppShell', metadata: { title: 'Conclave — Mis respuestas' } },

@@ -72,7 +72,7 @@ Conclave is a Slice.js (`slicejs-web-framework` v3.x) app for structured group d
 - **Short keys in share URLs.** `CompressionService.packForURI()` maps long keys (e.g. `nombre→n`, `temas→ts`) before LZ compression, producing shorter hashes. `unpackFromURI()` reverses it, passing unknown keys through unchanged (backward compatible with old full-key URLs).
 - **`mailto:` share links leave the `to` field empty** — the user fills in the recipient manually. The body includes the sharer's name and the link.
 - **All seed data is fictional** (Categoría/Opción names were replaced for public demo). Structure is preserved exactly from the original retreat data. Generic names are intentional, not bugs.
-- **Plantilla data lives entirely in the browser.** There is no server-side storage for Categorías/Opciones and no plan to add any — sharing a Plantilla is exporting/importing its JSON file, same as Respuestas.
+- **Plantilla data lives entirely in the browser.** There is no server-side storage for Categorías/Opciones and no plan to add any — sharing a Plantilla is exporting/importing its file (`.plantilla`), same as Respuestas (`.respuestas`). The extensions are defined in `Core/AppConfig/AppConfig.js`. Legacy `.json` files are still accepted on import.
 
 ## Running it
 
