@@ -27,7 +27,7 @@ export default class ExportRespuestasModal extends HTMLElement {
     this.$desc.textContent = 'Elige cómo quieres compartir tus respuestas con el grupo:';
     this.$modal.appendBody(this.$desc);
 
-    // ── Download section (always visible) ───────────────────────
+    // ── Download section ────────────────────────────────────────
     this.$downloadGroup = document.createElement('div');
     this.$downloadGroup.className = 'export-modal__group';
 
@@ -46,19 +46,11 @@ export default class ExportRespuestasModal extends HTMLElement {
     });
     this.$downloadBtn.classList.add('export-modal__action');
 
-    this.$printBtn = await slice.build('Button', {
-      value: '🖨 Imprimir',
-      variant: 'outlined',
-      onClick: () => { this._close(); slice.getComponent('RespuestasService').exportPrint(); }
-    });
-    this.$printBtn.classList.add('export-modal__action');
-
     downloadActions.appendChild(this.$downloadBtn);
-    downloadActions.appendChild(this.$printBtn);
     this.$downloadGroup.appendChild(downloadActions);
     this.$modal.appendBody(this.$downloadGroup);
 
-    // ── Share section (hidden when URL too long) ────────────────
+    // ── Share section ───────────────────────────────────────────
     this.$shareGroup = document.createElement('div');
     this.$shareGroup.className = 'export-modal__group';
 
@@ -110,6 +102,11 @@ export default class ExportRespuestasModal extends HTMLElement {
     };
   }
 
+  _downloadFile() {
+    this._close();
+    slice.getComponent('RespuestasService').exportMineWithPrompt();
+  }
+
   async _shareFile() {
     const payload = this._buildFilePayload();
     const autor = payload.autor || 'respuestas';
@@ -119,12 +116,16 @@ export default class ExportRespuestasModal extends HTMLElement {
     try {
       await navigator.share({ files: [file] });
     } catch (err) {
-      if (err.name !== 'AbortError') {
-        slice.events.emit('toast:show', {
-          message: 'No se pudo compartir el archivo. Usa la descarga.',
-          type: 'error',
-        });
+      if (err.name === 'AbortError') return;
+      if (err.name === 'NotAllowedError' || err.name === 'TypeError') {
+        this._downloadFile();
+        return;
       }
+      slice.events.emit('toast:show', {
+        message: 'No se pudo compartir. Se descargó el archivo.',
+        type: 'warning',
+      });
+      this._downloadFile();
     }
   }
 
@@ -141,11 +142,15 @@ export default class ExportRespuestasModal extends HTMLElement {
       const url = rs.getShareLink(name);
       const plantilla = slice.getComponent('PlantillaService');
       const plantillaNombre = plantilla.getNombre() || 'Conclave';
-      navigator.share({
-        title: `Mis respuestas — ${plantillaNombre}`,
-        text: `${name} ha compartido sus respuestas para "${plantillaNombre}"`,
-        url,
-      }).catch(() => {});
+      try {
+        await navigator.share({
+          title: `Mis respuestas — ${plantillaNombre}`,
+          text: `${name} ha compartido sus respuestas para "${plantillaNombre}"`,
+          url,
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') this._shareFile();
+      }
     };
 
     if (autor) { doShare(autor); return; }
