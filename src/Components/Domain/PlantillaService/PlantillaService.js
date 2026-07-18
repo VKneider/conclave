@@ -1,9 +1,9 @@
+import { SHARE_URL_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
 import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../public/data/seedData.js';
 
 const PALETTE = ['#6d8bff', '#3fb964', '#e2a13a', '#ff7eb6', '#8a6dff', '#42c8c0', '#e25c5c', '#b9c34a', '#f0883e', '#4ec9b0', '#c678dd', '#5aa0ff'];
 const CONTEXT = 'plantilla';
 const STORAGE_KEY = 'conclave-plantilla-v1';
-const SHARE_URL_MAX_LENGTH = 3800;
 const SEED_STATE = { nombre: 'Mi Plantilla', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES, creadoPor: '', creadoEmail: '' };
 
 // Owns the `plantilla` context: { nombre, temas, opciones } — the

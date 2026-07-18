@@ -9,8 +9,9 @@
 // order (Providers) guarantees init runs before any consumer, so no per-method
 // defensive ensure is needed (replaces the old utils/context.js pattern).
 const CONTEXT = 'respuestas';
+import { SHARE_URL_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
+
 const STORAGE_KEY = 'conclave-respuestas-v1';
-const SHARE_URL_MAX_LENGTH = 3800;
 // seleccion: reparto (pool → temas). texto: texto_libre answers. voto:
 // votacion (one opción per tema). ranking: ordered opciones per tema. Returning
 // users predate voto/ranking (GOTCHAS §20) — every read/write defaults them, so

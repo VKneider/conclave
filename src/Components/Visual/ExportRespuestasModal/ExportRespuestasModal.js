@@ -1,3 +1,5 @@
+import { APP_NAME, DATA_VERSION, EXT_RESPUESTAS } from '../../Core/AppConfig/AppConfig.js';
+
 export default class ExportRespuestasModal extends HTMLElement {
   constructor(props) {
     super();
@@ -97,17 +99,49 @@ export default class ExportRespuestasModal extends HTMLElement {
     }
   }
 
+  _buildFilePayload() {
+    const rs = slice.getComponent('RespuestasService');
+    const settings = slice.getComponent('SettingsService');
+    const autor = settings.getState().autor?.trim() || '';
+    const email = settings.getEmail();
+    const extra = rs._buildSharePayload(autor);
+    return {
+      app: APP_NAME,
+      version: DATA_VERSION,
+      fecha: new Date().toISOString(),
+      tipo: extra.tipo,
+      autor: extra.autor,
+      email: extra.email || email,
+      respuestas: extra.respuestas,
+    };
+  }
+
+  async _shareFile() {
+    const payload = this._buildFilePayload();
+    const autor = payload.autor || 'respuestas';
+    const safe = autor.replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const file = new File([blob], `${safe}${EXT_RESPUESTAS}`, { type: 'application/json' });
+    try {
+      await navigator.share({ files: [file] });
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        slice.events.emit('toast:show', {
+          message: 'No se pudo compartir el archivo. Usa la descarga.',
+          type: 'error',
+        });
+      }
+    }
+  }
+
   _nativeShare() {
     const rs = slice.getComponent('RespuestasService');
     const settings = slice.getComponent('SettingsService');
     const autor = settings.getState().autor?.trim();
 
-    const doShare = (name) => {
+    const doShare = async (name) => {
       if (!rs.canShareByLink(name)) {
-        slice.events.emit('toast:show', {
-          message: 'Las respuestas son demasiado largas para compartir por enlace. Exporta archivo.',
-          type: 'warning'
-        });
+        await this._shareFile();
         return;
       }
       const url = rs.getShareLink(name);

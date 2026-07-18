@@ -167,7 +167,10 @@ export default class RespuestasView extends HTMLElement {
     const currentIdx = kinds.findIndex((k) => k.id === this._activeKind);
     if (currentIdx < 0 || currentIdx >= kinds.length - 1) {
       this.$nextSection.hidden = false;
-      this.$nextText.textContent = '¡Todas las secciones están completas! 🎉';
+      const email = slice.getComponent('SettingsService')?.getState().email?.trim();
+      this.$nextText.textContent = email
+        ? `¡Todas las secciones están completas! 🎉 Recuerda enviar tus respuestas a ${email} al finalizar.`
+        : '¡Todas las secciones están completas! 🎉 Recuerda exportar tus respuestas al finalizar.';
       this._nextBtnCmp.value = 'Todo listo';
       this._nextBtnCmp.$button.disabled = false;
       this._nextBtnCmp.onClick = () => this._openExportModal();
