@@ -157,6 +157,7 @@ export default class CompareView extends HTMLElement {
     slice.context.watch('respuestas', this, () => this._render());
     slice.context.watch('decisionFinal', this, () => this._render());
     slice.context.watch('plantilla', this, () => this._render());
+    slice.context.watch('settings', this, () => this._render());
   }
 
   update() {

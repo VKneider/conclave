@@ -70,12 +70,14 @@ export default class CarouselView extends HTMLElement {
   get mode() { return this._mode; }
 
   prev() {
-    if (this._index > 0) { this._index--; this._render(); }
+    const step = this._mode === 'columns' ? 2 : 1;
+    if (this._index > 0) { this._index = Math.max(0, this._index - step); this._render(); }
   }
 
   next() {
+    const step = this._mode === 'columns' ? 2 : 1;
     const max = this._maxIndex();
-    if (this._index < max) { this._index++; this._render(); }
+    if (this._index < max) { this._index = Math.min(max, this._index + step); this._render(); }
   }
 
   refresh() { this._render(); }
@@ -86,9 +88,9 @@ export default class CarouselView extends HTMLElement {
   }
 
   _maxIndex() {
-    const total = this._items.length;
-    if (this._mode === 'columns') return Math.max(0, total - 2);
-    return Math.max(0, total - 1);
+  const total = this._items.length;
+  if (this._mode === 'columns') return Math.max(0, (Math.ceil(total / 2) - 1) * 2);
+  return Math.max(0, total - 1);
   }
 
   _render() {
@@ -122,7 +124,7 @@ export default class CarouselView extends HTMLElement {
     }
     this.$nav.hidden = false;
     this.$prev.disabled = this._index === 0;
-    this.$next.disabled = this._index >= (inColumns ? total - 2 : total - 1);
+    this.$next.disabled = this._index >= this._maxIndex();
     const pageCount = inColumns ? Math.ceil(total / 2) : total;
     const pageIndex = inColumns ? Math.floor(this._index / 2) : this._index;
     this.$count.textContent = `${pageIndex + 1} de ${pageCount}`;

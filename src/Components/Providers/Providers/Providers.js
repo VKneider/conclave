@@ -59,7 +59,7 @@ export default class Providers {
     slice.events.register('toast', {
       show: {
         description: 'Show a toast notification',
-        payload: { message: 'string', type: 'string', duration: 'number' },
+        payload: { message: 'string', type: 'string' },
       },
     });
     slice.events.register('confirm', {
@@ -101,8 +101,8 @@ export default class Providers {
 
     const toasts = await slice.build('ToastProvider', { singleton: true });
     toasts.setPosition('bottom-right');
-    slice.events.subscribe('toast:show', (payload = {}) => {
-      toasts.show(payload.message, { type: payload.type, duration: payload.duration });
+    slice.events.subscribe('toast:show', (payload = {message: '', type: 'info'}) => {
+      toasts.show(payload.message, { type: payload.type, duration: 3000 });
     });
 
     // App-wide visual modals built once here and reused via slice.getComponent.

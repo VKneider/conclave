@@ -17,73 +17,78 @@ export default {
       "emitters": [
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 98,
+          "line": 103,
           "component": "AppShell"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 142,
+          "line": 152,
           "component": "AppShell"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 670,
+          "line": 950,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 683,
+          "line": 963,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 291,
+          "line": 295,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 355,
+          "line": 359,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 371,
+          "line": 375,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 460,
+          "line": 512,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 104,
+          "line": 135,
           "component": "UserMenu"
         },
         {
           "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 121,
+          "line": 152,
           "component": "UserMenu"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 109,
+          "line": 160,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 148,
+          "line": 222,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 181,
+          "line": 262,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Visual/CategoriaRow/CategoriaRow.js",
           "line": 139,
           "component": "CategoriaRow"
+        },
+        {
+          "file": "src/Components/Visual/ExportRespuestasModal/ExportRespuestasModal.js",
+          "line": 158,
+          "component": "ExportRespuestasModal"
         },
         {
           "file": "src/Components/Visual/OpcionRow/OpcionRow.js",
@@ -98,13 +103,8 @@ export default {
       ],
       "listeners": [
         {
-          "file": "src/Components/Providers/ConfirmActionModal/ConfirmActionModal.js",
-          "line": 41,
-          "component": "ConfirmActionModal"
-        },
-        {
-          "file": "src/Components/Service/ConfirmActionModal/ConfirmActionModal.js",
-          "line": 41,
+          "file": "src/Components/Visual/ConfirmActionModal/ConfirmActionModal.js",
+          "line": 10,
           "component": "ConfirmActionModal"
         }
       ]
@@ -115,7 +115,7 @@ export default {
       "listeners": [
         {
           "file": "src/Components/AppComponents/TopBar/TopBar.js",
-          "line": 49,
+          "line": 50,
           "component": "TopBar"
         },
         {
@@ -128,74 +128,68 @@ export default {
     "toast:show": {
       "payload": {
         "message": "string",
-        "type": "string",
-        "duration": "number"
+        "type": "string"
       },
       "emitters": [
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 86,
+          "line": 91,
           "component": "AppShell"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 89,
+          "line": 94,
           "component": "AppShell"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 130,
+          "line": 115,
+          "component": "AppShell"
+        },
+        {
+          "file": "src/Components/AppComponents/AppShell/AppShell.js",
+          "line": 140,
           "component": "AppShell"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 624,
+          "line": 886,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 631,
+          "line": 904,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 639,
+          "line": 911,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 676,
+          "line": 919,
+          "component": "CompareView"
+        },
+        {
+          "file": "src/Components/AppComponents/CompareView/CompareView.js",
+          "line": 956,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 281,
+          "line": 285,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 286,
+          "line": 290,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 475,
+          "line": 527,
           "component": "PlantillaBuilderView"
-        },
-        {
-          "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 97,
-          "component": "UserMenu"
-        },
-        {
-          "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 101,
-          "component": "UserMenu"
-        },
-        {
-          "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 111,
-          "component": "UserMenu"
         },
         {
           "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
@@ -203,38 +197,63 @@ export default {
           "component": "UserMenu"
         },
         {
-          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 115,
-          "component": "PlantillaService"
+          "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
+          "line": 132,
+          "component": "UserMenu"
         },
         {
-          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 117,
-          "component": "PlantillaService"
-        },
-        {
-          "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 40,
-          "component": "RespuestasService"
-        },
-        {
-          "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 140,
-          "component": "RespuestasService"
-        },
-        {
-          "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
+          "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
           "line": 142,
+          "component": "UserMenu"
+        },
+        {
+          "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
+          "line": 159,
+          "component": "UserMenu"
+        },
+        {
+          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
+          "line": 132,
+          "component": "PlantillaService"
+        },
+        {
+          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
+          "line": 141,
+          "component": "PlantillaService"
+        },
+        {
+          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
+          "line": 143,
+          "component": "PlantillaService"
+        },
+        {
+          "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
+          "line": 91,
           "component": "RespuestasService"
         },
         {
-          "file": "src/Components/Providers/SharePlantillaModal/SharePlantillaModal.js",
-          "line": 66,
-          "component": "SharePlantillaModal"
+          "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
+          "line": 206,
+          "component": "RespuestasService"
+        },
+        {
+          "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
+          "line": 214,
+          "component": "RespuestasService"
+        },
+        {
+          "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
+          "line": 216,
+          "component": "RespuestasService"
+        },
+        {
+          "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
+          "line": 244,
+          "component": "RespuestasService"
         },
         {
           "file": "src/Components/Service/RespuestasService/RespuestasService.js",
-          "line": 40,
+          "line": 41,
           "component": "RespuestasService"
         },
         {
@@ -243,9 +262,24 @@ export default {
           "component": "CategoriaRow"
         },
         {
+          "file": "src/Components/Visual/ExportRespuestasModal/ExportRespuestasModal.js",
+          "line": 124,
+          "component": "ExportRespuestasModal"
+        },
+        {
           "file": "src/Components/Visual/OpcionRow/OpcionRow.js",
           "line": 183,
           "component": "OpcionRow"
+        },
+        {
+          "file": "src/Components/Visual/SharePlantillaModal/SharePlantillaModal.js",
+          "line": 117,
+          "component": "SharePlantillaModal"
+        },
+        {
+          "file": "src/Components/Visual/SharePlantillaModal/SharePlantillaModal.js",
+          "line": 139,
+          "component": "SharePlantillaModal"
         },
         {
           "file": "src/Components/Visual/TemaRow/TemaRow.js",
@@ -254,11 +288,6 @@ export default {
         }
       ],
       "listeners": [
-        {
-          "file": "src/Components/AppServices/Providers/Providers.js",
-          "line": 93,
-          "component": "Providers"
-        },
         {
           "file": "src/Components/Providers/Providers/Providers.js",
           "line": 104,
