@@ -275,7 +275,7 @@ export default class PlantillaService {
   // safe charset a slug/number was already restricted to, so legitimate
   // Plantillas are unaffected.
   isSafeId(id) {
-    return typeof id === 'string' || typeof id === 'number' ? /^[a-zA-Z0-9_-]{1,64}$/.test(String(id)) : false;
+    return typeof id === 'string' || typeof id === 'number' ? /^[a-zA-Z0-9_-]{1,640}$/.test(String(id)) : false;
   }
 
   // Shared by every Plantilla-import entry point (CompareView,
