@@ -48,6 +48,7 @@ export default class RespuestasView extends HTMLElement {
     this._kindAvail = { seleccion: false, votacion: false, ranking: false, texto: false };
     this._kindComplete = { seleccion: false, votacion: false, ranking: false, texto: false };
     this._slotPromptEl = null;
+    this._coarsePointer = window.matchMedia('(pointer: coarse)').matches;
 
     slice.controller.setComponentProps(this, props);
   }
@@ -302,8 +303,13 @@ export default class RespuestasView extends HTMLElement {
     this._kindTabsCmp.activeTab = this._activeKind;
 
     if (this._activeKind === 'seleccion') {
-      if (!['carousel', 'board'].includes(this._activeMode)) this._activeMode = 'carousel';
-      this.$modeTabs.hidden = false;
+      const availableModes = this._coarsePointer
+        ? MODE_TABS.filter((m) => m.id !== 'board')
+        : MODE_TABS;
+      if (this._coarsePointer && this._activeMode === 'board') this._activeMode = 'carousel';
+      if (!availableModes.find((m) => m.id === this._activeMode)) this._activeMode = 'carousel';
+      this._modeTabsCmp.items = availableModes;
+      this.$modeTabs.hidden = availableModes.length < 2;
       this._modeTabsCmp.activeTab = this._activeMode;
     } else {
       this.$modeTabs.hidden = true;
