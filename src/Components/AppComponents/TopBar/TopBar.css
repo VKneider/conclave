@@ -9,9 +9,24 @@ slice-topbar .topbar {
 slice-topbar .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; }
 slice-topbar .brand:hover { opacity: .72; }
 slice-topbar .brand-mark {
-  font-size: 24px; display: flex; align-items: center; justify-content: center;
-  width: 42px; height: 42px; border-radius: 12px; background: var(--secondary-background-color);
-  border: 2px solid var(--font-primary-color); transform: rotate(-6deg);
+  width: 40px; height: 40px;
+  border-radius: 12px; border: 2.5px solid var(--font-primary-color);
+  background: var(--panel-background-color);
+  background-image: url('/images/favicon.svg');
+  background-size: 28px;
+  background-repeat: no-repeat;
+  background-position: center;
+  transform: rotate(-6deg);
+  box-shadow: 3px 3px 0 var(--font-primary-color);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+slice-topbar .brand-mark:hover {
+  transform: translate(-1px, -1px) rotate(-6deg);
+  box-shadow: 4px 4px 0 var(--font-primary-color);
+}
+slice-topbar .brand-mark:active {
+  transform: translate(2px, 2px) rotate(-6deg);
+  box-shadow: 1px 1px 0 var(--font-primary-color);
 }
 slice-topbar .topbar h1 { font-family: var(--font-display); font-size: 20px; margin: 0; letter-spacing: -.01em; }
 slice-topbar .brand-sub { margin: 1px 0 0; font-size: 12px; color: var(--font-secondary-color); font-weight: 500; }

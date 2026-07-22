@@ -35,7 +35,7 @@ export default class LandingView extends HTMLElement {
 
     this.$root.innerHTML = this._html.sanitize(`
       <div class="landing-hero">
-        <div class="landing-brandmark">🏷️</div>
+        <div class="landing-brandmark" role="img" aria-label="Conclave"></div>
         <h1 class="landing-title">Conclave</h1>
         <p class="landing-sub">Decisiones en equipo, sin reuniones eternas</p>
         <p class="landing-desc">Arma una <b>Plantilla</b>, cada quien responde por su cuenta, y después <b>comparen y decidan juntos</b> — votaciones, asignaciones, rankings o lluvias de ideas.</p>
