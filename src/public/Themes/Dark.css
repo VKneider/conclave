@@ -1,13 +1,14 @@
-/* "Sticker Book" at night — same playful, flat, hard-shadow language,
-   warmed for a dark room. No gradients, no purple. */
+/* "Sticker Book" at night — warm charcoal canvas instead of purple-eggplant,
+   so the coral + turquoise accents pop instead of competing. Flat, hard-shadow,
+   no gradients, no purple. */
 :root {
   --font-primary-color: #f5f0e8;
-  --font-secondary-color: #b0aec2;
+  --font-secondary-color: #aba196;
 
   /** primary — brighter coral for contrast on dark ink **/
   --primary-color: #ff8166;
   --primary-color-rgb: rgb(255, 129, 102);
-  --primary-background-color: #1b1720;
+  --primary-background-color: #201b18;
   --primary-color-contrast: #1a1220;
   --primary-color-shade: #3a2a28;
 
@@ -18,7 +19,7 @@
   --secondary-color-contrast: #05201c;
 
   /** tertiary **/
-  --tertiary-background-color: #2c2836;
+  --tertiary-background-color: #322c25;
 
   /** success **/
   --success-color: #4ade80;
@@ -33,20 +34,16 @@
   --danger-contrast: #2b0710;
 
   /** medium **/
-  --medium-color: #a5a2ba;
+  --medium-color: #a0978d;
   --medium-contrast: #17141f;
 
   /* Disabled color */
-  --disabled-color: #3f3b4d;
+  --disabled-color: #4a433c;
 
   /** Conclave: elevated panel/card surfaces **/
-  --panel-background-color: #221e2d;
-  --panel-alt-background-color: #2a2536;
-  --border-color: #383349;
-
-  /** Conclave: opcion gender tally (Por equipo view) **/
-  --male-color: #7c9cff;
-  --female-color: #ff7cb8;
+  --panel-background-color: #25211d;
+  --panel-alt-background-color: #2c2722;
+  --border-color: #423b34;
 
   /** Conclave: card metrics — same chunky radius + hard offset shadow,
       dark enough to read against the panel color instead of glowing. **/

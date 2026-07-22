@@ -515,9 +515,14 @@ export default class DragDropService {
     // One delegated listener on the CONTAINER instead of one per item. The item
     // is resolved at pointerdown time, so items added/removed after makeSortable
     // are handled automatically, and a list of N items costs 1 listener, not N.
+    // We skip interactive elements (buttons, inputs, selects, textareas, links,
+    // contenteditable, and elements with a data-act attribute) so sortable drag
+    // doesn't interfere with the item's own controls.
     cfg._onDown = (event) => {
       const item = this._resolveSortableItem(container, event.target, cfg.items);
-      if (item) this._onSortablePointerDown(event, item, container, cfg);
+      if (item && !this._isInteractiveElement(event.target, item)) {
+        this._onSortablePointerDown(event, item, container, cfg);
+      }
     };
     container.addEventListener('pointerdown', cfg._onDown);
 
@@ -541,6 +546,20 @@ export default class DragDropService {
     return node;
   }
 
+  // Checks whether the pointerdown target (or any ancestor between it and the
+  // sortable item) is an interactive element that should not start a drag.
+  // We walk from `target` up to (but not including) `item` to handle nested
+  // controls inside a sortable child (e.g. a button inside a card).
+  _isInteractiveElement(target, item) {
+    const sel = 'button, input, select, textarea, a, [contenteditable], [data-act], slice-select, slice-button, slice-checkbox, slice-input';
+    let node = target;
+    while (node && node !== item) {
+      if (node.matches && node.matches(sel)) return true;
+      node = node.parentNode;
+    }
+    return false;
+  }
+
   _onSortablePointerDown(event, item, container, cfg) {
     if (event.button !== 0) return;
     event.preventDefault();
@@ -554,19 +573,20 @@ export default class DragDropService {
     placeholder.style.cssText = `height:${rect.height}px;margin:0;background:rgba(59,130,246,.08);border:2px dashed #3b82f6;border-radius:6px;box-sizing:border-box`;
     container.insertBefore(placeholder, item);
 
-    const ghost = document.createElement('div');
-    const ghostStyle = {
-      position: 'fixed', pointerEvents: 'none', zIndex: '999999',
-      opacity: '.85', width: rect.width + 'px', height: rect.height + 'px',
-      top: rect.top + 'px', left: rect.left + 'px',
-      background: '#fff', border: '1px solid #d1d5db',
-      borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,.12)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'system-ui, sans-serif', fontSize: '14px',
-      willChange: 'transform',
-    };
-    Object.assign(ghost.style, ghostStyle);
-    ghost.textContent = item.textContent || '';
+    const ghost = item.cloneNode(true);
+    ghost.className = 'dnd-ghost' + (cfg.ghostClass ? ' ' + cfg.ghostClass : '');
+    // Drop any resize-handle container copied from the source so the ghost
+    // has no grips on it — same cleanup _createGhost does for draggables.
+    ghost.querySelectorAll('.dnd-resize-handles').forEach((el) => el.remove());
+    // Force fixed positioning INLINE. The source may carry inline
+    // position:relative that would drop the clone far down the page.
+    ghost.style.position = 'fixed';
+    ghost.style.margin = '0';
+    ghost.style.willChange = 'transform';
+    ghost.style.width = rect.width + 'px';
+    ghost.style.height = rect.height + 'px';
+    ghost.style.top = rect.top + 'px';
+    ghost.style.left = rect.left + 'px';
     document.body.appendChild(ghost);
 
     // Hide the original with inline !important so it beats a component's own

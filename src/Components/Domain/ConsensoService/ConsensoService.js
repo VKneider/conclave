@@ -1,3 +1,5 @@
+import { PRINT_DELAY_MS, PRINT_CLEANUP_MS, SHARE_URL_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
+
 // Context is created ONCE in init() via StoreService.ensure() — boot order
 // guarantees init runs before any consumer, so no per-method defensive ensure.
 //
@@ -21,10 +23,45 @@ const INITIAL_STATE = { seleccion: {}, texto: {}, voto: {}, ranking: {} };
 export default class ConsensoService {
   init() {
     slice.getComponent('StoreService').ensure(CONTEXT, INITIAL_STATE, STORAGE_KEY);
+    this._normalizeAgainstPlantilla();
   }
 
   getState() {
     return slice.context.getState(CONTEXT);
+  }
+
+  _normalizeRespuestas(respuestas) {
+    const plantilla = slice.getComponent('PlantillaService');
+    const r = respuestas || {};
+    const seleccion = Object.fromEntries(
+      Object.entries(r.seleccion || {}).filter(([opcionId, temaId]) =>
+        plantilla.getOpcionById(opcionId) && plantilla.getTemaById(temaId))
+    );
+    const texto = Object.fromEntries(
+      Object.entries(r.texto || {}).filter(([temaId]) => plantilla.getTemaById(temaId))
+    );
+    const voto = Object.fromEntries(
+      Object.entries(r.voto || {}).filter(([temaId, opcionId]) =>
+        plantilla.getTemaById(temaId) && plantilla.getOpcionById(opcionId))
+    );
+    const ranking = Object.fromEntries(
+      Object.entries(r.ranking || {})
+        .filter(([temaId]) => plantilla.getTemaById(temaId))
+        .map(([temaId, ids]) => [temaId, (Array.isArray(ids) ? ids : []).filter((id) => plantilla.getOpcionById(id))])
+    );
+    return { seleccion, texto, voto, ranking };
+  }
+
+  _normalizeAgainstPlantilla() {
+    const state = this.getState();
+    const normalized = this._normalizeRespuestas(state);
+    const changed = Object.keys(normalized.seleccion).length !== Object.keys(state.seleccion || {}).length
+      || Object.keys(normalized.texto).length !== Object.keys(state.texto || {}).length
+      || Object.keys(normalized.voto || {}).length !== Object.keys(state.voto || {}).length
+      || Object.keys(normalized.ranking || {}).length !== Object.keys(state.ranking || {}).length;
+    if (changed) {
+      slice.context.setState(CONTEXT, () => normalized);
+    }
   }
 
   // ── Modo selección ──────────────────────────────────────────
@@ -127,6 +164,43 @@ export default class ConsensoService {
     });
   }
 
+  // ── Share link ──────────────────────────────────────────────
+
+  _buildSharePayload() {
+    const settings = slice.getComponent('SettingsService');
+    return {
+      respuestas: this.getState(),
+      autor: settings.getState().autor || '',
+      email: settings.getEmail(),
+    };
+  }
+
+  getShareLink() {
+    const packed = slice.getComponent('CompressionService').packForURI(this._buildSharePayload());
+    const compressed = slice.getComponent('CompressionService').compressToURI(packed);
+    return `${window.location.origin}${window.location.pathname}#consenso=${compressed}`;
+  }
+
+  canShareByLink() {
+    return this.getShareLink().length <= SHARE_URL_MAX_LENGTH;
+  }
+
+  copyShareLink() {
+    if (!this.canShareByLink()) {
+      slice.events.emit('toast:show', {
+        message: 'El consenso es demasiado grande para compartir por enlace. Exporta archivo.',
+        type: 'warning'
+      });
+      return;
+    }
+    const url = this.getShareLink();
+    navigator.clipboard.writeText(url).then(() => {
+      slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success'});
+    }, () => {
+      slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error'});
+    });
+  }
+
   // ── Export ──────────────────────────────────────────────────
 
   exportFinal(rows) {
@@ -143,28 +217,62 @@ export default class ConsensoService {
     const voto = { ...(state.voto || {}) };
     const ranking = { ...(state.ranking || {}) };
     const autor = slice.getComponent('SettingsService').getState().autor || 'Consenso';
-    slice.getComponent('ExportService').downloadRespuestasFinal(autor, { seleccion, texto, voto, ranking });
+    slice.getComponent('ExportService').downloadConsenso(autor, { seleccion, texto, voto, ranking });
   }
 
   // Exports the full state as JSON (used by ResumenFinalView).
-  exportStateJson() {
+  downloadConsensoFile() {
     var autor = slice.getComponent('SettingsService').getState().autor || 'Consenso';
-    slice.getComponent('ExportService').downloadRespuestasFinal(autor, this.getState());
+    var notas = this._loadNotes();
+    slice.getComponent('ExportService').downloadConsenso(autor, this.getState(), notas);
+  }
+
+  _loadNotes() {
+    try {
+      var raw = localStorage.getItem('conclave-notas-por-tema-v1');
+      if (!raw) {
+        var legacy = localStorage.getItem('conclave-notas-v1');
+        return legacy ? { __global__: legacy } : {};
+      }
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : { __global__: raw };
+    } catch (_e) {
+      return {};
+    }
+  }
+
+  _saveNotes(notas) {
+    if (!notas || typeof notas !== 'object') return;
+    localStorage.setItem('conclave-notas-por-tema-v1', JSON.stringify(notas));
   }
 
   // Imports consensus state from a parsed JSON object.
-  // Returns true if the state was valid and loaded.
+  // Returns { ok: bool, recognized: number, ignored: number }.
   importState(data) {
-    if (!data || typeof data !== 'object') return false;
-    // Handle envelope format: { respuestas: { seleccion, texto, voto, ranking } }
+    if (!data || typeof data !== 'object') return { ok: false, recognized: 0, ignored: 0 };
     const src = data.respuestas || data;
-    if (!src || typeof src !== 'object') return false;
-    var state = {};
-    ['seleccion', 'texto', 'voto', 'ranking'].forEach(function (key) {
-      state[key] = (src[key] && typeof src[key] === 'object') ? src[key] : {};
-    });
-    slice.context.setState(CONTEXT, function () { return state; });
-    return true;
+    if (!src || typeof src !== 'object') return { ok: false, recognized: 0, ignored: 0 };
+
+    const rawCount = Object.keys(src.seleccion || {}).length
+      + Object.keys(src.texto || {}).length
+      + Object.keys(src.voto || {}).length
+      + Object.keys(src.ranking || {}).length;
+
+    const normalized = this._normalizeRespuestas(src);
+    const recognized = Object.keys(normalized.seleccion).length
+      + Object.keys(normalized.texto).length
+      + Object.keys(normalized.voto).length
+      + Object.keys(normalized.ranking).length;
+    const ignored = Math.max(0, rawCount - recognized);
+
+    slice.context.setState(CONTEXT, () => normalized);
+
+    // Restore notes if present in the file
+    if (data.notas && typeof data.notas === 'object') {
+      this._saveNotes(data.notas);
+    }
+
+    return { ok: recognized > 0, recognized, ignored };
   }
 
   // ── HTML / PDF export ──────────────────────────────────────
@@ -191,8 +299,8 @@ export default class ConsensoService {
     setTimeout(function () {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
-      setTimeout(function () { document.body.removeChild(iframe); }, 500);
-    }, 200);
+      setTimeout(function () { document.body.removeChild(iframe); }, PRINT_DELAY_MS);
+    }, PRINT_CLEANUP_MS);
   }
 
   _buildExportDoc(options = {}) {

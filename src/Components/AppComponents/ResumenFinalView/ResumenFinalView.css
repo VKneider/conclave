@@ -4,6 +4,7 @@ slice-resumenfinalview #resumenContent { display: flex; flex-direction: column; 
 /* ── Toolbar ── */
 slice-resumenfinalview .rf-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 22px; flex-wrap: wrap; }
 slice-resumenfinalview .rf-toolbar slice-checkbox { margin-left: 2px; }
+slice-resumenfinalview .rf-toolbar-sep { width: 1px; height: 28px; background: var(--border-color); margin: 0 4px; flex-shrink: 0; }
 
 /* ── Section card (hero treatment) ── */
 slice-resumenfinalview .rf-section { background: var(--panel-background-color); border: 2.5px solid var(--font-primary-color); border-radius: var(--card-border-radius); box-shadow: var(--box-shadow-primary); padding: 16px 18px 18px; }

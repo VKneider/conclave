@@ -28,6 +28,8 @@ export default class TemaRow extends HTMLElement {
     this.$nameSlot = this.querySelector('.cat-row__name-slot');
     this.$modoSlot = this.querySelector('.cat-row__modo-slot');
     this.$toggle = this.querySelector('.cat-row__toggle');
+    this.$moveUp = this.querySelector('.cat-row__move-up');
+    this.$moveDown = this.querySelector('.cat-row__move-down');
     this.$remove = this.querySelector('.cat-row__remove');
     this.$hint = this.querySelector('.cat-row__hint');
     this.$extra = this.querySelector('.cat-row__extra');
@@ -47,6 +49,8 @@ export default class TemaRow extends HTMLElement {
     this._tema = null;
 
     this.$toggle.addEventListener('click', () => this._setExpanded(!this._expanded));
+    this.$moveUp.addEventListener('click', () => this._emitMove(-1));
+    this.$moveDown.addEventListener('click', () => this._emitMove(1));
     this.$remove.addEventListener('click', () => this._confirmRemove());
     this.$min.addEventListener('change', () => this._patch({ min: this.$min.value === '' ? null : Number(this.$min.value) }));
     this.$max.addEventListener('change', () => this._patch({ max: this.$max.value === '' ? null : Number(this.$max.value) }));
@@ -192,6 +196,11 @@ export default class TemaRow extends HTMLElement {
 
   _patch(changes) {
     slice.getComponent('PlantillaService').updateTema(this._tema.id, changes);
+  }
+
+  _emitMove(direction) {
+    if (!this._tema) return;
+    slice.events.emit('tema:move', { temaId: this._tema.id, direction });
   }
 
   _confirmRemove() {

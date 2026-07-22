@@ -1,4 +1,4 @@
-import { ACCEPT_ALL } from '../../Core/AppConfig/AppConfig.js';
+import { ACCEPT_ALL, APP_NAME, APP_VERSION } from '../../Core/AppConfig/AppConfig.js';
 
 // Compact "yo" hub in the topbar — identity (tu nombre), theme, and every
 // "mis Respuestas" action (exportar/importar/reiniciar). Replaces both the
@@ -20,6 +20,8 @@ export default class UserMenu extends HTMLElement {
     this.$importBtnSlot = this.querySelector('[data-el="importBtnSlot"]');
     this.$importFile = this.querySelector('[data-el="importFile"]');
     this.$resetBtnSlot = this.querySelector('[data-el="resetBtnSlot"]');
+    this.$backupExportBtnSlot = this.querySelector('[data-el="backupExportBtnSlot"]');
+    this.$version = this.querySelector('[data-el="version"]');
 
     this._open = false;
     this._onDocClick = (e) => {
@@ -83,9 +85,22 @@ export default class UserMenu extends HTMLElement {
     });
     if (this.$resetBtn instanceof Node) { this._children.push(this.$resetBtn); }
 
+    this.$backupExportBtn = await slice.build('Button', {
+      value: '\uD83D\uDCBE Backup completo',
+      variant: 'ghost',
+      onClick: () => {
+        slice.getComponent('ExportService').downloadBackup();
+        this._setOpen(false);
+      }
+    });
+    if (this.$backupExportBtn instanceof Node) { this._children.push(this.$backupExportBtn); }
+
     if (this.$shareBtn instanceof Node && this.$shareBtnSlot?.parentNode) this.$shareBtnSlot.replaceWith(this.$shareBtn);
     if (this.$importBtn instanceof Node && this.$importBtnSlot?.parentNode) this.$importBtnSlot.replaceWith(this.$importBtn);
     if (this.$resetBtn instanceof Node && this.$resetBtnSlot?.parentNode) this.$resetBtnSlot.replaceWith(this.$resetBtn);
+    if (this.$backupExportBtn instanceof Node && this.$backupExportBtnSlot?.parentNode) this.$backupExportBtnSlot.replaceWith(this.$backupExportBtn);
+
+    if (this.$version) this.$version.textContent = `${APP_NAME} v${APP_VERSION}`;
 
     slice.context.watch('settings', this, (s) => { this._syncAutor(s.autor); this._syncEmail(s.email); });
     const settings = slice.getComponent('SettingsService');

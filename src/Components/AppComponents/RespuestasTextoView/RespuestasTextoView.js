@@ -1,5 +1,7 @@
 // Manages a reconciled list of TextoCard Slice components via CarouselView.
 // Mode toggle: grid (all at once), single (one at a time with arrows), columns.
+import { SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../Core/AppConfig/AppConfig.js';
+
 export default class RespuestasTextoView extends HTMLElement {
   constructor(props) {
     super();
@@ -137,7 +139,7 @@ export default class RespuestasTextoView extends HTMLElement {
         oninput: () => {
           this.$fsFoot.textContent = 'Escribiendo…';
           clearTimeout(this._fsSaveTimer);
-          this._fsSaveTimer = setTimeout(() => this._saveFs(), 400);
+          this._fsSaveTimer = setTimeout(() => this._saveFs(), DEBOUNCE_SAVE_MS);
         },
         onblur: () => this._saveFs(),
       });
@@ -159,7 +161,7 @@ export default class RespuestasTextoView extends HTMLElement {
     this._respuestas.setTexto(this._fsTemaId, this._fsEditor.value);
     this.$fsFoot.textContent = '✓ Guardado';
     clearTimeout(this._statusTimer);
-    this._statusTimer = setTimeout(() => { if (!this.$fs.hidden) this.$fsFoot.textContent = ''; }, 1200);
+    this._statusTimer = setTimeout(() => { if (!this.$fs.hidden) this.$fsFoot.textContent = ''; }, SAVE_STATUS_MS);
   }
 
   _closeFs() {

@@ -1,3 +1,5 @@
+import { DASHBOARD_NAME_MAX } from '../../Core/AppConfig/AppConfig.js';
+
 export default class DashboardView extends HTMLElement {
   constructor(props) {
     super();
@@ -10,6 +12,9 @@ export default class DashboardView extends HTMLElement {
     this._roster = slice.getComponent('PlantillaService');
     this._html = slice.getComponent('HtmlService');
     this._charts = slice.getComponent('ChartService');
+    this._viewHeaderSlot = this.querySelector('.viewheader-slot');
+    const viewHeader = await slice.build('ViewHeader', { sliceId: 'dashViewHeader', title: 'Dashboard', subtitle: 'Resumen de tus respuestas — progreso, asignaciones, votaciones, rankings y texto libre.' });
+    if (viewHeader instanceof Node) this._viewHeaderSlot.appendChild(viewHeader);
     await this._buildShell();
     this._render();
     slice.context.watch('respuestas', this, () => this._render());
@@ -72,7 +77,7 @@ export default class DashboardView extends HTMLElement {
       </div>`;
 
     if (!temas.length) {
-      this.$root.innerHTML = this._html.sanitize('<div class="dash-header"><h2 class="view-title">Dashboard</h2></div>');
+      this.$root.innerHTML = '';
       const empty = await slice.build('EmptyState', {
         icon: '\uD83D\uDCCB',
         title: 'Todav\u00EDa no hay una Plantilla',
@@ -91,9 +96,6 @@ export default class DashboardView extends HTMLElement {
     }
 
     let html = `
-      <div class="dash-header">
-        <h2 class="view-title">Dashboard</h2>
-      </div>
       <div class="dash-info-row">
         <div data-el="shareBtnSlot"></div>
         <span class="dash-plantilla__name" data-el="plantillaName"></span>
@@ -253,8 +255,8 @@ export default class DashboardView extends HTMLElement {
       nRanking ? `🏆 ${nRanking} de ranking` : null,
       nTexto ? `📝 ${nTexto} de texto libre` : null,
     ].filter(Boolean).join(' · ');
-    const maxName = (nombrePlantilla || 'Plantilla sin nombre').slice(0, 40);
-    this._els.plantillaName.textContent = `📋 ${maxName}${(nombrePlantilla || '').length > 40 ? '…' : ''}`;
+    const maxName = (nombrePlantilla || 'Plantilla sin nombre').slice(0, DASHBOARD_NAME_MAX);
+    this._els.plantillaName.textContent = `📋 ${maxName}${(nombrePlantilla || '').length > DASHBOARD_NAME_MAX ? '…' : ''}`;
     this._els.plantillaName.title = nombrePlantilla || '';
     this._els.plantillaMeta.textContent = composicion;
     this._els.plantillaMeta.hidden = !composicion;

@@ -1,4 +1,6 @@
 import { test, expect } from '../../../../playwright/harness/sliceFixtures.js';
+import { seedAsignacion } from '../../../../playwright/harness/seedHelpers.js';
+import LZString from 'lz-string';
 
 const REPARTO_PLANTILLA = {
    nombre: 'Reparto Test',
@@ -131,36 +133,50 @@ test.describe('14. Resumen Final', () => {
       expect(app.pageErrors).toEqual([]);
    });
 
-   test('14.1.5: descargar HTML al hacer click', async ({ app }) => {
-      const decisionFinal = {
-         seleccion: {}, texto: {}, voto: {}, ranking: {},
-      };
-      await injectPlantilla(app, REPARTO_PLANTILLA, { 'conclave-decision-final-v1': decisionFinal });
+    test('14.1.5: descargar HTML al hacer click', async ({ app }) => {
+       const decisionFinal = {
+          seleccion: {}, texto: {}, voto: {}, ranking: {},
+       };
+       await injectPlantilla(app, REPARTO_PLANTILLA, { 'conclave-decision-final-v1': decisionFinal });
 
-      const downloadPromise = app.page.waitForEvent('download', { timeout: 3000 }).catch(() => null);
-      await app.page.locator('button').filter({ hasText: 'Descargar HTML' }).click();
-      await app.page.waitForTimeout(500);
+       // Wait for the dropdown to be fully rendered
+       await app.page.locator('.resumen-view slice-dropdown').waitFor({ state: 'attached', timeout: 5000 });
+       await app.page.waitForTimeout(500);
 
-      // Download may or may not complete in test env — verify no error
-      expect(app.pageErrors).toEqual([]);
-   });
+       // Open the export dropdown
+       await app.page.locator('.resumen-view slice-dropdown .slice_dropdown').click();
+       await app.page.waitForTimeout(300);
 
-   test('14.1.6: exportar JSON final desde DropDown', async ({ app }) => {
-      const decisionFinal = {
-         seleccion: {}, texto: {}, voto: {}, ranking: {},
-      };
-      await injectPlantilla(app, REPARTO_PLANTILLA, { 'conclave-decision-final-v1': decisionFinal });
+       const downloadPromise = app.page.waitForEvent('download', { timeout: 3000 }).catch(() => null);
 
-      // Open the dropdown
-      await app.page.locator('[slice-id="jsonDropDown"] .slice_dropdown').click();
-      await app.page.waitForTimeout(300);
+       // Click "Descargar HTML" option
+       await app.page.locator('.resumen-view .slice_dropbox a').filter({ hasText: 'Descargar HTML' }).click();
+       await app.page.waitForTimeout(500);
 
-      // Click "Guardar respuestas en archivo"
-      await app.page.locator('.slice_dropbox a').filter({ hasText: 'Guardar respuestas' }).click();
-      await app.page.waitForTimeout(300);
+       // Download may or may not complete in test env — verify no error
+       expect(app.pageErrors).toEqual([]);
+    });
 
-      expect(app.pageErrors).toEqual([]);
-   });
+    test('14.1.6: exportar JSON final desde DropDown', async ({ app }) => {
+       const decisionFinal = {
+          seleccion: {}, texto: {}, voto: {}, ranking: {},
+       };
+       await injectPlantilla(app, REPARTO_PLANTILLA, { 'conclave-decision-final-v1': decisionFinal });
+
+       // Wait for the dropdown to be fully rendered
+       await app.page.locator('.resumen-view slice-dropdown').waitFor({ state: 'attached', timeout: 5000 });
+       await app.page.waitForTimeout(500);
+
+       // Open the export dropdown
+       await app.page.locator('.resumen-view slice-dropdown .slice_dropdown').click();
+       await app.page.waitForTimeout(300);
+
+       // Click "Exportar backup completo" option
+       await app.page.locator('.resumen-view .slice_dropbox a').filter({ hasText: 'Exportar backup completo' }).click();
+       await app.page.waitForTimeout(300);
+
+       expect(app.pageErrors).toEqual([]);
+    });
 
    test('14.1.7: ver sección vacía cuando no hay decisiones', async ({ app }) => {
       const decisionFinal = {
@@ -173,4 +189,62 @@ test.describe('14. Resumen Final', () => {
       await expect(app.page.locator('.rf-empty').first()).toContainText('No hay decisiones finales');
       expect(app.pageErrors).toEqual([]);
    });
+
+   test.describe('14.2 Importar consenso desde enlace', () => {
+
+      const FULL_TO_SHORT = {
+         tipo: 't', nombre: 'n', email: 'e',
+         temas: 'ts', opciones: 'os', atributos: 'at',
+         respuestas: 'rs', autor: 'a',
+         seleccion: 'sl', texto: 'tx', voto: 'vt', ranking: 'rk',
+         modo: 'm', orden: 'o', participable: 'p', meta: 'mt', temaId: 'ti',
+         key: 'k', label: 'l', type: 'tp',
+      };
+
+      function _mapKeys(obj) {
+         if (Array.isArray(obj)) return obj.map(_mapKeys);
+         if (obj && typeof obj === 'object') {
+            return Object.fromEntries(
+               Object.entries(obj).map(([k, v]) => [FULL_TO_SHORT[k] || k, _mapKeys(v)])
+            );
+         }
+         return obj;
+      }
+
+      function makeConsensoHash(payload) {
+         const packed = _mapKeys(payload);
+         const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(packed));
+         return `#consenso=${compressed}`;
+      }
+
+      test('14.2.1: importar decisiones desde enlace con hash', async ({ app }) => {
+         await seedAsignacion(app);
+
+         const payload = {
+            respuestas: {
+               seleccion: { '1': 'bienvenida', '2': 'bienvenida', '3': 'transporte' },
+               texto: {}, voto: {}, ranking: {},
+            },
+            autor: 'TestUser',
+            email: '',
+         };
+         const hash = makeConsensoHash(payload);
+
+         await app.page.goto('/' + hash);
+         await app.page.waitForFunction(
+            () => !!(window.slice && typeof window.slice.build === 'function'),
+            { timeout: 10000 }
+         );
+         await app.page.waitForTimeout(500);
+
+         await app.confirmDialog();
+         await app.page.waitForTimeout(500);
+
+         await expect(app.page.locator('.resumen-view')).toBeVisible({ timeout: 5000 });
+         await expect(app.page.locator('.rf-table tbody tr')).toHaveCount(3);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+   });
+
 });

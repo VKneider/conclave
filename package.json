@@ -30,6 +30,8 @@
     "slice:doctor": "node ./node_modules/slicejs-cli/client.js doctor",
     "slice:version": "node ./node_modules/slicejs-cli/client.js version",
     "slice:help": "node ./node_modules/slicejs-cli/client.js --help",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "slice:types": "node ./node_modules/slicejs-cli/client.js types generate",
     "run": "node ./node_modules/slicejs-cli/client.js dev",
     "test:e2e": "playwright test --project=components",
@@ -57,11 +59,15 @@
     "dompurify": "^3.4.12",
     "express": "^5.2.1",
     "lz-string": "^1.5.0",
+    "qrcode": "^1.5.4",
     "quill": "^2.0.3",
     "slicejs-web-framework": "4.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
+    "eslint": "^9.39.5",
+    "globals": "^17.7.0",
     "slicejs-cli": "4.1.0"
   }
 }

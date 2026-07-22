@@ -1,12 +1,14 @@
 <div class="resumen-view">
-  <h2 class="view-title">Resumen del consenso final</h2>
-  <p class="view-sub">Todas las decisiones finales — asignaciones, votos, rankings y textos adoptados — en un solo vistazo.</p>
+  <div class="viewheader-slot"></div>
   <div class="rf-toolbar">
-    <span id="exportHtmlBtnSlot"></span>
-    <span id="exportPrintBtnSlot"></span>
     <span id="includeNotesCheckboxSlot"></span>
-    <span id="jsonDropDownSlot"></span>
-    <input type="file" id="importJsonFile" accept="application/json,.json,.plantilla,.respuestas" hidden />
+    <span class="rf-toolbar-sep"></span>
+    <span id="shareBtnSlot"></span>
+    <span id="importBtnSlot"></span>
+    <input type="file" id="importConclaveFile" hidden />
+    <span class="rf-toolbar-sep"></span>
+    <span id="exportDropDownSlot"></span>
+    <input type="file" id="importBackupFile" hidden />
   </div>
   <div id="resumenContent"></div>
 </div>

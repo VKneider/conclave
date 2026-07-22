@@ -10,7 +10,7 @@ export default class ImportDrop extends HTMLElement {
   }
 
   init() {
-    this.accept = ACCEPT_ALL;
+    this.$input.accept = ACCEPT_ALL;
     this.$drop.onclick = () => this.$input.click();
     this.$input.onchange = () => {
       this._onFiles?.(this.$input.files);

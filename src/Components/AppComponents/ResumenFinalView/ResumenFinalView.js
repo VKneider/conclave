@@ -1,4 +1,4 @@
-import { ACCEPT_ALL } from '../../Core/AppConfig/AppConfig.js';
+import { EXT_CONSENSO, EXT_BACKUP, SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../Core/AppConfig/AppConfig.js';
 
 export default class ResumenFinalView extends HTMLElement {
   constructor(props) {
@@ -6,11 +6,13 @@ export default class ResumenFinalView extends HTMLElement {
     slice.attachTemplate(this);
     this.$root = this.querySelector('.resumen-view');
     this.$content = this.querySelector('#resumenContent');
-    this.$exportHtmlSlot = this.querySelector('#exportHtmlBtnSlot');
-    this.$exportPrintBtnSlot = this.querySelector('#exportPrintBtnSlot');
+    this.$viewHeaderSlot = this.querySelector('.viewheader-slot');
     this.$includeNotesCheckboxSlot = this.querySelector('#includeNotesCheckboxSlot');
-    this.$jsonDropDownSlot = this.querySelector('#jsonDropDownSlot');
-    this.$importFile = this.querySelector('#importJsonFile');
+    this.$shareBtnSlot = this.querySelector('#shareBtnSlot');
+    this.$importBtnSlot = this.querySelector('#importBtnSlot');
+    this.$importFile = this.querySelector('#importConclaveFile');
+    this.$exportDropDownSlot = this.querySelector('#exportDropDownSlot');
+    this.$backupImportFile = this.querySelector('#importBackupFile');
     this._STORE_KEY = 'conclave-notas-por-tema-v1';
     this._notesByTema = {};
     this._noteTimers = {};
@@ -19,46 +21,53 @@ export default class ResumenFinalView extends HTMLElement {
   }
 
   async init() {
-    this.$importFile.accept = ACCEPT_ALL;
     this._html = slice.getComponent('HtmlService');
     this._roster = slice.getComponent('PlantillaService');
     this._consenso = slice.getComponent('ConsensoService');
 
-    this.$exportHtml = await slice.build('Button', {
-      value: 'Descargar HTML',
-      variant: 'filled',
-      onClick: () => this._consenso.exportHtml({ includeNotes: this._includeNotes, notesByTema: this._notesByTema })
-    });
-    this.$exportHtmlSlot.replaceWith(this.$exportHtml);
-
-    this.$exportPrint = await slice.build('Button', {
-      value: '\uD83D\uDDA8 Imprimir',
-      variant: 'filled',
-      onClick: () => this._consenso.exportPrint({ includeNotes: this._includeNotes, notesByTema: this._notesByTema })
-    });
-    this.$exportPrintBtnSlot.replaceWith(this.$exportPrint);
+    const viewHeader = await slice.build('ViewHeader', { sliceId: 'rfViewHeader', title: 'Resumen del consenso final', subtitle: 'Todas las decisiones finales \u2014 asignaciones, votos, rankings y textos adoptados \u2014 en un solo vistazo.' });
+    if (viewHeader instanceof Node) this.$viewHeaderSlot.appendChild(viewHeader);
 
     this.$includeNotesCheckbox = await slice.build('Checkbox', {
       label: 'Incluir notas',
       checked: true,
     });
-    this.$includeNotes = true;
+    this._includeNotes = true;
     this.$includeNotesCheckbox.addEventListener('change', (e) => {
       this._includeNotes = !!e.target.checked;
     });
     this.$includeNotesCheckboxSlot.replaceWith(this.$includeNotesCheckbox);
 
-    this.$jsonDropDown = await slice.build('DropDown', {
-      sliceId: 'jsonDropDown',
-      label: 'Archivo',
+    this.$shareBtn = await slice.build('Button', {
+      value: '\uD83D\uDCC4 Compartir decisiones',
+      variant: 'filled',
+      onClick: () => this._openShareModal(),
+    });
+    this.$shareBtnSlot.replaceWith(this.$shareBtn);
+
+    this.$importBtn = await slice.build('Button', {
+      value: `\uD83D\uDCC2 Importar (${EXT_CONSENSO})`,
+      variant: 'ghost',
+      onClick: () => this.$importFile.click(),
+    });
+    this.$importBtnSlot.replaceWith(this.$importBtn);
+
+    this.$importFile.accept = EXT_CONSENSO;
+    this.$importFile.addEventListener('change', () => this._handleImportFile());
+
+    this.$exportDropDown = await slice.build('DropDown', {
+      label: `\uD83D\uDCBE Exportar / Backup`,
       options: [
-        { text: '\uD83D\uDCC2 Cargar respuestas guardadas', callback: () => { this.$importFile.click(); } },
-        { text: '\u2B07 Guardar respuestas en archivo', callback: () => this._consenso.exportStateJson() }
+        { text: '\uD83D\uDCC4 Descargar HTML', callback: () => this._consenso.exportHtml({ includeNotes: this._includeNotes, notesByTema: this._notesByTema }) },
+        { text: '\uD83D\uDDA8 Imprimir', callback: () => this._consenso.exportPrint({ includeNotes: this._includeNotes, notesByTema: this._notesByTema }) },
+        { text: '\u2B07 Exportar backup completo', callback: () => slice.getComponent('ExportService').downloadBackup() },
+        { text: '\uD83D\uDCC2 Importar backup', callback: () => this.$backupImportFile.click() }
       ]
     });
-    this.$jsonDropDownSlot.replaceWith(this.$jsonDropDown);
+    this.$exportDropDownSlot.replaceWith(this.$exportDropDown);
 
-    this.$importFile.addEventListener('change', () => this._handleImportFile());
+    this.$backupImportFile.accept = EXT_BACKUP;
+    this.$backupImportFile.addEventListener('change', () => this._handleImportBackup());
 
     this._notesModal = await slice.build('CompareNotesModal', { sliceId: 'rfNotesModal' });
     this.$root.appendChild(this._notesModal);
@@ -99,11 +108,11 @@ export default class ResumenFinalView extends HTMLElement {
     if (this._noteTimers[temaId]) clearTimeout(this._noteTimers[temaId]);
     const run = () => {
       localStorage.setItem(this._STORE_KEY, JSON.stringify(this._notesByTema));
-      this._setNoteStatus(temaId, '✓ Guardado');
-      setTimeout(() => this._setNoteStatus(temaId, ''), 1200);
+      this._setNoteStatus(temaId, '\u2713 Guardado');
+      setTimeout(() => this._setNoteStatus(temaId, ''), SAVE_STATUS_MS);
     };
     if (immediate) run();
-    else this._noteTimers[temaId] = setTimeout(run, 350);
+    else this._noteTimers[temaId] = setTimeout(run, DEBOUNCE_SAVE_MS);
   }
 
   _noteTemas() {
@@ -116,7 +125,7 @@ export default class ResumenFinalView extends HTMLElement {
     const temas = this._noteTemas();
     if (!temas.some((t) => String(t.id) === String(this._activeTemaId))) this._activeTemaId = temas[0].id;
     await this._notesModal.show({
-      title: '📝 Notas del resumen',
+      title: '\uD83D\uDCDD Notas del resumen',
       temas,
       notesByTema: this._notesByTema,
       currentTemaId: this._activeTemaId,
@@ -133,13 +142,74 @@ export default class ResumenFinalView extends HTMLElement {
     });
   }
 
-  beforeDestroy() {
-    Object.values(this._noteTimers).forEach((t) => clearTimeout(t));
-    document.body.style.overflow = '';
-    if (this._fullscreen) {
-      const topbar = slice.getComponent('appTopbar');
-      if (topbar) topbar.show();
-    }
+  _openShareModal() {
+    const modal = slice.getComponent('shareConsensoModal');
+    if (modal?.show) modal.show();
+  }
+
+  _handleImportBackup() {
+    const file = this.$backupImportFile.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data || data.tipo !== 'backup' || !data.plantilla) {
+          slice.getComponent('ToastProvider')?.show?.('El archivo no contiene un backup v\u00E1lido.', { type: 'error' });
+          return;
+        }
+
+        const p = data.plantilla;
+        const resumen = [];
+        if (p.temas?.length) resumen.push(`${p.temas.length} temas`);
+        if (p.opciones?.length) resumen.push(`${p.opciones.length} opciones`);
+        if (data.respuestasImportadas?.length) resumen.push(`${data.respuestasImportadas.length} participantes`);
+        if (data.decisionFinal) {
+          const d = data.decisionFinal;
+          const totalDecisions = Object.keys(d.seleccion || {}).length + Object.keys(d.voto || {}).length
+            + Object.keys(d.ranking || {}).length + Object.keys(d.texto || {}).length;
+          if (totalDecisions) resumen.push(`${totalDecisions} decisiones`);
+        }
+
+        slice.events.emit('confirm:request', {
+          title: `Restaurar backup: ${p.nombre || 'sin nombre'}`,
+          message: `Esto reemplazar\u00E1 toda la informaci\u00F3n actual: ${resumen.join(', ')}.\n\nLos datos actuales se perder\u00E1n. \u00BFContinuar?`,
+          confirmLabel: 'Restaurar',
+          danger: true,
+          onConfirm: () => {
+            try {
+              const roster = slice.getComponent('PlantillaService');
+              roster.loadFromData(p.temas || [], p.opciones || [], p.nombre, p.atributos, p.creadoPor, p.creadoEmail);
+
+              if (data.respuestas) {
+                slice.getComponent('RespuestasService').importMine(data.respuestas);
+              }
+
+              if (data.respuestasImportadas) {
+                slice.context.setState('respuestasImportadas', () => data.respuestasImportadas);
+              }
+
+              if (data.decisionFinal) {
+                this._consenso.importState(data.decisionFinal);
+              }
+
+              if (data.notas && typeof data.notas === 'object') {
+                this._consenso._saveNotes(data.notas);
+                this._loadNotes();
+              }
+
+              slice.events.emit('toast:show', { message: 'Backup restaurado correctamente', type: 'success', duration: 4000 });
+            } catch (_err) {
+              slice.events.emit('toast:show', { message: 'Error al restaurar el backup.', type: 'error' });
+            }
+          },
+        });
+      } catch {
+        slice.getComponent('ToastProvider')?.show?.('Error al leer el archivo.', { type: 'error' });
+      }
+    };
+    reader.readAsText(file);
+    this.$backupImportFile.value = '';
   }
 
   _handleImportFile() {
@@ -149,18 +219,35 @@ export default class ResumenFinalView extends HTMLElement {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
-        const ok = this._consenso.importState(data);
-        if (ok) {
-          slice.getComponent('ToastProvider')?.show?.('Estado de consenso importado', { type: 'success' });
+        const prevNotes = { ...this._notesByTema };
+        const result = this._consenso.importState(data);
+        this._loadNotes();
+        const notesChanged = JSON.stringify(prevNotes) !== JSON.stringify(this._notesByTema);
+        if (result.ok) {
+          let msg = result.ignored > 0
+            ? `Decisiones importadas (${result.recognized} reconocidas, ${result.ignored} ignoradas por no coincidir con la plantilla actual)`
+            : `Decisiones finales importadas (${result.recognized} entradas)`;
+          if (notesChanged) msg += ' · Notas restauradas';
+          slice.getComponent('ToastProvider')?.show?.(msg, { type: 'success', duration: 4000 });
+          this._render();
         } else {
           slice.getComponent('ToastProvider')?.show?.('El archivo no contiene datos de consenso v\u00e1lidos.', { type: 'error' });
         }
-      } catch (err) {
+      } catch {
         slice.getComponent('ToastProvider')?.show?.('Error al leer el archivo.', { type: 'error' });
       }
     };
     reader.readAsText(file);
     this.$importFile.value = '';
+  }
+
+  beforeDestroy() {
+    Object.values(this._noteTimers).forEach((t) => clearTimeout(t));
+    document.body.style.overflow = '';
+    if (this._fullscreen) {
+      const topbar = slice.getComponent('appTopbar');
+      if (topbar) topbar.show();
+    }
   }
 
   _render() {
@@ -186,7 +273,7 @@ export default class ResumenFinalView extends HTMLElement {
 
     let body;
     if (!opcionesConTema.length) {
-      body = '<div class="rf-empty">No hay decisiones finales de asignaci\u00f3n.</div>';
+      body = '<div class="rf-empty">No hay decisiones finales de asignaci\u00F3n.</div>';
     } else {
       const rows = opcionesConTema.map(([opcionId, temaId]) => {
         const opcion = this._roster.getOpcionById(opcionId);

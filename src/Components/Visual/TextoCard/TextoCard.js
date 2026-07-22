@@ -1,3 +1,5 @@
+import { SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../Core/AppConfig/AppConfig.js';
+
 // Self-contained text-response card — title, expand button, EnhancedEditor,
 // and inline save/status. Built as a Slice component so the parent can
 // manage a list of cards via reconciliation (build once, update props).
@@ -49,14 +51,14 @@ export default class TextoCard extends HTMLElement {
 
   _debouncedSave() {
     clearTimeout(this._saveTimer);
-    this._saveTimer = setTimeout(() => this._save(), 400);
+    this._saveTimer = setTimeout(() => this._save(), DEBOUNCE_SAVE_MS);
   }
 
   _save() {
     if (this._onsave) this._onsave(this._temaId, this.value);
     this.$status.textContent = '✓ Guardado';
     clearTimeout(this._statusTimer);
-    this._statusTimer = setTimeout(() => { this.$status.textContent = ''; }, 1200);
+    this._statusTimer = setTimeout(() => { this.$status.textContent = ''; }, SAVE_STATUS_MS);
   }
 
   beforeDestroy() {

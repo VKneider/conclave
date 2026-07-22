@@ -81,6 +81,8 @@ pnpm-based (`packageManager` pinned in `package.json`):
 ```bash
 pnpm run dev              # dev server (default port 3001)
 pnpm run slice:doctor     # structural diagnostics after add/remove/rename
+pnpm run lint             # ESLint (0 errors, expects 0)
+pnpm run lint:fix         # ESLint with auto-fix
 pnpm run build            # production build
 pnpm run component:create <Name> --category <Cat>
 pnpm run component:delete <Name> --yes

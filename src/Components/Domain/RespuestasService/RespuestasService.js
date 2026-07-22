@@ -9,7 +9,7 @@
 // order (Providers) guarantees init runs before any consumer, so no per-method
 // defensive ensure is needed (replaces the old utils/context.js pattern).
 const CONTEXT = 'respuestas';
-import { SHARE_URL_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
+import { SHARE_URL_MAX_LENGTH, PRINT_DELAY_MS, PRINT_CLEANUP_MS } from '../../Core/AppConfig/AppConfig.js';
 
 const STORAGE_KEY = 'conclave-respuestas-v1';
 // seleccion: reparto (pool → temas). texto: texto_libre answers. voto:
@@ -233,11 +233,13 @@ export default class RespuestasService {
     });
   }
 
-  // Opens the default email client with the share link, pre-filled to the
-  // Plantilla's configured email (if any).
+  // Opens the default email client with the share link, addressed to the
+  // plantilla's creator email (if any).
   sendShareLinkEmail() {
     const settings = slice.getComponent('SettingsService');
     const autor = settings.getState().autor?.trim();
+    const plantilla = slice.getComponent('PlantillaService');
+    const to = plantilla.getCreadoEmail()?.trim();
 
     const doSend = (name) => {
       if (!this.canShareByLink(name)) {
@@ -248,13 +250,13 @@ export default class RespuestasService {
         return;
       }
       const url = this.getShareLink(name);
-      const plantilla = slice.getComponent('PlantillaService');
       const plantillaNombre = plantilla.getNombre() || 'Conclave';
       const subject = encodeURIComponent(`Mis respuestas — ${plantillaNombre}`);
       const body = encodeURIComponent(
         `Hola,\n\n${name} ha compartido sus respuestas para "${plantillaNombre}":\n${url}\n\nSaludos`
       );
-      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      const toPart = to ? `${to}?` : '?';
+      window.location.href = `mailto:${toPart}subject=${subject}&body=${body}`;
     };
 
     if (autor) { doSend(autor); return; }
@@ -369,8 +371,8 @@ export default class RespuestasService {
     setTimeout(function () {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
-      setTimeout(function () { document.body.removeChild(iframe); }, 500);
-    }, 200);
+      setTimeout(function () { document.body.removeChild(iframe); }, PRINT_DELAY_MS);
+    }, PRINT_CLEANUP_MS);
   }
 
   // "Continue on another device" — wholesale replace of the working

@@ -1,4 +1,5 @@
 import { test, expect } from '../../../../playwright/harness/sliceFixtures.js';
+import { seedAsignacion } from '../../../../playwright/harness/seedHelpers.js';
 
 const VOTACION_PLANTILLA = {
    nombre: 'Votación Test',
@@ -40,7 +41,7 @@ test.describe('12. Dashboard', () => {
    test.describe('12.1 Vista general', () => {
 
       test('12.1.1: muestra stats correctos con seed data', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/dashboard');
          await expect(app.page.locator('.dashboard-view')).toBeVisible({ timeout: 5000 });
 
@@ -89,7 +90,7 @@ test.describe('12. Dashboard', () => {
       });
 
       test('12.1.2: muestra doughnut de progreso y porcentaje', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/dashboard');
          await expect(app.page.locator('.dashboard-view')).toBeVisible({ timeout: 5000 });
 
@@ -100,7 +101,7 @@ test.describe('12. Dashboard', () => {
       });
 
       test('12.1.3: muestra nombre de plantilla en header', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/dashboard');
          await expect(app.page.locator('.dashboard-view')).toBeVisible({ timeout: 5000 });
 
@@ -112,7 +113,7 @@ test.describe('12. Dashboard', () => {
       });
 
       test('12.1.4: click en tema card abre modal con opciones', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/dashboard');
          await expect(app.page.locator('.dashboard-view')).toBeVisible({ timeout: 5000 });
 
@@ -156,7 +157,7 @@ test.describe('12. Dashboard', () => {
    test.describe('12.2 Secciones por modo', () => {
 
       test('12.2.1: sección Asignación visible con seed data', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/dashboard');
          await expect(app.page.locator('.dashboard-view')).toBeVisible({ timeout: 5000 });
 

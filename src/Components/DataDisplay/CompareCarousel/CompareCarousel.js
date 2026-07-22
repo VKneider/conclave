@@ -114,7 +114,6 @@ export default class CompareCarousel extends HTMLElement {
     const all = this._sources;
     const roster = this._roster();
     const resolution = this._resolution();
-    const settings = slice.getComponent('SettingsService');
     const temas = roster.getTemasParticipables();
 
     if (all.length < 2) {
@@ -246,7 +245,6 @@ export default class CompareCarousel extends HTMLElement {
   }
 
   _bindInteractions(opciones) {
-    const roster = this._roster();
     const resolution = this._resolution();
 
     // Filter buttons

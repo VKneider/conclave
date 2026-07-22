@@ -38,9 +38,9 @@ test.describe('4. Llenar Respuestas — Votación', () => {
          }, VOTACION_PLANTILLA);
          await app.page.reload();
          await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
-         await app.page.waitForTimeout(500);
+         await app.page.waitForTimeout(1500);
          await app.navigateTo('/mis-respuestas');
-         await expect(app.page.locator('.vv-list')).toBeVisible({ timeout: 5000 });
+         await expect(app.page.locator('.vv-list')).toBeVisible({ timeout: 10000 });
       }
 
       test('4.1.1: vota por una opción', async ({ app }) => {

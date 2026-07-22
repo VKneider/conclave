@@ -1,3 +1,4 @@
+// @ts-nocheck
 const SEED_TEMAS = [
   { id: 'coordinacion-principal', nombre: 'Coordinación Principal', modo: 'reparto', orden: 1, min: null, max: null, participable: false, meta: { numero: 1, lider: 'Mateo Rivas' } },
   { id: 'coordinacion-apoyo', nombre: 'Coordinación de Apoyo', modo: 'reparto', orden: 2, min: null, max: null, participable: false, meta: { numero: 2, lider: 'Elena Duarte' } },

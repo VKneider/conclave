@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from './seedData.js';
 
 // Starter Plantillas shown in PlantillaBuilderView's gallery. Each `plantilla`

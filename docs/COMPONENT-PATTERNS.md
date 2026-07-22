@@ -202,3 +202,51 @@ carousel.mode = 'grid';   // switch view mode
 The **mode toggle** (e.g. three buttons ▦ ▬ ▬▬) is provided by the parent view,
 not built into CarouselView — the parent sets `carousel.mode` in its click
 handler.
+
+### ViewHeader — standardised view heading (title + description)
+
+File: `src/Components/AppComponents/ViewHeader/ViewHeader.js`
+
+A reusable heading pair (`<h2 class="view-title">` + `<p class="view-sub">`)
+that every standalone view should use instead of writing the same HTML/CSS
+classes by hand. Built via `slice.build()` and mounted into a placeholder slot.
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `title` | `string` | `''` | View heading text (`textContent`). |
+| `subtitle` | `string` | `''` | Description paragraph. Supports trusted HTML (rendered via `innerHTML` — the parent is responsible for sanitisation). Omit to hide the `<p>`. |
+
+**Standard usage (standalone view):**
+
+```html
+<!-- .html template — placeholder slot -->
+<div class="viewheader-slot"></div>
+```
+
+```js
+// init() — build once, mount once
+const vh = await slice.build('ViewHeader', {
+  sliceId: 'myViewHeader',
+  title: 'Título de la vista',
+  subtitle: 'Descripción con <b>formato</b> opcional.',
+});
+if (vh instanceof Node) this.$viewHeaderSlot.appendChild(vh);
+```
+
+**CSS contract:** ViewHeader emits the same global classes (`.view-title`,
+`.view-sub`) defined in `sliceStyles.css`, so the visual tokens are
+consistent whether a view uses the component or the raw classes.
+
+**Special case — title with inline actions (RespuestasView):** When the title
+sits in a flex row alongside action buttons, mount ViewHeader inside the
+flex container and neutralise its wrapper with `display: contents`:
+
+```css
+/* Parent view's CSS */
+.parent-view .av-header .viewheader { display: contents; }
+```
+
+This makes the `<h2>` act as a direct flex child while keeping the component
+encapsulated. No subtitle is passed in this layout.

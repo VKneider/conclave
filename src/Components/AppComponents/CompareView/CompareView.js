@@ -1,4 +1,4 @@
-const COLORS = ['#6d8bff', '#3fb964', '#e2a13a', '#ff7eb6', '#8a6dff', '#42c8c0', '#e25c5c', '#b9c34a'];
+import { COLOR_PALETTE, MIME_CSV, DEBOUNCE_SAVE_MS, SAVE_STATUS_MS } from '../../Core/AppConfig/AppConfig.js';
 
 function csvCell(v) {
   const s = String(v == null ? '' : v);
@@ -32,6 +32,10 @@ export default class CompareView extends HTMLElement {
     this._imports = slice.getComponent('RespuestasImportService');
     this._html = slice.getComponent('HtmlService');
     this.sources = this._imports.getSources();
+
+    const viewHeader = await slice.build('ViewHeader', { sliceId: 'cmpViewHeader', title: 'Comparar respuestas', subtitle: 'Importa los archivos de respuestas de cada persona y decidan juntos — asignaciones, votaciones e ideas. Se incluye automáticamente tu trabajo actual.' });
+    const vhSlot = this.querySelector('.viewheader-slot');
+    if (viewHeader instanceof Node && vhSlot) vhSlot.appendChild(viewHeader);
 
     const importDrop = await slice.build('ImportDrop', { sliceId: 'cmpImport' });
     importDrop.onFiles = (files) => this._handleFiles(files);
@@ -169,7 +173,7 @@ export default class CompareView extends HTMLElement {
     const myResp = slice.getComponent('RespuestasService').getState();
     const mine = {
       autor: `${settings.autor || 'Yo'} (actual)`,
-      color: COLORS[0],
+      color: COLOR_PALETTE[0],
       asignaciones: myResp.seleccion,
       texto: myResp.texto,
       voto: myResp.voto || {},
@@ -182,7 +186,7 @@ export default class CompareView extends HTMLElement {
       texto: s.respuestas.texto || {},
       voto: s.respuestas.voto || {},
       ranking: s.respuestas.ranking || {},
-      color: COLORS[(i + 1) % COLORS.length],
+      color: COLOR_PALETTE[(i + 1) % COLOR_PALETTE.length],
       removable: true,
     }));
     const all = [mine, ...imported];
@@ -261,10 +265,10 @@ export default class CompareView extends HTMLElement {
     const run = () => {
       this._persistTemaNotes();
       this._setTemaNoteStatus(temaId, '✓ Guardado');
-      setTimeout(() => this._setTemaNoteStatus(temaId, ''), 1200);
+      setTimeout(() => this._setTemaNoteStatus(temaId, ''), SAVE_STATUS_MS);
     };
     if (immediate) run();
-    else this._noteTimers[temaId] = setTimeout(run, 350);
+    else this._noteTimers[temaId] = setTimeout(run, DEBOUNCE_SAVE_MS);
   }
 
   async _openNotesModal() {
@@ -954,7 +958,7 @@ export default class CompareView extends HTMLElement {
         confirmLabel: 'Autocompletar',
         onConfirm: () => {
           resolution.fillAllWithSuggestion(rows);
-          slice.events.emit('toast:show', { message: 'Sugerencias fijadas como decisión final' });
+          slice.events.emit('toast:show', { message: 'Sugerencias fijadas como decisión final', type: 'success' });
           this._render();
         },
       });
@@ -997,7 +1001,7 @@ export default class CompareView extends HTMLElement {
       const attrVals = atributos.map((a) => roster.formatAtributo(a, r.opcion.meta?.[a.key]) || '');
       lines.push([r.opcion.nombre, ...attrVals, ...r.vals.map((v) => svcName(v)), stTxt, fin ? svcName(fin) : ''].map(csvCell).join(','));
     });
-    slice.getComponent('FileDownloadService').download('comparacion_temas.csv', '﻿' + lines.join('\r\n'), 'text/csv');
+    slice.getComponent('FileDownloadService').download('comparacion_temas.csv', '﻿' + lines.join('\r\n'), MIME_CSV);
   }
 }
 

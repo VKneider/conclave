@@ -1,3 +1,5 @@
+import { MIME_JSON, FETCH_TIMEOUT } from '../AppConfig/AppConfig.js';
+
 export default class FetchManager {
    constructor(props) {
       const { baseUrl, timeout } = props;
@@ -8,7 +10,7 @@ export default class FetchManager {
       this.lastRequest = null;
       this.cacheEnabled = false;
       this.defaultHeaders = {};
-      timeout ? (this.timeout = timeout) : (this.timeout = 10000);
+      timeout ? (this.timeout = timeout) : (this.timeout = FETCH_TIMEOUT);
    }
 
    async request(
@@ -29,7 +31,7 @@ export default class FetchManager {
          options = {
             method: method,
             headers: {
-               'Content-Type': 'application/json',
+               'Content-Type': MIME_JSON,
                ...this.defaultHeaders,
                ...requestOptions.headers,
             },

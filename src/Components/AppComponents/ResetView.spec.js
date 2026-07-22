@@ -1,11 +1,12 @@
 import { test, expect } from '../../../playwright/harness/sliceFixtures.js';
+import { seedAsignacion } from '../../../playwright/harness/seedHelpers.js';
 
 test.describe('16. Reset / Reiniciar', () => {
 
    test.describe('16.1 Reiniciar respuestas', () => {
 
       test('16.1.1: reiniciar mis respuestas', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
 
          // Make an assignment so there's data to reset
@@ -44,7 +45,7 @@ test.describe('16. Reset / Reiniciar', () => {
       });
 
       test('16.1.2: cancelar reinicio', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
 
          // Make an assignment

@@ -27,32 +27,32 @@ export default {
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 950,
+          "line": 951,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 963,
+          "line": 964,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 295,
+          "line": 291,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 359,
+          "line": 355,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 375,
+          "line": 371,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 512,
+          "line": 508,
           "component": "PlantillaBuilderView"
         },
         {
@@ -153,42 +153,42 @@ export default {
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 886,
+          "line": 887,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 904,
+          "line": 905,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 911,
+          "line": 912,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 919,
+          "line": 920,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 956,
+          "line": 957,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 285,
+          "line": 281,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 290,
+          "line": 286,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 527,
+          "line": 523,
           "component": "PlantillaBuilderView"
         },
         {
@@ -218,12 +218,12 @@ export default {
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 141,
+          "line": 140,
           "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 143,
+          "line": 142,
           "component": "PlantillaService"
         },
         {

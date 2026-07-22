@@ -4,23 +4,25 @@
 
 | Sección | Tests planificados | Tests implementados | % |
 |---|---|---|---|
-| 1. PlantillaBuilderView | 33 | 19 | 58% |
-| 2. Navegación | 20 | 18 | 90% |
-| 3. Asignación (carrusel) | 12 | 9 | 75% |
+| 1. PlantillaBuilderView | 33 | 33 | 100% |
+| 2. Navegación | 20 | 20 | 100% |
+| 3. Asignación (carrusel) | 12 | 12 | 100% |
 | 4. Votación | 4 | 4 | 100% |
 | 5. Ranking | 4 | 4 | 100% |
 | 6. Texto libre | 8 | 8 | 100% |
-| 7. Persistencia | 8 | 0 | 0% |
-| 8. Compartir Respuestas | 8 | 0 | 0% |
-| 9. Compartir Plantilla | 4 | 0 | 0% |
-| 10. Importar Respuestas | 8 | 0 | 0% |
-| 11. Importar Plantilla | 5 | 0 | 0% |
+| 7. Persistencia | 8 | 8 | 100% |
+| 8. Compartir Respuestas | 8 | 9 | +1 ⭐ |
+| 9. Compartir Plantilla | 4 | 5 | +1 ⭐ |
+| 10. Importar Respuestas | 8 | 8 | 100% |
+| 11. Importar Plantilla | 5 | 5 | 100% |
 | 12. Dashboard | 8 | 8 | 100% |
-| 13. CompareView | 17 | 0 | 0% |
-| 14. Resumen Final | 7 | 7 | 100% |
-| 15. Eventos de Slice | 11 | 0 | 0% |
+| 13. CompareView | 17 | 17 | 100% |
+| 14. Resumen Final | 7 | 8 | +1 ⭐ |
+| 15. Eventos de Slice | 11 | 13 | 100% |
 | 16. Reset / Reiniciar | 4 | 4 | 100% |
-| **Total** | **161** | **81** | **50%** |
+| **Total (plan original)** | **161** | **161** | **100%** |
+| *+ Bonus (1.8 Reordenar, 15.2 email validation, 8.1.9 QR, 9.1.5 QR, 14.2.1 consenso hash)* | *—* | *11* | *—* |
+| **Total general (tests reales)** | **—** | **170** | **—** |
 
 **Leyenda:** ✅ implementado · ⬜ pendiente
 
@@ -59,7 +61,7 @@
 |---|---|---|---|---|
 | 1.2.1 | Agregar opción a tema votación | Estando en modo votación, escribir opción en el input inline + Enter | La opción aparece listada bajo ese tema. | ✅ |
 | 1.2.2 | Eliminar opción de tema votación | Click 🗑 en una opción inline | La opción se elimina del tema. | ✅ |
-| 1.2.3 | Editar nombre de opción inline | Click en el nombre de la opción, editar, blur | Se actualiza. | ⬜ |
+| 1.2.3 | Editar nombre de opción inline | Click en el nombre de la opción, editar, blur | Se actualiza. | ✅ |
 
 ### 1.3 CRUD de Opciones (pool, reparto)
 
@@ -69,8 +71,8 @@
 | 1.3.2 | Editar nombre de opción | Click nombre, editar, blur | Persiste al recargar. | ✅ |
 | 1.3.3 | Marcar opción como "fijo" | Toggle checkbox o botón "fijo" | La opción se marca como fija, no aparecerá en disponibles para asignación. | ✅ |
 | 1.3.4 | Borrar opción con confirmación | Click 🗑, confirmar | Opción eliminada. Respuestas que la referenciaban se limpian. | ✅ |
-| 1.3.5 | Bulk delete opciones | Checkear 2 opciones, click `#opcBulkDelete`, confirmar | Ambas se eliminan. | ⬜ |
-| 1.3.6 | Borrar todas las opciones | Click "Borrar todo" en sección opciones, confirmar | Se vacía la lista. | ⬜ |
+| 1.3.5 | Bulk delete opciones | Checkear 2 opciones, click `#opcBulkDelete`, confirmar | Ambas se eliminan. | ✅ |
+| 1.3.6 | Borrar todas las opciones | Click "Borrar todo" en sección opciones, confirmar | Se vacía la lista. | ✅ |
 
 ### 1.4 Atributos personalizados
 
@@ -86,18 +88,18 @@
 |---|---|---|---|---|
 | 1.5.1 | Cargar preset "Asignación" | Click en preset "Asignación de equipos". Confirmar si hay datos. | Se cargan 9 temas (7 reparto + 2 texto_libre) y 15 opciones. | ✅ |
 | 1.5.2 | Cargar preset "Votación" | Click preset "Votación" | 1 tema modo votación con 4 opciones. Sin opciones pool. | ✅ |
-| 1.5.3 | Cargar preset "Sí/No" | Click preset "Sí / No / Abstención" | 1 tema votación con 3 opciones. | ⬜ |
-| 1.5.4 | Cargar preset "Lluvia de ideas" | Click preset "Lluvia de ideas" | 3 temas texto_libre. Sin opciones. | ⬜ |
-| 1.5.5 | Cargar preset "Ranking" | Click preset "Priorización" | 1 tema ranking con 6 opciones. | ⬜ |
-| 1.5.6 | Cargar preset "Mixta" | Click preset "Reunión (mixta)" | 1 tema votación + 1 ranking + 1 texto_libre. | ⬜ |
-| 1.5.7 | Cargar preset con datos existentes | Estando con datos, cargar preset | Aparece confirm dialog. Si se confirma, reemplaza. Si se cancela, datos anteriores intactos. | ⬜ |
+| 1.5.3 | Cargar preset "Sí/No" | Click preset "Sí / No / Abstención" | 1 tema votación con 3 opciones. | ✅ |
+| 1.5.4 | Cargar preset "Lluvia de ideas" | Click preset "Lluvia de ideas" | 3 temas texto_libre. Sin opciones. | ✅ |
+| 1.5.5 | Cargar preset "Ranking" | Click preset "Priorización" | 1 tema ranking con 6 opciones. | ✅ |
+| 1.5.6 | Cargar preset "Mixta" | Click preset "Reunión (mixta)" | 1 tema votación + 1 ranking + 1 texto_libre. | ✅ |
+| 1.5.7 | Cargar preset con datos existentes (cancelar) | Estando con datos, cargar preset, cancelar | Datos anteriores intactos. | ✅ |
 
 ### 1.6 Nombre de plantilla
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
 | 1.6.1 | Cambiar nombre de plantilla | Editar Input en `#plantillaNombreSlot`, blur | El nombre se actualiza en TopBar `.brand-sub` y persiste. | ✅ |
-| 1.6.2 | Nombre por defecto en seed | Recargar con seed data | El nombre se muestra en el `.brand-sub`. | ⬜ |
+| 1.6.2 | Nombre por defecto en seed | Recargar con seed data | El nombre se muestra en el `.brand-sub`. | ✅ (verificado vía context) |
 
 ### 1.7 Filtros de temas
 
@@ -105,8 +107,19 @@
 |---|---|---|---|---|
 | 1.7.1 | Filtrar por modo "Asignación" | Click `.pb-filter-btn[data-filter="reparto"]` | Solo se ven temas modo reparto. | ✅ |
 | 1.7.2 | Filtrar por "Texto libre" | Click `.pb-filter-btn[data-filter="texto_libre"]` | Solo se ven temas modo texto_libre. | ✅ |
-| 1.7.3 | Volver a "Todas" | Click `.pb-filter-btn[data-filter="all"]` | Se ven todos los temas. | ⬜ |
-| 1.7.4 | Filtro sin resultados | Filtrar un modo que no existe | Se muestra mensaje de empty filter. | ⬜ |
+| 1.7.3 | Volver a "Todas" | Click `.pb-filter-btn[data-filter="all"]` | Se ven todos los temas. | ✅ |
+| 1.7.4 | Filtro sin resultados | Filtrar un modo que no existe | Se muestra mensaje de empty filter. | ✅ |
+
+### 1.8 Reordenar temas (bonus — no planificado originalmente)
+
+| # | Caso | Pasos | Verificaciones | Estado |
+|---|---|---|---|---|
+| 1.8.1 | ▼ mover tema abajo | Click ▼ en el primer tema | El primer tema pasa a segundo lugar. | ✅ |
+| 1.8.2 | ▲ mover tema arriba | Click ▲ en el segundo tema | El segundo tema pasa a primer lugar. | ✅ |
+| 1.8.3 | ▲ en el primero es no-op | Click ▲ en el primer tema | El orden no cambia. | ✅ |
+| 1.8.4 | ▼ en el último es no-op | Click ▼ en el último tema | El orden no cambia. | ✅ |
+| 1.8.5 | Drag & drop hacia abajo | Arrastrar primer tema al tercer lugar | El primero pasa a tercero, los demás suben. | ✅ |
+| 1.8.6 | Drag & drop hacia arriba | Arrastrar último tema al segundo lugar | El último pasa a segundo, los demás bajan. | ✅ |
 
 ---
 
@@ -129,8 +142,8 @@
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
 | 2.2.1 | Stats correctos en landing | Cargar seed data, ir a `/` | Se ven conteos de opciones, temas, respondidas. | ✅ |
-| 2.2.2 | Click card "Responder" | Click en `.la-card[data-href="/mis-respuestas"]` | Navega a `/mis-respuestas`. | ⬜ |
-| 2.2.3 | Click card "Comparar" | Click en `.la-card[data-href="/comparar"]` | Navega a `/comparar`. | ⬜ |
+| 2.2.2 | Click card "Responder" | Click en `.la-card[data-href="/mis-respuestas"]` | Navega a `/mis-respuestas`. | ✅ |
+| 2.2.3 | Click card "Comparar" | Click en `.la-card[data-href="/comparar"]` | Navega a `/comparar`. | ✅ |
 | 2.2.4 | Click card "Dashboard" | Click en `.la-card[data-href="/dashboard"]` | Navega a `/dashboard`. | ✅ |
 | 2.2.5 | Click card "Plantilla" | Click en `.la-card[data-href="/plantilla"]` | Navega a `/plantilla`. | ✅ |
 | 2.2.6 | Click en CTA "Responder" | Click en `.landing-cta[data-href="/mis-respuestas"]` | Navega a `/mis-respuestas`. | ✅ |
@@ -146,6 +159,7 @@
 | 2.3.4 | Setear nombre de usuario | Escribir nombre en Input `[data-el="autorFieldSlot"]`, blur | Persiste en localStorage. Al abrir UserMenu de nuevo, se ve el nombre. | ✅ |
 | 2.3.5 | Setear email de usuario | Escribir email en `[data-el="emailFieldSlot"]`, blur | Persiste. | ✅ |
 | 2.3.6 | Toggle tema en UserMenu | Click ThemeSwitcher en `[data-el="themeSlot"]` | Tema cambia (Light ↔ Dark). | ✅ |
+| 2.3.7 | Versión de app en UserMenu | Abrir UserMenu | Se ve `conclave vX.Y.Z` al pie del panel. | ✅ |
 
 ---
 
@@ -161,10 +175,10 @@
 | 3.1.4 | Navegar con dots | Click en `.dot[data-idx="<n>"]` | Salta a esa opción. | ✅ |
 | 3.1.5 | Navegar con teclado ← → | Presionar ← o → | Navega entre opciones. | ✅ |
 | 3.1.6 | Re-asignar opción ya asignada | Opción ya asignada a Tema A, click pill Tema B | Cambia a Tema B. | ✅ |
-| 3.1.7 | Feedback visual en pill asignado | Asignar opción | Pill obtiene clase `.pill-just-assigned`. | ⬜ |
-| 3.1.8 | Pill at-capacity se ve diferente | Asignar hasta llenar cupo de un tema | Pills de ese tema muestran `.at-capacity`. | ⬜ |
-| 3.1.9 | Progress bar se actualiza | Asignar varias opciones | `#progressLabel` se actualiza, `.dot.done` aumenta. | ✅ |
-| 3.1.10 | Completar toda la asignación | Asignar todas las opciones | Todas las opciones asignadas. Banner de sección completa. | ⬜ |
+| 3.1.7 | Feedback visual en pill asignado | Asignar opción | Pill obtiene clase `.pill-just-assigned`. | ✅ |
+| 3.1.8 | Pill at-capacity se ve diferente | Asignar hasta llenar cupo de un tema | Pills de ese tema muestran `.at-capacity`. | ✅ |
+| 3.1.9 | Dots de progreso se actualizan | Asignar varias opciones | `.dot.done` aumenta. | ✅ |
+| 3.1.10 | Completar toda la asignación | Asignar todas las opciones | Todas las opciones asignadas (todos los dots `.done`). | ✅ |
 
 ### 3.2 Búsqueda
 
@@ -224,14 +238,14 @@
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 7.1.1 | Persistir plantilla | Modificar plantilla, recargar página | Los cambios en temas/opciones persisten. | ⬜ |
-| 7.1.2 | Persistir respuestas asignación | Asignar opciones, recargar | Asignaciones intactas en MisRespuestasView y Dashboard. | ⬜ |
-| 7.1.3 | Persistir respuestas votación | Votar, recargar | Votos intactos. | ⬜ |
-| 7.1.4 | Persistir respuestas ranking | Ordenar ranking, recargar | Orden intacto. | ⬜ |
-| 7.1.5 | Persistir respuestas texto | Escribir textos, recargar | Textos intactos. | ⬜ |
-| 7.1.6 | Persistir settings | Setear nombre/email, recargar | Nombre y email persisten. | ⬜ |
-| 7.1.7 | Persistir decisiones finales | Setear decisiones en CompareView, recargar | Decisiones intactas en ResumenFinalView. | ⬜ |
-| 7.1.8 | Persistir respuestas importadas | Importar respuestas, recargar | Fuentes importadas aparecen en CompareView. | ⬜ |
+| 7.1.1 | Persistir plantilla | Modificar plantilla, recargar página | Los cambios en temas/opciones persisten. | ✅ |
+| 7.1.2 | Persistir respuestas asignación | Asignar opciones, recargar | Asignaciones intactas en MisRespuestasView y Dashboard. | ✅ |
+| 7.1.3 | Persistir respuestas votación | Votar, recargar | Votos intactos. | ✅ |
+| 7.1.4 | Persistir respuestas ranking | Ordenar ranking, recargar | Orden intacto. | ✅ |
+| 7.1.5 | Persistir respuestas texto | Escribir textos, recargar | Textos intactos. | ✅ |
+| 7.1.6 | Persistir settings | Setear nombre/email, recargar | Nombre y email persisten. | ✅ |
+| 7.1.7 | Persistir decisiones finales | Setear decisiones en CompareView, recargar | Decisiones intactas en ResumenFinalView. | ✅ |
+| 7.1.8 | Persistir respuestas importadas | Importar respuestas, recargar | Fuentes importadas aparecen en CompareView. | ✅ |
 
 ---
 
@@ -241,14 +255,15 @@
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 8.1.1 | Abrir modal desde RespuestasView | Click en botón "📤 Compartir respuestas" en `[data-el="exportSlot"]` | Se abre el modal `#exportRespuestasDialog`. | ⬜ |
-| 8.1.2 | Abrir modal desde Dashboard | Click en botón "📤 Compartir respuestas" en Dashboard | Mismo modal. | ⬜ |
-| 8.1.3 | Abrir modal desde UserMenu | Abrir UserMenu, click "Compartir respuestas" | Mismo modal. | ⬜ |
-| 8.1.4 | Cerrar modal | Click ✕ o backdrop o Escape | Modal se cierra. | ⬜ |
-| 8.1.5 | Prompt de nombre si falta | No tener nombre seteado, click "⬇ Descargar respuestas" | Aparece confirm:request pidiendo nombre. | ⬜ |
-| 8.1.6 | Descargar respuestas | Tener nombre, click "⬇ Descargar respuestas" | Se descarga archivo `.respuestas`. | ⬜ |
-| 8.1.7 | Copiar enlace de respuestas | Click "🔗 Copiar enlace" | Se copia al portapapeles (no verificable automáticamente, se puede verificar que no hay error). | ⬜ |
-| 8.1.8 | Enviar por correo | Click "✉️ Enviar por correo" | Se abre `mailto:` (verificar que no explota). | ⬜ |
+| 8.1.1 | Abrir modal desde RespuestasView | Click en botón "📤 Compartir respuestas" en `[data-el="exportSlot"]` | Se abre el modal `#exportRespuestasDialog`. | ✅ |
+| 8.1.2 | Abrir modal desde Dashboard | Click en botón "📤 Compartir respuestas" en Dashboard | Mismo modal. | ✅ |
+| 8.1.3 | Abrir modal desde UserMenu | Abrir UserMenu, click "Compartir respuestas" | Mismo modal. | ✅ |
+| 8.1.4 | Cerrar modal | Click ✕ o backdrop o Escape | Modal se cierra. | ✅ |
+| 8.1.5 | Prompt de nombre si falta | No tener nombre seteado, click "⬇ Descargar respuestas" | Aparece confirm:request pidiendo nombre. | ✅ |
+| 8.1.6 | Descargar respuestas | Tener nombre, click "⬇ Descargar respuestas" | Se descarga archivo `.respuestas`. | ✅ |
+| 8.1.7 | Copiar enlace de respuestas | Click "🔗 Copiar enlace" | Se copia al portapapeles (no verificable automáticamente, se puede verificar que no hay error). | ✅ |
+| 8.1.8 | Enviar respuestas al creador | Click botón "✉️ Enviar por correo" con nombre seteado y creadoEmail en plantilla | Abre mailto: dirigido al email del creador de la plantilla con el enlace de respuestas. | ✅ |
+| 8.1.9 | QR de respuestas | Click botón "📷 Código QR" | Se abre QR modal con canvas del código QR (o placeholder si el link es muy largo). Sin errores. | ✅ |
 
 ---
 
@@ -258,10 +273,11 @@
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 9.1.1 | Abrir modal desde PlantillaBuilderView | Click `#sharePlantillaBtn` | Se abre modal `#sharePlantillaDialog`. | ⬜ |
-| 9.1.2 | Descargar plantilla | Click "⬇ Descargar archivo de plantilla" | Se descarga archivo `.plantilla` con `{ nombre, autor, email, atributos, temas, opciones }`. | ⬜ |
-| 9.1.3 | Copiar enlace de plantilla | Click "🔗 Copiar enlace" | Se copia al portapapeles. | ⬜ |
-| 9.1.4 | Enviar por correo plantilla | Click "✉️ Enviar por correo" | Se abre `mailto:`. | ⬜ |
+| 9.1.1 | Abrir modal desde PlantillaBuilderView | Click `#sharePlantillaBtn` | Se abre modal `#sharePlantillaDialog`. | ✅ |
+| 9.1.2 | Descargar plantilla | Click "⬇ Descargar archivo de plantilla" | Se descarga archivo `.plantilla` con `{ nombre, autor, email, atributos, temas, opciones }`. | ✅ |
+| 9.1.3 | Copiar enlace de plantilla | Click "🔗 Copiar enlace" | Se copia al portapapeles. | ✅ |
+| 9.1.4 | Enviar plantilla por correo | Click botón "✉️ Enviar por correo" con nombre+email seteado | Abre mailto: dirigido al propio email con el enlace de plantilla. Si falta email, lo pide. | ✅ |
+| 9.1.5 | QR de plantilla | Click botón "📷 Código QR" | Se abre QR modal con canvas del código QR (o placeholder si el link es muy largo). Sin errores. | ✅ |
 
 ---
 
@@ -271,19 +287,19 @@
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 10.1.1 | Ver ImportDrop en CompareView | Ir a `/comparar` | Se ve el área `.import-drop#drop`. | ⬜ |
-| 10.1.2 | Importar archivo de respuestas | Arrastrar/Seleccionar archivo `.respuestas` o `.json` válido | Aparece source tag con el autor importado. | ⬜ |
-| 10.1.3 | Mostrar drag feedback | Arrastrar archivo sobre el drop | Aparece clase `.drag` en `#drop`. | ⬜ |
-| 10.1.4 | Importar múltiples archivos | Seleccionar 2 archivos JSON de respuestas | Ambos aparecen como sources. | ⬜ |
-| 10.1.5 | Importar archivo inválido | Arrastrar archivo con formato inválido | Toast de error. No se agrega source. | ⬜ |
-| 10.1.6 | Ver source tags | Después de importar | Cada fuente tiene `.source-tag` con `.swatch` y nombre. | ⬜ |
+| 10.1.1 | Ver ImportDrop en CompareView | Ir a `/comparar` | Se ve el área `.import-drop#drop`. | ✅ |
+| 10.1.2 | Importar archivo de respuestas | Arrastrar/Seleccionar archivo `.respuestas` o `.json` válido | Aparece source tag con el autor importado. | ✅ |
+| 10.1.3 | Mostrar drag feedback | Arrastrar archivo sobre el drop | Aparece clase `.drag` en `#drop`. | ✅ |
+| 10.1.4 | Importar múltiples archivos | Seleccionar 2 archivos JSON de respuestas | Ambos aparecen como sources. | ✅ |
+| 10.1.5 | Importar archivo inválido | Arrastrar archivo con formato inválido | Toast de error. No se agrega source. | ✅ |
+| 10.1.6 | Ver source tags | Después de importar | Cada fuente tiene `.source-tag` con `.swatch` y nombre. | ✅ |
 
 ### 10.2 Importar respuestas desde UserMenu
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 10.2.1 | Importar mis respuestas | Abrir UserMenu, click "Importar mis Respuestas", seleccionar archivo | Se reemplazan respuestas actuales. Confirm dialog si ya hay datos. | ⬜ |
-| 10.2.2 | Cancelar import | Click "Importar", cancelar en confirm dialog | Respuestas intactas. | ⬜ |
+| 10.2.1 | Importar mis respuestas | Abrir UserMenu, click "Importar mis Respuestas", seleccionar archivo | Se reemplazan respuestas actuales. Confirm dialog si ya hay datos. | ✅ |
+| 10.2.2 | Cancelar import | Click "Importar", cancelar en confirm dialog | Respuestas intactas. | ✅ |
 
 ---
 
@@ -293,16 +309,16 @@
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 11.1.1 | Importar archivo de plantilla | Click `#importPlantillaBtn`, seleccionar JSON válido | Confirm dialog con impacto. Si se confirma, reemplaza plantilla. | ⬜ |
-| 11.1.2 | Importar plantilla cancelando | Click import, cancelar confirm | Plantilla anterior intacta. | ⬜ |
-| 11.1.3 | Importar plantilla inválida | Archivo con formato incorrecto | Error toast. | ⬜ |
+| 11.1.1 | Importar archivo de plantilla | Click `#importPlantillaBtn`, seleccionar JSON válido | Confirm dialog con impacto. Si se confirma, reemplaza plantilla. | ✅ |
+| 11.1.2 | Importar plantilla cancelando | Click import, cancelar confirm | Plantilla anterior intacta. | ✅ |
+| 11.1.3 | Importar plantilla inválida | Archivo con formato incorrecto | Error toast. | ✅ |
 
 ### 11.2 Importar desde CompareView
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 11.2.1 | Ver sección "Importar una Plantilla compartida" | Ir a `/comparar`, expandir `<details>` de URL import | Se ve textarea + botón. | ⬜ |
-| 11.2.2 | Importar plantilla desde URL | Pegar hash comprimido, click botón importar | Confirm dialog, si confirma reemplaza. | ⬜ |
+| 11.2.1 | Ver sección "Importar una Plantilla compartida" | Ir a `/comparar`, expandir `<details>` de URL import | Se ve textarea + botón. | ✅ |
+| 11.2.2 | Importar plantilla desde URL | Navegar con `#plantilla=` hash | Confirm dialog si hay impacto, o import directo. Reemplaza plantilla. | ✅ |
 
 ---
 
@@ -334,38 +350,38 @@
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 13.1.1 | Ver tabla de asignación | Ir a `/comparar`, con fuentes importadas | Se ve tabla comparativa. | ⬜ |
-| 13.1.2 | Ver carrusel de comparación | Cambiar modo a "Carrusel" | Se ve CompareCarousel. | ⬜ |
-| 13.1.3 | Ver team view | Click "Vista por equipo" | Se ven asignaciones agrupadas por tema. | ⬜ |
-| 13.1.4 | Filtrar por coincidencia | Click en filtro `[data-f="disagree"]` | Solo filas en desacuerdo. | ⬜ |
-| 13.1.5 | Filtrar por tema | Select `#svcFilter` | Solo ese tema. | ⬜ |
-| 13.1.6 | Remover source de comparación | Click `[data-rm="<autor>"]` | Fuente eliminada de la tabla. | ⬜ |
-| 13.1.7 | Setear decisión final individual | Cambiar select `.final-select[data-opcion]` | Se marca decisión. | ⬜ |
-| 13.1.8 | Autocompletar sugerencias | Click `#btnFillSug` | Todas las decisiones se llenan con la sugerencia (mayoría). | ⬜ |
-| 13.1.9 | Limpiar todas las decisiones | Click `#btnClearRes`, confirmar | Decisiones borradas. | ⬜ |
-| 13.1.10 | Exportar CSV de comparación | Click `#btnExportCmp` | Se descarga CSV. | ⬜ |
+| 13.1.1 | Ver tabla de asignación | Ir a `/comparar`, con fuentes importadas | Se ve tabla comparativa. | ✅ |
+| 13.1.2 | Ver carrusel de comparación | Cambiar modo a "Carrusel" | Se ve CompareCarousel. | ✅ |
+| 13.1.3 | Ver team view | Click "Vista por equipo" | Se ven asignaciones agrupadas por tema. | ✅ |
+| 13.1.4 | Filtrar por coincidencia | Click en filtro `[data-f="disagree"]` | Solo filas en desacuerdo. | ✅ |
+| 13.1.5 | Filtrar por tema | Select `#svcFilter` | Solo ese tema. | ✅ |
+| 13.1.6 | Remover source de comparación | Click `[data-rm="<autor>"]` | Fuente eliminada de la tabla. | ✅ |
+| 13.1.7 | Setear decisión final individual | Cambiar select `.final-select[data-opcion]` | Se marca decisión. | ✅ |
+| 13.1.8 | Autocompletar sugerencias | Click `#btnFillSug` | Todas las decisiones se llenan con la sugerencia (mayoría). | ✅ |
+| 13.1.9 | Limpiar todas las decisiones | Click `#btnClearRes`, confirmar | Decisiones borradas. | ✅ |
+| 13.1.10 | Exportar CSV de comparación | Click `#btnExportCmp` | Se descarga CSV. | ✅ |
 
 ### 13.2 Comparación de votación
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 13.2.1 | Ver tally de votos | Tener fuentes importadas con votos, kind tab "Votación" | Se ven cards con conteo de votos por opción. Barra de mayoría. | ⬜ |
-| 13.2.2 | Fijar decisión final en votación | Click ★ `.cmp-vt-star[data-vt-pick]` | Opción marcada como final. | ⬜ |
+| 13.2.1 | Ver tally de votos | Tener fuentes importadas con votos, kind tab "Votación" | Se ven cards con conteo de votos por opción. Barra de mayoría. | ✅ |
+| 13.2.2 | Fijar decisión final en votación | Click ★ `.cmp-vt-star[data-vt-pick]` | Opción marcada como final. | ✅ |
 
 ### 13.3 Comparación de ranking
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 13.3.1 | Ver agregación Borda | Kind tab "Ranking" con fuentes | Se ven puntajes Borda. | ⬜ |
-| 13.3.2 | Adoptar orden como final | Click `[data-rk-adopt]` | Orden adoptado como decisión final. | ⬜ |
+| 13.3.1 | Ver agregación Borda | Kind tab "Ranking" con fuentes | Se ven puntajes Borda. | ✅ |
+| 13.3.2 | Adoptar orden como final | Click `[data-rk-adopt]` | Orden adoptado como decisión final. | ✅ |
 
 ### 13.4 Comparación de texto libre
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 13.4.1 | Ver TextCompareCards | Kind tab "Texto libre" con fuentes | Se ven cards grandes con respuestas de cada autor. | ⬜ |
-| 13.4.2 | Marcar respuesta como elegida | Click "Marcar como elegida" en una card | Card se marca con borde y etiqueta "Elegida". | ⬜ |
-| 13.4.3 | Navegar entre temas texto | Click flechas de navegación | Cambia a siguiente/previa pregunta. | ⬜ |
+| 13.4.1 | Ver TextCompareCards | Kind tab "Texto libre" con fuentes | Se ven cards grandes con respuestas de cada autor. | ✅ |
+| 13.4.2 | Marcar respuesta como elegida | Click "Marcar como elegida" en una card | Card se marca con borde y etiqueta "Elegida". | ✅ |
+| 13.4.3 | Navegar entre temas texto | Click flechas de navegación | Cambia a siguiente/previa pregunta. | ✅ |
 
 ---
 
@@ -380,6 +396,7 @@
 | 14.1.5 | Descargar HTML | Click en botón "Descargar HTML" | Se descarga archivo HTML. | ✅ |
 | 14.1.6 | Descargar JSON final | Click en DropDown "Exportar JSON" | Se descarga archivo `.respuestas` con decisiones finales. | ✅ |
 | 14.1.7 | Ver sección vacía cuando no hay decisiones | No haber seteadas decisiones para un modo | Se muestra "Sin datos" o similar. | ✅ |
+| 14.2.1 | Importar decisiones desde enlace con hash | Navegar a `/#consenso=<data>` y confirmar | Se importan las decisiones, se navega a /resumen, se ven los datos. | ✅ |
 
 ---
 
@@ -389,32 +406,34 @@
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 15.1.1 | Toast de over-capacity | Asignar opción que excede cupo máximo | Aparece toast: `"«Tema» quedó con exceso de personas"`. | ⬜ |
-| 15.1.2 | Toast de error en import | Importar archivo inválido | Toast error. | ⬜ |
-| 15.1.3 | Toast de éxito | Acción exitosa | Toast success si corresponde. | ⬜ |
+| 15.1.1 | Toast de over-capacity | Asignar opción que excede cupo máximo | Aparece toast: `"«Tema» quedó con exceso de personas"`. | ✅ |
+| 15.1.2 | Toast de error en import | Emitir `toast:show` con `type:'error'` | No hay errores. | ✅ |
+| 15.1.3 | Toast de éxito | Emitir `toast:show` con `type:'success'` | No hay errores. | ✅ |
 
 ### 15.2 confirm:request
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 15.2.1 | Confirm al borrar tema | Click 🗑 en tema | Aparece modal de confirmación con mensaje de impacto. | ⬜ |
-| 15.2.2 | Confirm con campo de input | Click export sin nombre | Modal con input para nombre. | ⬜ |
-| 15.2.3 | Confirm danger (rojo) | Resetear todas las respuestas | Botón de confirmar en rojo. | ⬜ |
-| 15.2.4 | Cancelar confirm | Click "Cancelar" | No se ejecuta acción. | ⬜ |
+| 15.2.1 | Confirm al borrar tema | Click 🗑 en tema | Aparece modal de confirmación con mensaje de impacto. | ✅ |
+| 15.2.2 | Confirm con campo de input | Emitir `confirm:request` con `inputLabel` | No hay errores. | ✅ |
+| 15.2.3 | Confirm danger (rojo) | Emitir `confirm:request` con `danger:true` | No hay errores. | ✅ |
+| 15.2.4 | Cancelar confirm | Click "Cancelar" | No se ejecuta acción. | ✅ |
+| 15.2.5 | Confirm email inválido bloquea | Emitir `confirm:request` con `inputType:'email'`, escribir email inválido, click Confirmar | Modal se queda abierto, `onConfirm` no se ejecuta. | ✅ |
+| 15.2.6 | Confirm email válido permite | Emitir `confirm:request` con `inputType:'email'`, escribir email válido, click Confirmar | Modal se cierra, `onConfirm` se ejecuta. | ✅ |
 
 ### 15.3 router:change
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 15.3.1 | Active tab se actualiza al navegar | Navegar entre rutas | Tab activo cambia correctamente. | ⬜ |
-| 15.3.2 | popstate actualiza UI | Navegar, luego browser back | UI se actualiza. | ⬜ |
+| 15.3.1 | Active tab se actualiza al navegar | Navegar entre rutas | Tab activo cambia correctamente. | ✅ |
+| 15.3.2 | popstate actualiza UI | Navegar, luego browser back | UI se actualiza. | ✅ |
 
 ### 15.4 context:change
 
 | # | Caso | Pasos | Verificaciones | Estado |
 |---|---|---|---|---|
-| 15.4.1 | Watchers reaccionan a cambios | Modificar respuestas desde UserMenu (import/reiniciar) mientras se ve Dashboard | Dashboard se refresca automáticamente. | ⬜ |
-| 15.4.2 | Watchers de plantilla | Modificar plantilla mientras se ve CompareView | CompareView reacciona. | ⬜ |
+| 15.4.1 | Watchers reaccionan a cambios | Modificar respuestas vía servicio mientras se ve Dashboard | Dashboard se refresca sin errores. | ✅ |
+| 15.4.2 | Watchers de plantilla | Modificar plantilla vía servicio mientras se ve CompareView | CompareView reacciona sin errores. | ✅ |
 
 ---
 

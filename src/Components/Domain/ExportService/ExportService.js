@@ -1,4 +1,4 @@
-import { EXT_PLANTILLA, EXT_RESPUESTAS, APP_NAME, DATA_VERSION } from '../../Core/AppConfig/AppConfig.js';
+import { EXT_PLANTILLA, EXT_RESPUESTAS, EXT_CONSENSO, EXT_BACKUP, APP_NAME, DATA_VERSION, MIME_OCTET } from '../../Core/AppConfig/AppConfig.js';
 
 export default class ExportService {
   _sanitize(name) {
@@ -10,10 +10,45 @@ export default class ExportService {
     this._download(safe, { tipo: 'respuestas', autor: autor || 'Anónimo', respuestas });
   }
 
-  downloadRespuestasFinal(autor, respuestas) {
+  downloadConsenso(autor, respuestas, notas) {
     const label = autor ? `${autor} — lista final` : 'Consenso — lista final';
     const safe = this._sanitize(autor || 'consenso');
-    this._download(`${safe}_final`, { tipo: 'respuestas-final', autor: label, respuestas });
+    const extra = { tipo: 'consenso', autor: label, respuestas };
+    if (notas && typeof notas === 'object' && Object.keys(notas).length) {
+      extra.notas = notas;
+    }
+    this._download(`${safe}_final`, extra);
+  }
+
+  downloadBackup() {
+    const roster = slice.getComponent('PlantillaService');
+    const respuestasService = slice.getComponent('RespuestasService');
+    const consenso = slice.getComponent('ConsensoService');
+    const imports = slice.getComponent('RespuestasImportService');
+
+    const plantilla = roster.getState();
+    const respuestas = respuestasService.getState();
+    const respuestasImportadas = imports.getSources();
+    const decisionFinal = consenso.getState();
+    const notas = consenso._loadNotes();
+
+    const plantillaNombre = plantilla.nombre || 'backup';
+    const safe = this._sanitize(plantillaNombre);
+    this._download(`${safe}_backup`, {
+      tipo: 'backup',
+      plantilla: {
+        nombre: plantilla.nombre,
+        atributos: plantilla.atributos,
+        temas: plantilla.temas,
+        opciones: plantilla.opciones,
+        creadoPor: plantilla.creadoPor || '',
+        creadoEmail: plantilla.creadoEmail || '',
+      },
+      respuestas,
+      respuestasImportadas,
+      decisionFinal,
+      notas,
+    });
   }
 
   downloadPlantilla(plantilla) {
@@ -31,7 +66,7 @@ export default class ExportService {
   }
 
   _download(filename, extra) {
-    const ext = extra.tipo === 'plantilla' ? EXT_PLANTILLA : EXT_RESPUESTAS;
+    const ext = extra.tipo === 'plantilla' ? EXT_PLANTILLA : extra.tipo === 'consenso' ? EXT_CONSENSO : extra.tipo === 'backup' ? EXT_BACKUP : EXT_RESPUESTAS;
     const payload = {
       app: APP_NAME,
       version: DATA_VERSION,
@@ -41,7 +76,7 @@ export default class ExportService {
     slice.getComponent('FileDownloadService').download(
       `${filename}${ext}`,
       JSON.stringify(payload, null, 2),
-      'application/json'
+      MIME_OCTET
     );
   }
 }

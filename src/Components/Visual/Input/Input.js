@@ -160,9 +160,14 @@ export default class Input extends HTMLElement {
    updateInputState() {
       if (this.$input.value !== '') {
          this.$placeholder.classList.add('slice_input_value');
-         this.triggerSuccess();
+         if (this._conditions || this.type === 'email') {
+            this.validateValue();
+         } else {
+            this.triggerSuccess();
+         }
       } else {
          this.$placeholder.classList.remove('slice_input_value');
+         this.triggerSuccess();
          if (this.required) {
             this.triggerError();
          }
@@ -170,6 +175,10 @@ export default class Input extends HTMLElement {
    }
 
    validateValue() {
+      if (this.type === 'email' && this.$input.value !== '' && !this.$input.validity.valid) {
+         this.triggerError();
+         return false;
+      }
       if (this._conditions && !this._conditions.test(this.$input.value)) {
          this.triggerError();
          return false;

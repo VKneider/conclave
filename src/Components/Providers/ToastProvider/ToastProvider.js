@@ -1,3 +1,5 @@
+import { TOAST_DURATION, TOAST_MAX } from '../../Core/AppConfig/AppConfig.js';
+
 const VALID_POSITIONS = new Set([
   'top-right', 'top-left', 'bottom-right', 'bottom-left', 'top-center', 'bottom-center'
 ]);
@@ -7,7 +9,7 @@ export default class ToastProvider {
     this._container = null;
     this._toasts = new Map();
     this._position = 'top-right';
-    this._maxToasts = 5;
+    this._maxToasts = TOAST_MAX;
     this._counter = 0;
 
     this._handleToastDismissed = this._handleToastDismissed.bind(this);
@@ -38,7 +40,7 @@ export default class ToastProvider {
     const props = {
       message: String(message),
       type: config.type || 'default',
-      duration: config.duration ?? 4000,
+      duration: config.duration ?? TOAST_DURATION,
       dismissable: config.dismissable ?? true,
       customColor: config.customColor || null
     };

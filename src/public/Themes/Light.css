@@ -37,10 +37,6 @@
   --panel-alt-background-color: #fff3e9;
   --border-color: #e7e1d2;
 
-  /** Conclave: opcion gender tally (Por equipo view) **/
-  --male-color: #3f66e0;
-  --female-color: #e0398a;
-
   /** Conclave: card metrics — chunky radius, hard "sticker" offset shadow
       (no blur) instead of a soft glow. **/
   --card-border-radius: 18px;

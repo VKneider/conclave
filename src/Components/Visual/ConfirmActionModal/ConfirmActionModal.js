@@ -44,20 +44,28 @@ export default class ConfirmActionModal extends HTMLElement {
     this.$modal.appendFooter(this.$confirmBtn);
   }
 
-  async _ensureInput() {
-    if (!this._inputPromise) this._inputPromise = this._buildInput();
+  async _ensureInput(inputType) {
+    if (!this._inputPromise) this._inputPromise = this._buildInput(inputType);
     await this._inputPromise;
   }
 
-  async _buildInput() {
+  async _buildInput(inputType) {
     this.$inputLabel = document.createElement('label');
     this.$inputLabel.className = 'confirm-modal__field';
     this.$inputSpan = document.createElement('span');
     this.$inputLabel.appendChild(this.$inputSpan);
     this.$modal.appendBody(this.$inputLabel);
-    this.$input = await slice.build('Input', { sliceId: 'confirmActionInput' });
+    const inputOpts = { sliceId: 'confirmActionInput' };
+    if (inputType === 'email') {
+      inputOpts.type = 'email';
+    }
+    this.$input = await slice.build('Input', inputOpts);
     this.$input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this._resolve(true);
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        this._resolve(true);
+      }
     });
     this.$inputLabel.appendChild(this.$input);
   }
@@ -71,6 +79,7 @@ export default class ConfirmActionModal extends HTMLElement {
     inputLabel = null,
     inputPlaceholder = '',
     inputValue = '',
+    inputType = 'text',
     onConfirm,
     onCancel,
   } = {}) {
@@ -101,7 +110,7 @@ export default class ConfirmActionModal extends HTMLElement {
     }
 
     if (this._hasInput) {
-      await this._ensureInput();
+      await this._ensureInput(inputType);
       this.$inputLabel.hidden = false;
       this.$inputSpan.textContent = inputLabel;
       this.$input.placeholder = inputPlaceholder;
@@ -117,6 +126,9 @@ export default class ConfirmActionModal extends HTMLElement {
   }
 
   _resolve(confirmed) {
+    if (confirmed && this._hasInput && this.$input && this.$input.validateValue() === false) {
+      return;
+    }
     this._resolved = true;
     const callback = confirmed ? this._onConfirm : this._onCancel;
     const arg = confirmed && this._hasInput ? this.$input.value.trim() : undefined;

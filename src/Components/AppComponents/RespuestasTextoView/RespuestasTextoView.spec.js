@@ -86,7 +86,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
          expect(app.pageErrors).toEqual([]);
       });
 
-      test('6.1.3: modo \"Una por una\" (single) muestra navegación', async ({ app }) => {
+      test('6.1.3: modo "Una por una" (single) muestra navegación', async ({ app }) => {
          await setupTexto(app);
 
          const singleBtn = app.page.locator('[data-rtmode="single"]');
@@ -115,7 +115,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
          expect(app.pageErrors).toEqual([]);
       });
 
-      test('6.1.4: modo \"Dos columnas\" se activa', async ({ app }) => {
+      test('6.1.4: modo "Dos columnas" se activa', async ({ app }) => {
          await setupTexto(app);
 
          const columnsBtn = app.page.locator('[data-rtmode="columns"]');
@@ -127,7 +127,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
          expect(app.pageErrors).toEqual([]);
       });
 
-      test('6.1.5: modo \"Ver todas\" (grid) se activa', async ({ app }) => {
+      test('6.1.5: modo "Ver todas" (grid) se activa', async ({ app }) => {
          await setupTexto(app);
 
          const gridBtn = app.page.locator('[data-rtmode="grid"]');

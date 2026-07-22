@@ -55,6 +55,8 @@ export default class AppShell extends HTMLElement {
       await this._tryImportPlantilla(hash, compressor);
     } else if (hash.startsWith('#respuestas=')) {
       await this._tryImportRespuestas(hash, compressor);
+    } else if (hash.startsWith('#consenso=')) {
+      await this._tryImportConsenso(hash, compressor);
     }
   }
 
@@ -115,6 +117,46 @@ export default class AppShell extends HTMLElement {
       slice.events.emit('toast:show', { message: 'Plantilla importada desde el enlace', type: 'success' });
       history.pushState(null, '', '/mis-respuestas');
     }
+  }
+
+  async _tryImportConsenso(hash, compressor) {
+    const compressed = hash.slice('#consenso='.length);
+    if (!compressed) return;
+
+    let data;
+    try {
+      data = compressor.decompressFromURI(compressed);
+      data = compressor.unpackFromURI(data);
+    } catch (e) {
+      console.warn('[AppShell] Error al descomprimir consenso del hash:', e);
+      return;
+    }
+    if (!data || !data.respuestas) return;
+
+    const html = slice.getComponent('HtmlService');
+    const consenso = slice.getComponent('ConsensoService');
+    const autor = data.autor || 'Alguien';
+    const email = data.email || '';
+
+    const proceed = async () => {
+      const result = consenso.importState(data);
+      const msg = result.ok
+        ? `Decisiones de consenso importadas (${result.recognized} reconocidas${result.ignored ? `, ${result.ignored} ignoradas` : ''})`
+        : 'El enlace no contenía decisiones de consenso válidas.';
+      slice.events.emit('toast:show', { message: msg, type: result.ok ? 'success' : 'warning' });
+      await slice.router.navigate('/resumen');
+    };
+
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    const autorLine = autor ? `${html.esc(autor)}${email ? ` (${html.esc(email)})` : ''}` : 'Alguien';
+    slice.events.emit('confirm:request', {
+      title: `¿Importar consenso de «${autorLine}»?`,
+      message: 'Se reemplazarán las decisiones finales actuales (asignaciones, votos, rankings y textos) por las del enlace.',
+      confirmLabel: 'Importar',
+      danger: true,
+      onConfirm: proceed,
+    });
   }
 
   async _tryImportRespuestas(hash, compressor) {

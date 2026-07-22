@@ -24,3 +24,34 @@ slice-exportrespuestasmodal {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+sl-modal.qr-modal .qr-modal__body {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+sl-modal.qr-modal .qr-modal__error {
+  text-align: center;
+  color: var(--font-secondary-color, #666);
+  max-width: 280px;
+}
+
+sl-modal.qr-modal .qr-modal__error-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+sl-modal.qr-modal .qr-modal__error p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 4px 0;
+}
+
+sl-modal.qr-modal .qr-modal__error-hint {
+  font-size: 12px;
+  opacity: 0.7;
+}

@@ -9,13 +9,13 @@
   },
   "include": [
     "src/Components/**/*.js",
-    "src/**/*.d.ts",
     "src/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "src/libs/**",
-    "tests/**"
+    "tests/**",
+    "src/public/**"
   ]
 }

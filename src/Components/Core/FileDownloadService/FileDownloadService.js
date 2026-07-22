@@ -1,5 +1,7 @@
+import { MIME_TEXT } from '../AppConfig/AppConfig.js';
+
 export default class FileDownloadService {
-  download(filename, content, mimeType = 'text/plain') {
+  download(filename, content, mimeType = MIME_TEXT) {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

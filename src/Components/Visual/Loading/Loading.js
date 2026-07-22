@@ -7,9 +7,11 @@ function deprecate(oldName, newName) {
    console.warn(`[Slice] "${oldName}" is deprecated; use "${newName}" instead.`);
 }
 
+import { LOADING_MIN_VISIBLE_MS } from '../../Core/AppConfig/AppConfig.js';
+
 export default class Loading extends HTMLElement {
 
-   static FIRST_RUN_MIN_VISIBLE_MS = 2000;
+   static FIRST_RUN_MIN_VISIBLE_MS = LOADING_MIN_VISIBLE_MS;
    static _startupDelayConsumed = false;
    static OVERLAY_Z_INDEX = 2147483000;
 

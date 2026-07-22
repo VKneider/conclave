@@ -1,3 +1,5 @@
+import { TOAST_DURATION } from '../../Core/AppConfig/AppConfig.js';
+
 const TOAST_TYPES = new Set(['success', 'error', 'warning', 'info', 'default']);
 
 function resolveType(value) {
@@ -8,7 +10,7 @@ export default class Toast extends HTMLElement {
   static props = {
     message: { type: 'string', default: '' },
     type: { type: 'string', default: 'default' },
-    duration: { type: 'number', default: 4000 },
+    duration: { type: 'number', default: TOAST_DURATION },
     dismissable: { type: 'boolean', default: true },
     customColor: { type: 'object', default: null }
   };

@@ -37,6 +37,8 @@
 //                         Created by  RespuestasImportService   Watched by  CompareView,
 //                         CompareCarousel, FinalTally, TextCompareCards
 //
+import { TOAST_DURATION } from '../../Core/AppConfig/AppConfig.js';
+
 // ── Event catalog ─────────────────────────────────────────────────────
 //   toast:show          → Providers →  ToastProvider.show()
 //   confirm:request      → ConfirmActionModal._open()
@@ -56,6 +58,12 @@ export default class Providers {
     // events once ITS FIRST call happens, so registering late would still
     // flag whatever fired earlier. router:change and context:* are seeded
     // by the framework itself, no need to declare them here.
+    slice.events.register('tema', {
+      move: {
+        description: 'A TemaRow requested to move a tema up or down in the builder list',
+        payload: { temaId: 'string', direction: 'number' },
+      },
+    });
     slice.events.register('toast', {
       show: {
         description: 'Show a toast notification',
@@ -102,16 +110,18 @@ export default class Providers {
     const toasts = await slice.build('ToastProvider', { singleton: true });
     toasts.setPosition('bottom-right');
     slice.events.subscribe('toast:show', (payload = {message: '', type: 'info'}) => {
-      toasts.show(payload.message, { type: payload.type, duration: 3000 });
+      toasts.show(payload.message, { type: payload.type, duration: TOAST_DURATION });
     });
 
     // App-wide visual modals built once here and reused via slice.getComponent.
     this.$confirmModal = await slice.build('ConfirmActionModal', { sliceId: 'confirmActionModal' });
     this.$exportRespuestasModal = await slice.build('ExportRespuestasModal', { sliceId: 'exportRespuestasModal' });
     this.$sharePlantillaModal = await slice.build('SharePlantillaModal', { sliceId: 'sharePlantillaModal' });
+    this.$shareConsensoModal = await slice.build('ShareConsensoModal', { sliceId: 'shareConsensoModal' });
     document.body.appendChild(this.$confirmModal);
     document.body.appendChild(this.$exportRespuestasModal);
     document.body.appendChild(this.$sharePlantillaModal);
+    document.body.appendChild(this.$shareConsensoModal);
 
     this._ready = true;
     return this;

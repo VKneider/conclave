@@ -41,6 +41,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$opcSection = this.querySelector('#opcSection');
     this.$sharePlantillaBtn = this.querySelector('#sharePlantillaBtn');
     this.$importBtn = this.querySelector('#importPlantillaBtn');
+    this.$viewHeaderSlot = this.querySelector('.viewheader-slot');
     this.$importFile = this.querySelector('#importPlantillaFile');
     this.$catClearAll = this.querySelector('#catClearAll');
     this.$catBulkBar = this.querySelector('#catBulkBar');
@@ -51,11 +52,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$opcBulkCount = this.querySelector('#opcBulkCount');
     this.$opcBulkDelete = this.querySelector('#opcBulkDelete');
 
-    // Bulk selection: each row carries a checkbox whose native change event
-    // bubbles to the list container — delegate it here to keep the "N
-    // seleccionados" bar in sync. Delete-selected and delete-all both go
-    // through confirm:request (destructive) and the PlantillaService bulk
-    // methods (which cascade + clean up references).
+    // Bulk selection — delegated event on the list container.
     this.$catList.addEventListener('change', (e) => {
       if (e.target.classList.contains('cat-row__select')) this._updateCatBulk();
     });
@@ -98,10 +95,13 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._catRows = {};
     this._opcRows = {};
     this._syncQueues = Object.create(null);
+    this._onTemaMove = ({ temaId, direction }) => this._plantilla.moveTema(temaId, direction);
 
     this.$sharePlantillaBtn.onclick = () => slice.getComponent('sharePlantillaModal').show();
     this.$importBtn.onclick = () => this.$importFile.click();
     this.$importFile.onchange = (e) => this._handleImportFile(e);
+
+    slice.events.subscribe('tema:move', this._onTemaMove);
 
     slice.controller.setComponentProps(this, props);
   }
@@ -112,12 +112,14 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._html = slice.getComponent('HtmlService');
     const settings = slice.getComponent('SettingsService');
 
-    const [nombreInput, lideresCheckbox, addCatInput, addOpcInput] = await Promise.all([
+    const [nombreInput, lideresCheckbox, addCatInput, addOpcInput, viewHeader] = await Promise.all([
       slice.build('Input', { sliceId: 'pbNombre', placeholder: 'Nombre de la Plantilla' }),
       slice.build('Checkbox', { sliceId: 'pbLideres', label: '👑 Habilitar responsables de tema' }),
       slice.build('Input', { sliceId: 'pbAddCat', placeholder: 'Nuevo tema… — escribe y presiona Enter' }),
       slice.build('Input', { sliceId: 'pbAddOpc', placeholder: 'Nueva opción… — escribe y presiona Enter' }),
+      slice.build('ViewHeader', { sliceId: 'pbViewHeader', title: 'Plantilla', subtitle: 'Una Plantilla es una lista de <b>Temas</b>. Cada Tema elige su <b>modo</b>: <i>Asignación</i> (repartir una lista de personas u opciones entre equipos), <i>Votación</i> (elegir una), <i>Ranking</i> (ordenar) o <i>Texto libre</i> (responder con una idea). Puedes mezclar modos en la misma Plantilla — o empezar desde un ejemplo:' }),
     ]);
+    if (viewHeader instanceof Node) this.$viewHeaderSlot.appendChild(viewHeader);
     this.$nombreInput = nombreInput;
     this.$lideresCheckbox = lideresCheckbox;
     this.$addCatInput = addCatInput;
@@ -140,7 +142,8 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._bindAddInput(addOpcInput, this.querySelector('#addOpcBtn'), (name) => this._plantilla.addOpcion({ nombre: name }));
 
     this._renderPresets();
-    this._renderTemas();
+    await this._renderTemas();
+    this._initSortable();
     this._renderOpciones();
     this._renderAtributos();
 
@@ -208,10 +211,9 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._updateCatBulk();
   }
 
-  _renderCatFilters(temas) {
+  _renderCatFilters(_temas) {
     const modoLabels = { reparto: '🎯 Asignación', votacion: '🗳️ Votación', ranking: '🏆 Ranking', texto_libre: '📝 Texto libre' };
-    const present = new Set(temas.map((t) => t.modo));
-    const filters = ['all', ...Object.keys(modoLabels).filter((m) => present.has(m))];
+    const filters = ['all', ...Object.keys(modoLabels)];
     if (!filters.includes(this._catFilter)) this._catFilter = 'all';
 
     this.$catFilters.innerHTML = this._html.sanitize(filters.map((f) =>
@@ -517,6 +519,26 @@ export default class PlantillaBuilderView extends HTMLElement {
       }
     };
     reader.readAsText(file);
+  }
+
+  _initSortable() {
+    if (this._sortableInitialized) return;
+    const dnd = slice.getComponent('DragDropService');
+    if (!dnd?.makeSortable) return;
+    dnd.makeSortable(this.$catList, {
+      axis: 'y',
+      onReorder: ({ fromIndex, toIndex }) => {
+        const temas = this._plantilla.getTemas();
+        const moved = temas.splice(fromIndex, 1)[0];
+        temas.splice(toIndex, 0, moved);
+        slice.context.setState('plantilla', (prev) => ({ ...prev, temas }));
+      },
+    });
+    this._sortableInitialized = true;
+  }
+
+  beforeDestroy() {
+    slice.events.unsubscribe('tema:move', this._onTemaMove);
   }
 
   _showToast(message, type) {

@@ -1,5 +1,5 @@
 /* Header: title only, full width */
-slice-dashboardview .dash-header { margin-bottom: 10px; }
+
 
 /* Info row: share button + plantilla badge side by side */
 slice-dashboardview .dash-info-row {
@@ -57,7 +57,7 @@ slice-dashboardview .stat-grid .stat-card:nth-child(5)::before { background: var
 
 @media (max-width: 760px) {
   slice-dashboardview .stat-grid { grid-template-columns: repeat(2,1fr); }
-  slice-dashboardview .dash-header { margin-bottom: 6px; }
+
   slice-dashboardview .dash-info-row > * { flex: none; }
   slice-dashboardview .dash-info-row [data-el="shareBtnSlot"] slice-button .slice_button { padding: 5px 12px; font-size: 12px; }
   slice-dashboardview .dash-plantilla__name { font-size: 12px; padding: 3px 10px; max-width: 150px; }

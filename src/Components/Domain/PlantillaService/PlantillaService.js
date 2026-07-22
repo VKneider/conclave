@@ -1,10 +1,23 @@
-import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
+import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH, COLOR_PALETTE, ID_MAX_LENGTH, DEFAULT_PLANTILLA_PRESET } from '../../Core/AppConfig/AppConfig.js';
 import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../public/data/seedData.js';
-
-const PALETTE = ['#6d8bff', '#3fb964', '#e2a13a', '#ff7eb6', '#8a6dff', '#42c8c0', '#e25c5c', '#b9c34a', '#f0883e', '#4ec9b0', '#c678dd', '#5aa0ff'];
+import { PRESETS } from '../../../public/data/presets.js';
 const CONTEXT = 'plantilla';
 const STORAGE_KEY = 'conclave-plantilla-v1';
-const SEED_STATE = { nombre: 'Mi Plantilla', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES, creadoPor: '', creadoEmail: '' };
+const _resolveSeed = () => {
+  const preset = PRESETS.find((p) => p.id === DEFAULT_PLANTILLA_PRESET);
+  if (preset) {
+    return {
+      nombre: preset.plantilla.nombre,
+      atributos: preset.plantilla.atributos,
+      temas: preset.plantilla.temas,
+      opciones: preset.plantilla.opciones,
+      creadoPor: '',
+      creadoEmail: '',
+    };
+  }
+  return { nombre: 'Mi Plantilla', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES, creadoPor: '', creadoEmail: '' };
+};
+const SEED_STATE = _resolveSeed();
 
 // Owns the `plantilla` context: { nombre, temas, opciones } — the
 // shared setup every response is measured against (generalizes
@@ -143,6 +156,64 @@ export default class PlantillaService {
     });
   }
 
+  sendShareLinkEmail() {
+    const settings = slice.getComponent('SettingsService');
+    const autor = settings.getState().autor?.trim();
+    const email = settings.getEmail()?.trim();
+
+    const doSend = (name, to) => {
+      if (!this.canShareByLink()) {
+        slice.events.emit('toast:show', {
+          message: 'La plantilla es demasiado larga para compartir por enlace. Exporta archivo.',
+          type: 'warning'
+        });
+        return;
+      }
+      const url = this.getShareLink();
+      const plantillaNombre = this.getNombre() || 'Conclave';
+      const subject = encodeURIComponent(`Plantilla: ${plantillaNombre}`);
+      const body = encodeURIComponent(
+        `Hola,\n\n${name} ha compartido la plantilla "${plantillaNombre}" de Conclave:\n${url}\n\nSaludos`
+      );
+      const toPart = to ? `${to}?` : '?';
+      window.location.href = `mailto:${toPart}subject=${subject}&body=${body}`;
+    };
+
+    const promptEmail = (name) => {
+      slice.events.emit('confirm:request', {
+        title: '¿Cuál es tu email?',
+        message: 'Se usará como destinatario al compartir la plantilla.',
+        confirmLabel: 'Enviar',
+        inputLabel: 'Tu email',
+        inputPlaceholder: 'email@ejemplo.com',
+        inputType: 'email',
+        onConfirm: (val) => {
+          if (!val) return;
+          settings.setEmail(val);
+          doSend(name, val);
+        },
+      });
+    };
+
+    if (autor && email) { doSend(autor, email); return; }
+    if (autor && !email) { promptEmail(autor); return; }
+
+    slice.events.emit('confirm:request', {
+      title: '¿Cuál es tu nombre?',
+      message: 'Se incluye en el correo.',
+      confirmLabel: 'Enviar',
+      inputLabel: 'Tu nombre',
+      inputPlaceholder: '¿Quién responde?',
+      onConfirm: (name) => {
+        if (!name) return;
+        settings.setAutor(name);
+        const e = settings.getEmail()?.trim();
+        if (e) { doSend(name, e); return; }
+        promptEmail(name);
+      },
+    });
+  }
+
   getTemas() { return this.getState().temas; }
   // modo 'reparto' (ex 'seleccion'): the shared Opción pool is distributed into
   // these temas. "participables" = reparto temas that accept assignments.
@@ -211,7 +282,7 @@ export default class PlantillaService {
     const key = String(temaId);
     let hash = 0;
     for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-    return PALETTE[hash % PALETTE.length];
+    return COLOR_PALETTE[hash % COLOR_PALETTE.length];
   }
 
   getLiderName(temaId) {
@@ -275,7 +346,7 @@ export default class PlantillaService {
   // safe charset a slug/number was already restricted to, so legitimate
   // Plantillas are unaffected.
   isSafeId(id) {
-    return typeof id === 'string' || typeof id === 'number' ? /^[a-zA-Z0-9_-]{1,640}$/.test(String(id)) : false;
+    return typeof id === 'string' || typeof id === 'number' ? new RegExp(`^[a-zA-Z0-9_-]{1,${ID_MAX_LENGTH}}$`).test(String(id)) : false;
   }
 
   // Shared by every Plantilla-import entry point (CompareView,
@@ -547,6 +618,16 @@ export default class PlantillaService {
     // Prepended, not appended — newest-first, same reasoning as addOpcion.
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, temas: [c, ...prev.temas] }));
     return c;
+  }
+
+  moveTema(temaId, direction) {
+    const temas = [...this.getTemas()];
+    const idx = temas.findIndex((t) => String(t.id) === String(temaId));
+    if (idx === -1) return;
+    const target = idx + direction;
+    if (target < 0 || target >= temas.length) return;
+    [temas[idx], temas[target]] = [temas[target], temas[idx]];
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, temas }));
   }
 
   removeTema(temaId) {

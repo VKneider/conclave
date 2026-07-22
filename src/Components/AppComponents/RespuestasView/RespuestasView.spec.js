@@ -1,4 +1,5 @@
 import { test, expect } from '../../../../playwright/harness/sliceFixtures.js';
+import { seedAsignacion } from '../../../../playwright/harness/seedHelpers.js';
 
 test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
 
@@ -12,7 +13,7 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
       }
 
       test('3.1.1: asigna opción a un tema', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 
@@ -38,7 +39,7 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
       });
 
       test('3.1.2: desasigna opción', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 
@@ -69,8 +70,93 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
          expect(app.pageErrors).toEqual([]);
       });
 
+      test('3.1.7: feedback visual pill-just-assigned al asignar', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/mis-respuestas');
+         await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
+
+         const kindTab = app.page.locator('button.slice_tab_button[data-tab-id="seleccion"]');
+         if (await kindTab.count()) {
+            const isActive = await kindTab.evaluate((el) => el.classList.contains('active'));
+            if (!isActive) await kindTab.click();
+         }
+         await app.page.waitForTimeout(300);
+
+         await app.page.locator('.pill[data-tema="transporte"]').first().click();
+         // Check immediately (pill-just-assigned class is added then removed after 500ms)
+         await app.page.waitForTimeout(100);
+         const assignedPill = app.page.locator('.pill-just-assigned');
+         await expect(assignedPill).toHaveCount(1);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('3.1.8: pill at-capacity se ve diferente al llenar cupo', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/mis-respuestas');
+         await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
+
+         const kindTab = app.page.locator('button.slice_tab_button[data-tab-id="seleccion"]');
+         if (await kindTab.count()) {
+            const isActive = await kindTab.evaluate((el) => el.classList.contains('active'));
+            if (!isActive) await kindTab.click();
+         }
+         await app.page.waitForTimeout(300);
+
+         // Transporte has max:6 — assign 6 opciones to fill it
+         // Each assignment auto-advances, so we need to assign 6 times
+         const transportePills = () => app.page.locator('.pill[data-tema="transporte"]');
+         const opcionCount = await app.page.locator('.dot').count();
+
+         for (let i = 0; i < Math.min(6, opcionCount); i++) {
+            const transportBtn = transportePills().first();
+            const isDisabled = await transportBtn.evaluate((el) => el.disabled);
+            if (isDisabled) break;
+            await transportBtn.click();
+            await app.page.waitForTimeout(600);
+         }
+
+         // Now check if the transporte pills show at-capacity
+         // The first visible pill for transporte should have at-capacity
+         const hasCapacity = await transportePills().first().evaluate((el) =>
+            el.classList.contains('at-capacity')
+         );
+         expect(hasCapacity).toBe(true);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('3.1.10: completar toda la asignación', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/mis-respuestas');
+         await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
+
+         const kindTab = app.page.locator('button.slice_tab_button[data-tab-id="seleccion"]');
+         if (await kindTab.count()) {
+            const isActive = await kindTab.evaluate((el) => el.classList.contains('active'));
+            if (!isActive) await kindTab.click();
+         }
+         await app.page.waitForTimeout(300);
+
+         const opcionCount = await app.page.locator('.dot').count();
+         expect(opcionCount).toBeGreaterThan(0);
+
+         // Assign all available opciones to some tema
+         for (let i = 0; i < opcionCount; i++) {
+            const btn = app.page.locator('.pill[data-tema="bienvenida"]').first();
+            const isDisabled = await btn.evaluate((el) => el.disabled);
+            if (isDisabled) break;
+            await btn.click();
+            await app.page.waitForTimeout(600);
+         }
+
+         // All dots should be done
+         const doneDots = app.page.locator('.dot.done');
+         const doneCount = await doneDots.count();
+         expect(doneCount).toBe(opcionCount);
+         expect(app.pageErrors).toEqual([]);
+      });
+
       test('3.1.6: re-asigna opción ya asignada', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 
@@ -102,7 +188,7 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
       });
 
       test('3.1.3: navega con flechas ‹ ›', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 
@@ -133,7 +219,7 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
       });
 
       test('3.1.4: navega con dots', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 
@@ -154,7 +240,7 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
       });
 
       test('3.1.5: navega con teclado ← →', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 
@@ -183,8 +269,8 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
          expect(app.pageErrors).toEqual([]);
       });
 
-      test('3.1.9: progress bar se actualiza al asignar', async ({ app }) => {
-         await app.resetState();
+      test('3.1.9: dots de progreso se actualizan al asignar', async ({ app }) => {
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 
@@ -195,14 +281,13 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
          }
          await app.page.waitForTimeout(300);
 
-         const initialProgress = await app.page.locator('#progressLabel').textContent();
+         const initialDone = await app.page.locator('.dot.done').count();
 
-         // Assign one opcion
          await app.page.locator('.pill[data-tema="transporte"]').first().click();
-         await app.page.waitForTimeout(400);
+         await app.page.waitForTimeout(600);
 
-         const newProgress = await app.page.locator('#progressLabel').textContent();
-         expect(newProgress).not.toBe(initialProgress);
+         const newDone = await app.page.locator('.dot.done').count();
+         expect(newDone).toBe(initialDone + 1);
          expect(app.pageErrors).toEqual([]);
       });
    });
@@ -210,7 +295,7 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
    test.describe('3.2 Búsqueda', () => {
 
       test('3.2.1: buscar opción por nombre filtra', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 
@@ -236,7 +321,7 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
       });
 
       test('3.2.2: limpiar búsqueda restaura todas', async ({ app }) => {
-         await app.resetState();
+         await seedAsignacion(app);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
 

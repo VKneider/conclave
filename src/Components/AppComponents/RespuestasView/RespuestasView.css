@@ -2,6 +2,7 @@
 slice-respuestasview .av-header {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
 }
+slice-respuestasview .av-header .viewheader { display: contents; }
 slice-respuestasview .av-header__actions {
   display: flex; gap: 8px; flex-shrink: 0; padding-top: 4px;
 }
@@ -61,3 +62,12 @@ slice-respuestasview .av-progress__track > span {
   display: block; height: 100%; background: var(--success-color); border-radius: 999px; transition: width .25s ease;
 }
 slice-respuestasview .av-progress__label { font-size: 12.5px; font-weight: 700; color: var(--font-secondary-color); white-space: nowrap; }
+
+@media (max-width: 760px) {
+  slice-respuestasview .av-header { flex-direction: column; gap: 8px; }
+  slice-respuestasview .av-header__actions { align-self: flex-end; padding-top: 0; }
+  slice-respuestasview .view-title { font-size: 20px; }
+  slice-respuestasview .av-progress { margin-top: 12px; }
+  slice-respuestasview .av-progress__track { height: 8px; }
+  slice-respuestasview .av-progress__label { font-size: 11px; }
+}

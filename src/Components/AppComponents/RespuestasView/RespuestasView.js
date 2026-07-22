@@ -4,6 +4,12 @@ const KIND_TABS = [
   { id: 'ranking', label: '🏆 Ranking' },
   { id: 'texto', label: '📝 Texto libre' },
 ];
+const HEADER_MAP = {
+  seleccion: { title: 'Asignar opciones', subtitle: 'Asigna cada Opción a un Tema de tipo <b>Asignación</b>. Navega con las flechas ‹ › o el teclado (← →).' },
+  votacion: { title: 'Votar', subtitle: 'Elige una Opción por cada Tema de tipo <b>Votación</b>.' },
+  ranking: { title: 'Ranking', subtitle: 'Ordena las Opciones de cada Tema de tipo <b>Ranking</b> según tu preferencia.' },
+  texto: { title: 'Texto libre', subtitle: 'Completa tu respuesta para cada Tema de tipo <b>Texto libre</b>.' },
+};
 const MODE_TABS = [
   { id: 'carousel', label: 'Carrusel' },
   { id: 'board', label: 'Por tema' },
@@ -35,6 +41,7 @@ export default class RespuestasView extends HTMLElement {
     this.$nextSection = this.querySelector('[data-el="nextSection"]');
     this.$nextText = this.querySelector('[data-el="nextText"]');
     this.$nextBtnSlot = this.querySelector('[data-el="nextBtnSlot"]');
+    this.$viewHeaderSlot = this.querySelector('.viewheader-slot');
     this.$exportSlot = this.querySelector('[data-el="exportSlot"]');
     this._activeKind = 'seleccion';
     this._activeMode = 'carousel';
@@ -47,6 +54,9 @@ export default class RespuestasView extends HTMLElement {
 
   async init() {
     this._plantilla = slice.getComponent('PlantillaService');
+
+    this._viewHeader = await slice.build('ViewHeader', { sliceId: 'avViewHeader', title: 'Mis respuestas' });
+    if (this._viewHeader instanceof Node) this.$viewHeaderSlot.appendChild(this._viewHeader);
 
     this._emptyCmp = await slice.build('EmptyState', {
       icon: '\uD83D\uDCC2',
@@ -130,6 +140,13 @@ export default class RespuestasView extends HTMLElement {
       label: this._kindComplete[k.id] ? `✅ ${k.label}` : k.label,
     }));
     this._kindTabsCmp.items = items;
+  }
+
+  _updateViewHeader() {
+    const h = HEADER_MAP[this._activeKind] || { title: 'Mis respuestas', subtitle: '' };
+    this._viewHeader.title = h.title;
+    this._viewHeader.subtitle = h.subtitle;
+    this._viewHeader.update();
   }
 
   _updateProgress() {
@@ -273,6 +290,8 @@ export default class RespuestasView extends HTMLElement {
     if (!this._kindAvail[this._activeKind]) {
       this._activeKind = availArr[0].id;
     }
+
+    this._updateViewHeader();
 
     if (availArr.length > 1) {
       this.$kindTabs.hidden = false;
