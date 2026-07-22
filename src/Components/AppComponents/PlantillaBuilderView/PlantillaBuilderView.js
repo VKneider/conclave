@@ -143,7 +143,7 @@ export default class PlantillaBuilderView extends HTMLElement {
 
     this._renderPresets();
     await this._renderTemas();
-    this._initSortable();
+    if (!this._isCoarsePointer()) this._initSortable();
     this._renderOpciones();
     this._renderAtributos();
 
@@ -519,6 +519,10 @@ export default class PlantillaBuilderView extends HTMLElement {
       }
     };
     reader.readAsText(file);
+  }
+
+  _isCoarsePointer() {
+    return window.matchMedia('(pointer: coarse)').matches;
   }
 
   _initSortable() {
