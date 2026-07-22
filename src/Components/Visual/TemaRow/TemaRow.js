@@ -25,6 +25,7 @@ export default class TemaRow extends HTMLElement {
     this.$root = this.querySelector('.cat-row');
     this.$select = this.querySelector('.cat-row__select');
     this.$icon = this.querySelector('.cat-row__icon');
+    this.$order = this.querySelector('.cat-row__order');
     this.$nameSlot = this.querySelector('.cat-row__name-slot');
     this.$modoSlot = this.querySelector('.cat-row__modo-slot');
     this.$toggle = this.querySelector('.cat-row__toggle');
@@ -133,6 +134,7 @@ export default class TemaRow extends HTMLElement {
     const ownsOpciones = isVotacion || isRanking; // votación/ranking own their Opciones
     const hasExtra = isReparto || ownsOpciones;
 
+    if (this.$order) this.$order.textContent = c.orden || '';
     this.$icon.textContent = isReparto ? '🎯' : isVotacion ? '🗳️' : isRanking ? '🏆' : '📝';
     this.$icon.title = isReparto ? 'Asignación' : isVotacion ? 'Votación' : isRanking ? 'Ranking' : 'Texto libre';
     this.$hint.textContent = isReparto

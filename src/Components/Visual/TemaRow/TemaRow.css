@@ -24,6 +24,7 @@ slice-temarow .cat-row:focus-within {
 
 slice-temarow .cat-row__main { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 slice-temarow .cat-row__icon { flex: none; font-size: 14px; }
+slice-temarow .cat-row__order { flex: none; font-size: 11px; font-weight: 700; color: var(--font-secondary-color); min-width: 18px; text-align: center; }
 slice-temarow .cat-row__name-slot { flex: 1; min-width: 140px; }
 slice-temarow .cat-row__modo-slot { flex: none; width: 130px; }
 slice-temarow .cat-row__toggle,
