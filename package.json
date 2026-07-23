@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node ./node_modules/slicejs-cli/client.js dev",
-    "build": "node ./node_modules/slicejs-cli/client.js build && node scripts/copy-slice.js",
+    "build": "node ./node_modules/slicejs-cli/client.js build",
     "start": "node ./node_modules/slicejs-cli/client.js start",
     "component:create": "node ./node_modules/slicejs-cli/client.js component create",
     "component:list": "node ./node_modules/slicejs-cli/client.js component list",
@@ -61,7 +61,7 @@
     "lz-string": "^1.5.0",
     "qrcode": "^1.5.4",
     "quill": "^2.0.3",
-    "slicejs-web-framework": "4.0.0"
+    "slicejs-web-framework": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

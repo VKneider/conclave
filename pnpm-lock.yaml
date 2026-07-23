@@ -66,8 +66,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       slicejs-web-framework:
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: ^4.0.1
+        version: 4.0.1
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -705,8 +705,8 @@ packages:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
 
-  body-parser@1.20.5:
-    resolution: {integrity: sha512-3grm+/2tUOvu2cjJkvsIxrv/wVpfXQW4PsQHYm7yk4vfpu7Ekl6nEsYBoJUL6qDwZUx8wUhQ8tR2qz+ad9c9OA==}
+  body-parser@1.20.6:
+    resolution: {integrity: sha512-p5tAzS57i5MV9fZFDj9LeIiTZEufbSe2eDozP+ElheSUq1m74CRq1jI4mYNDdVs9vQztXFLuk/Gd6BWTdwRJ5g==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
 
   body-parser@2.3.0:
@@ -1132,6 +1132,10 @@ packages:
 
   iconv-lite@0.7.2:
     resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
+    engines: {node: '>=0.10.0'}
+
+  iconv-lite@0.7.3:
+    resolution: {integrity: sha512-IKXpvIzjnC9XTAUbVBcMfGS0EPaIXtW6v+zr+RRp+hqULEpo0owZax6wyRwPOJbWbzjYspQwusTsfVr0ifh4uQ==}
     engines: {node: '>=0.10.0'}
 
   ignore@5.3.2:
@@ -1629,12 +1633,12 @@ packages:
     engines: {node: '>=20.0.0'}
     hasBin: true
 
-  slicejs-web-framework@3.5.2:
-    resolution: {integrity: sha512-jS+OQTywzXXB5j2r62WoBahTgLpFZOyxzaHc9OLt5qVT37Q1xH/xXjz/GkXbDwhTG/YZA4f8V0awNhA9QKeJtg==}
+  slicejs-web-framework@3.5.4:
+    resolution: {integrity: sha512-tP9Y0R5lWOWCi+ggnzlwpJvwTMj4zZAZX59LfBZU3Vy0iLdIVArIcLQdglzurhR9iv9MeRJpxijeRmyFw13L+A==}
     engines: {node: '>=20'}
 
-  slicejs-web-framework@4.0.0:
-    resolution: {integrity: sha512-FM9jPhpkrEmk1mksJ29BI6nqdLZbAEtK0d9G9QXpoxqJYri8dRXNTrAy73zsJ2SUD+PpojENoeproeKXAqOJTw==}
+  slicejs-web-framework@4.0.1:
+    resolution: {integrity: sha512-kLe4VlFMaKX4EnXlsRrLlRw8tZ1YReqEoKs08WNNYTgg1ZIktjTYks7ipItZdB22mccSwJMrZLyEp2kFgJF+9g==}
     engines: {node: '>=20'}
 
   source-map-support@0.5.21:
@@ -2001,7 +2005,7 @@ snapshots:
   '@inquirer/external-editor@1.0.3':
     dependencies:
       chardet: 2.2.0
-      iconv-lite: 0.7.2
+      iconv-lite: 0.7.3
 
   '@inquirer/figures@1.0.15': {}
 
@@ -2283,7 +2287,7 @@ snapshots:
 
   binary-extensions@2.3.0: {}
 
-  body-parser@1.20.5:
+  body-parser@1.20.6:
     dependencies:
       bytes: 3.1.2
       content-type: 1.0.5
@@ -2607,7 +2611,7 @@ snapshots:
     dependencies:
       accepts: 1.3.8
       array-flatten: 1.1.1
-      body-parser: 1.20.5
+      body-parser: 1.20.6
       content-disposition: 0.5.4
       content-type: 1.0.5
       cookie: 0.7.2
@@ -2817,6 +2821,10 @@ snapshots:
       safer-buffer: 2.1.2
 
   iconv-lite@0.7.2:
+    dependencies:
+      safer-buffer: 2.1.2
+
+  iconv-lite@0.7.3:
     dependencies:
       safer-buffer: 2.1.2
 
@@ -3343,20 +3351,20 @@ snapshots:
       html-minifier-terser: 7.2.0
       inquirer: 12.11.1
       ora: 8.2.0
-      slicejs-web-framework: 3.5.2
+      slicejs-web-framework: 3.5.4
       terser: 5.48.0
     transitivePeerDependencies:
       - '@types/node'
       - supports-color
 
-  slicejs-web-framework@3.5.2:
+  slicejs-web-framework@3.5.4:
     dependencies:
       compression: 1.8.1
       express: 4.22.2
     transitivePeerDependencies:
       - supports-color
 
-  slicejs-web-framework@4.0.0:
+  slicejs-web-framework@4.0.1:
     dependencies:
       compression: 1.8.1
       es-module-lexer: 2.3.1

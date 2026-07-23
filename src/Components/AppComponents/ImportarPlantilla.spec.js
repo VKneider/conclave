@@ -154,6 +154,44 @@ test.describe('11. Importar Plantilla', () => {
       expect(app.pageErrors).toEqual([]);
     });
 
+    test('11.2.3: hash import con impact=0 navega desde init() sin duplicar AppShell', async ({ app }) => {
+      const plantillaData = {
+        tipo: 'plantilla', nombre: 'Sin Impacto', autor: 'Test',
+        temas: [{ id: 'x1', nombre: 'Tema URL', modo: 'texto_libre', orden: 0, participable: true }],
+        opciones: [], atributos: [],
+      };
+
+      const hash = makePlantillaHash(plantillaData);
+      await app.page.goto('/' + hash);
+
+      // Wait for navigate to /mis-respuestas (the impact=0 branch does this)
+      await app.page.waitForFunction(
+        () => window.location.pathname === '/mis-respuestas',
+        { timeout: 12000 }
+      );
+
+      // Verify the plantilla was imported
+      const plantilla = await app.getContext('plantilla');
+      expect(plantilla.nombre).toBe('Sin Impacto');
+
+      // Verify exactly ONE AppShell in the DOM (no duplicate)
+      const shellCount = await app.page.evaluate(
+        () => document.querySelectorAll('slice-app-shell').length
+      );
+      expect(shellCount).toBe(1);
+
+      // Verify the mis-respuestas view is visible and functional
+      await expect(app.page.locator('.respuestas-view')).toBeVisible({ timeout: 5000 });
+
+      // Verify navigation still works after the init()-time navigate
+      await app.page.locator('a.tab[data-path="/dashboard"]').click();
+      await app.page.waitForTimeout(300);
+      expect(app.page.url()).toContain('/dashboard');
+
+      // No JS errors
+      expect(app.pageErrors).toEqual([]);
+    });
+
   });
 
 });

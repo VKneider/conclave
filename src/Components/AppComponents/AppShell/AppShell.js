@@ -110,12 +110,9 @@ export default class AppShell extends HTMLElement {
         onConfirm: proceed,
       });
     } else {
-      // Navigate via pushState+renderIfCurrentRoute (below) instead of
-      // slice.router.navigate() to avoid a race between the router's 10ms
-      // debounce and this init() building its children (TopBar/MultiRoute).
       roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, autor, email);
       slice.events.emit('toast:show', { message: 'Plantilla importada desde el enlace', type: 'success' });
-      history.pushState(null, '', '/mis-respuestas');
+      await slice.router.navigate('/mis-respuestas');
     }
   }
 
