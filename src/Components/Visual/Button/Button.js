@@ -72,8 +72,7 @@ export default class Button extends HTMLElement {
       if (this._icon && !this.$icon) {
          this.$icon = await slice.build('Icon', {
             name: this._icon.name,
-            iconStyle: this._icon.iconStyle,
-            size: '20px',
+            size: '20',
             color: 'currentColor',
          });
          this.$button.insertBefore(this.$icon, this.$value);
@@ -107,7 +106,6 @@ export default class Button extends HTMLElement {
       this._icon = value;
       if (!this.$icon || !value) return;   // appear/disappear handled in update()
       this.$icon.name = value.name;
-      this.$icon.iconStyle = value.iconStyle;
    }
 
    get variant() {

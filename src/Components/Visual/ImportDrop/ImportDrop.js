@@ -10,6 +10,8 @@ export default class ImportDrop extends HTMLElement {
   }
 
   init() {
+    this._icons = slice.getComponent('IconProvider');
+    this.querySelector('[data-el="prompt"]').innerHTML = `${this._icons.svg('upload', 20)} Arrastra aquí los archivos o haz clic para seleccionarlos`;
     this.$input.accept = ACCEPT_ALL;
     this.$drop.onclick = () => this.$input.click();
     this.$input.onchange = () => {

@@ -7,7 +7,7 @@ export default class CompareNotesModal extends HTMLElement {
     this._temas = [];
     this._notesByTema = {};
     this._activeTemaId = null;
-    this._title = '📝 Notas';
+    this._title = 'Notas';
     this._onInput = null;
     this._onBlur = null;
     this._onTemaChange = null;
@@ -15,7 +15,7 @@ export default class CompareNotesModal extends HTMLElement {
   }
 
   init() {
-    // CompareView owns when to open and with which context.
+    this.$fab.innerHTML = `${slice.getComponent('IconProvider').svg('pencil', 16)} Notas`;
   }
 
   get fab() {

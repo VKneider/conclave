@@ -15,6 +15,7 @@ export default class PorTemaView extends HTMLElement {
     this._roster = slice.getComponent('PlantillaService');
     this._dnd = slice.getComponent('DragDropService');
     this._html = slice.getComponent('HtmlService');
+    this._icons = slice.getComponent('IconProvider');
     await this._buildShell();
     this._render();
     // Catches a mutation made while THIS view is on screen but the trigger
@@ -56,14 +57,15 @@ export default class PorTemaView extends HTMLElement {
 
   async _buildShell() {
     const roster = this._roster;
+    const ic = (n, s) => this._icons.svg(n, s);
     const temas = roster.getTemasParticipables();
 
     let html = `
-      <p class="view-sub">Arrastra una Opción desde la barra lateral hacia un Tema. Puedes pasar el máximo si hace falta — el Tema queda marcado hasta que muevas o quites a alguien. 🎯</p>
+      <p class="view-sub">Arrastra una Opción desde la barra lateral hacia un Tema. Puedes pasar el máximo si hace falta — el Tema queda marcado hasta que muevas o quites a alguien. ${ic('target', 14)}</p>
       <div class="ps-layout">
         <aside class="ps-sidebar dropzone ps-unassigned" data-drop="">
           <div class="sidebar-head">
-            <h3>👥 Sin asignar <span class="badge-slot" data-badge="unassigned"></span></h3>
+            <h3>${ic('users', 16)} Sin asignar <span class="badge-slot" data-badge="unassigned"></span></h3>
             <span class="sidebar-hint">Arrastra a un tema · suelta aquí para quitar</span>
             <div class="sidebar-search-slot"></div>
           </div>
@@ -77,7 +79,7 @@ export default class PorTemaView extends HTMLElement {
       html += `
         <div class="ps-square dropzone" data-drop="${t.id}" style="--svc:${col}">
           <div class="lider-drop" data-lider="${t.id}">
-            <span class="lider-drop__icon">👑</span>
+            <span class="lider-drop__icon">${ic('crown', 14)}</span>
             <span class="lider-drop__name" data-lider-name="${t.id}"></span>
           </div>
           <div class="ps-sq-head">
@@ -223,7 +225,7 @@ export default class PorTemaView extends HTMLElement {
     });
     const noMatches = unassigned.length > 0 && visibleUnassigned.length === 0;
     this._unassignedEls.empty.hidden = !(unassigned.length === 0 || noMatches);
-    this._unassignedEls.empty.textContent = unassigned.length === 0 ? '¡Todos asignados! 🎉' : 'No hay coincidencias.';
+    this._unassignedEls.empty.innerHTML = unassigned.length === 0 ? `¡Todos asignados! ${this._icons.svg('party-popper', 16)}` : 'No hay coincidencias.';
     slice.setComponentProps(this._unassignedBadge, { status: 'empty', label: String(unassigned.length) });
 
     temas.forEach((t) => {

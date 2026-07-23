@@ -1,6 +1,6 @@
 export default class EmptyState extends HTMLElement {
   static props = {
-    icon: { type: 'string', default: '📋' },
+    icon: { type: 'string', default: 'clipboard' },
     title: { type: 'string', default: '' },
     description: { type: 'string', default: '' },
     buttonLabel: { type: 'string', default: '' },
@@ -15,7 +15,7 @@ export default class EmptyState extends HTMLElement {
     this.$title = this.querySelector('[data-el="title"]');
     this.$description = this.querySelector('[data-el="description"]');
     this.$btnSlot = this.querySelector('[data-el="btnSlot"]');
-    this._icon = '📋';
+    this._icon = 'clipboard';
     this._title = '';
     this._description = '';
     this._buttonLabel = '';
@@ -26,7 +26,7 @@ export default class EmptyState extends HTMLElement {
   }
 
   get icon() { return this._icon; }
-  set icon(v) { this._icon = v; this.$icon.textContent = v; }
+  set icon(v) { this._icon = v;     this.$icon.innerHTML = slice.getComponent('IconProvider').svg(v, 28); }
 
   get title() { return this._title; }
   set title(v) { this._title = v; this.$title.textContent = v; }
@@ -44,7 +44,7 @@ export default class EmptyState extends HTMLElement {
   set buttonOnClick(v) { this._buttonOnClick = v; this._updateButton(); }
 
   async init() {
-    this.$icon.textContent = this._icon;
+    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(this._icon, 28);
     this.$title.textContent = this._title;
     this.$description.textContent = this._description;
     this._updateButton();

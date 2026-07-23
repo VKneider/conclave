@@ -14,12 +14,12 @@ const opc = (id, nombre, temaId = null) => ({ id, nombre, temaId, meta: { fijo: 
 
 const PRESETS = [
   {
-    id: 'asignacion', icon: '🎯', nombre: 'Asignación de equipos',
+    id: 'asignacion', icon: 'target', nombre: 'Asignación de equipos',
     descripcion: 'Repartí un grupo de personas entre equipos con cupos mín/máx. El caso clásico, con atributos de ejemplo (sexo, edad).',
     plantilla: { nombre: 'Asignación de equipos', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES },
   },
   {
-    id: 'votacion', icon: '🗳️', nombre: 'Votación / decisión',
+    id: 'votacion', icon: 'vote', nombre: 'Votación / decisión',
     descripcion: 'Una pregunta con varias opciones; cada quien elige una y gana la mayoría.',
     plantilla: {
       nombre: 'Decisión grupal', atributos: [],
@@ -28,7 +28,7 @@ const PRESETS = [
     },
   },
   {
-    id: 'sino', icon: '✅', nombre: 'Sí / No / Abstención',
+    id: 'sino', icon: 'check-square', nombre: 'Sí / No / Abstención',
     descripcion: 'Una decisión con tres posturas: a favor, en contra o neutro.',
     plantilla: {
       nombre: 'Sí, No o Abstención', atributos: [],
@@ -37,7 +37,7 @@ const PRESETS = [
     },
   },
   {
-    id: 'ideas', icon: '💡', nombre: 'Lluvia de ideas',
+    id: 'ideas', icon: 'lightbulb', nombre: 'Lluvia de ideas',
     descripcion: 'Preguntas abiertas; cada persona escribe su propuesta y se comparan en cards grandes.',
     plantilla: {
       nombre: 'Lluvia de ideas', atributos: [],
@@ -50,7 +50,7 @@ const PRESETS = [
     },
   },
   {
-    id: 'ranking', icon: '🏆', nombre: 'Priorización / ranking',
+    id: 'ranking', icon: 'trophy', nombre: 'Priorización / ranking',
     descripcion: 'Ordená un conjunto de opciones por prioridad; se agregan los órdenes de todos (Borda).',
     plantilla: {
       nombre: 'Priorización', atributos: [],
@@ -63,7 +63,7 @@ const PRESETS = [
     },
   },
   {
-    id: 'mixta', icon: '🧩', nombre: 'Reunión (mixta)',
+    id: 'mixta', icon: 'puzzle', nombre: 'Reunión (mixta)',
     descripcion: 'Combina modos: una votación, un ranking y una pregunta abierta en la misma Plantilla.',
     plantilla: {
       nombre: 'Reunión de equipo', atributos: [],
@@ -80,7 +80,7 @@ const PRESETS = [
     },
   },
   {
-    id: 'retro', icon: '🔁', nombre: 'Retrospectiva + plan de acción',
+    id: 'retro', icon: 'refresh-ccw', nombre: 'Retrospectiva + plan de acción',
     descripcion: 'Espacio de escucha para revisar el período y definir próximos pasos, solo con preguntas abiertas.',
     plantilla: {
       nombre: 'Revisión del período', atributos: [],

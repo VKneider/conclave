@@ -1,3 +1,5 @@
+
+
 const DISMISS_KEY = 'conclave-profile-dismissed';
 
 export default class ProfileBubble extends HTMLElement {
@@ -47,7 +49,7 @@ export default class ProfileBubble extends HTMLElement {
     if (this._modal) return;
     this._modal = await slice.build('Modal', {
       sliceId: 'profileBubbleModal',
-      title: '👋 ¡Hola!',
+      title: '¡Hola!',
       dismissable: true,
       maxWidth: '420px',
     });
@@ -72,15 +74,15 @@ export default class ProfileBubble extends HTMLElement {
     const links = document.createElement('div');
     links.className = 'profile-bubble__links';
 
-    links.appendChild(this._createLink('🌐', 'Portfolio personal', 'https://vkneider.dev'));
-    links.appendChild(this._createLink('⚡', 'Slice.js — framework web', 'https://slicejs.com'));
-    links.appendChild(this._createLink('🧩', 'Componentes Slice', 'https://components.slicejs.com'));
+    links.appendChild(this._createLink('globe', 'Portfolio personal', 'https://vkneider.dev'));
+    links.appendChild(this._createLink('zap', 'Slice.js — framework web', 'https://slicejs.com'));
+    links.appendChild(this._createLink('puzzle', 'Componentes Slice', 'https://components.slicejs.com'));
 
     body.appendChild(links);
 
     const footer = document.createElement('p');
     footer.className = 'profile-bubble__footer-text';
-    footer.textContent = 'Hecho con 💙 y Slice.js';
+    footer.innerHTML = `Hecho con ${slice.getComponent('IconProvider').svg('heart', 14)} y Slice.js`;
     body.appendChild(footer);
 
     this._modal.appendBody(body);
@@ -95,7 +97,7 @@ export default class ProfileBubble extends HTMLElement {
     this._modal.appendFooter(visitBtn);
   }
 
-  _createLink(emoji, label, url) {
+  _createLink(iconName, label, url) {
     const a = document.createElement('a');
     a.className = 'profile-bubble__link';
     a.href = url;
@@ -104,7 +106,7 @@ export default class ProfileBubble extends HTMLElement {
 
     const icon = document.createElement('span');
     icon.className = 'profile-bubble__link-icon';
-    icon.textContent = emoji;
+    icon.innerHTML = slice.getComponent('IconProvider').svg(iconName, 20);
     a.appendChild(icon);
 
     const text = document.createTextNode(label);

@@ -106,6 +106,7 @@ export default class Providers {
     await slice.build('RespuestasImportService', { singleton: true });
     await slice.build('DragDropService', { singleton: true });
     await slice.build('ChartService', { singleton: true });
+    await slice.build('IconProvider', { singleton: true });
 
     const toasts = await slice.build('ToastProvider', { singleton: true });
     toasts.setPosition('bottom-right');

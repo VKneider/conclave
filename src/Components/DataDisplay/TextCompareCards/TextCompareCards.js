@@ -1,3 +1,5 @@
+
+
 // Carousel-by-tema for modo `texto_libre` using CarouselView.
 // Shows every source's proposal for one tema at a time.
 export default class TextCompareCards extends HTMLElement {
@@ -94,7 +96,7 @@ export default class TextCompareCards extends HTMLElement {
       if (final) {
         const finalSrc = sources.find((s) => s.autor === final.autor);
         const finalLabel = (finalSrc && finalSrc.autorLabel) || final.autor;
-        html += `<div class="tcc-final-banner" data-tema="${esc(tema.id)}">✓ Elegida: <b>${esc(finalLabel)}</b> <button class="linkish" data-tccact="clear-final">Quitar ✕</button></div>`;
+        html += `<div class="tcc-final-banner" data-tema="${esc(tema.id)}">${slice.getComponent('IconProvider').svg('check', 14)} Elegida: <b>${esc(finalLabel)}</b> <button class="linkish" data-tccact="clear-final">Quitar ${slice.getComponent('IconProvider').svg('x', 14)}</button></div>`;
       }
 
       if (!withText.length) {
@@ -110,10 +112,10 @@ export default class TextCompareCards extends HTMLElement {
               <span class="tcc-swatch" style="background:${s.color}"></span>
               <span class="tcc-autor">${esc(label)}</span>
               ${isFinal ? '<span class="tcc-final-tag">Elegida</span>' : ''}
-              <button class="tcc-read" type="button" data-tccread="${esc(s.autor)}" title="Leer en pantalla completa">⛶</button>
+              <button class="tcc-read" type="button" data-tccread="${esc(s.autor)}" title="Leer en pantalla completa">${slice.getComponent('IconProvider').svg('maximize-2', 14)}</button>
             </div>
             <div class="tcc-text tp-render">${this._html.sanitize(texto)}</div>
-            <button class="btn btn-sm tcc-pick" data-tccpick="${esc(s.autor)}">${isFinal ? '✓ Elegida' : 'Marcar como elegida'}</button>
+            <button class="btn btn-sm tcc-pick" data-tccpick="${esc(s.autor)}">${isFinal ? `${slice.getComponent('IconProvider').svg('check', 14)} Elegida` : 'Marcar como elegida'}</button>
           </div>`;
         }).join('')}</div>`;
       }

@@ -1,5 +1,6 @@
 import { TOAST_DURATION } from '../../Core/AppConfig/AppConfig.js';
 
+
 const TOAST_TYPES = new Set(['success', 'error', 'warning', 'info', 'default']);
 
 function resolveType(value) {
@@ -51,7 +52,11 @@ export default class Toast extends HTMLElement {
         .replace(/slice-toast--\w+/g, '')
         .trim() + ` slice-toast--${this._type}`;
     }
-    if (this.$icon) this.$icon.dataset.type = this._type;
+    if (this.$icon) {
+      this.$icon.dataset.type = this._type;
+      const ICONS = { success: 'check-circle', error: 'x-circle', warning: 'alert-triangle', info: 'info' };
+      this.$icon.innerHTML = slice.getComponent('IconProvider').svg(ICONS[this._type] || '', 16);
+    }
   }
 
   get type() { return this._type; }

@@ -19,6 +19,7 @@ export default class MisRespuestasView extends HTMLElement {
   async init() {
     this._roster = slice.getComponent('PlantillaService');
     this._html = slice.getComponent('HtmlService');
+    this._icons = slice.getComponent('IconProvider');
 
     // Bound once; guarded by isConnected + no-input-focused so it's inert
     // while this cached view isn't the one currently on screen.
@@ -114,7 +115,7 @@ export default class MisRespuestasView extends HTMLElement {
             </div>
           </div>
           <div class="current-assign">Asignado a: <b>${this._html.esc(roster.getTemaById(sel)?.nombre || '—')}</b>
-          ${sel && slice.getComponent('SettingsService').isLideresEnabled() && !slice.getComponent('PlantillaService').isLiderLocked(sel) ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.opcion?.id === opcion.id ? ' is-lider' : ''}" data-lider-toggle="${opcion.id}" type="button" title="Marcar/quitar como responsable">👑</button>` : ''}
+          ${sel && slice.getComponent('SettingsService').isLideresEnabled() && !slice.getComponent('PlantillaService').isLiderLocked(sel) ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.opcion?.id === opcion.id ? ' is-lider' : ''}" data-lider-toggle="${opcion.id}" type="button" title="Marcar/quitar como responsable">${this._icons.svg('crown', 14)}</button>` : ''}
            </div>
           <div class="assign-summary" id="assignSummary"></div>
           <div class="tema-pills">

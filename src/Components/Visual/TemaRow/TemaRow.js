@@ -1,3 +1,5 @@
+
+
 const MODO_OPTIONS = [
   { text: 'Asignación', value: 'reparto' },
   { text: 'Votación', value: 'votacion' },
@@ -135,7 +137,7 @@ export default class TemaRow extends HTMLElement {
     const hasExtra = isReparto || ownsOpciones;
 
     if (this.$order) this.$order.textContent = c.orden || '';
-    this.$icon.textContent = isReparto ? '🎯' : isVotacion ? '🗳️' : isRanking ? '🏆' : '📝';
+    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(isReparto ? 'target' : isVotacion ? 'vote' : isRanking ? 'trophy' : 'file-text', 14);
     this.$icon.title = isReparto ? 'Asignación' : isVotacion ? 'Votación' : isRanking ? 'Ranking' : 'Texto libre';
     this.$hint.textContent = isReparto
       ? 'Ej: un equipo, una charla — las Opciones se ubican acá.'
@@ -175,7 +177,7 @@ export default class TemaRow extends HTMLElement {
       ? opciones.map((o) => `
           <div class="cat-row__opc-item">
             <span class="cat-row__opc-name">${esc(o.nombre)}</span>
-            <button class="cat-row__opc-remove" type="button" data-remove-opc="${esc(o.id)}" title="Quitar opción">✕</button>
+            <button class="cat-row__opc-remove" type="button" data-remove-opc="${esc(o.id)}" title="Quitar opción">${slice.getComponent('IconProvider').svg('x', 14)}</button>
           </div>`).join('')
       : '<div class="cat-row__opc-empty">Sin opciones todavía — agrega al menos dos para votar.</div>';
     this.$opcList.innerHTML = this._html ? this._html.sanitize(html) : html;
@@ -186,7 +188,7 @@ export default class TemaRow extends HTMLElement {
     const m = this._tema?.modo;
     const hasExtra = m === 'reparto' || m === 'votacion' || m === 'ranking';
     this.$extra.hidden = !expanded || !hasExtra;
-    this.$toggle.textContent = `${expanded ? '▾' : '▸'} Detalles`;
+    this.$toggle.innerHTML = `${expanded ? slice.getComponent('IconProvider').svg('chevron-down', 14) : slice.getComponent('IconProvider').svg('chevron-right', 14)} Detalles`;
     this.$toggle.setAttribute('aria-expanded', String(expanded));
   }
 

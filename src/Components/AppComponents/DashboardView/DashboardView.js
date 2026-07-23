@@ -12,6 +12,7 @@ export default class DashboardView extends HTMLElement {
     this._roster = slice.getComponent('PlantillaService');
     this._html = slice.getComponent('HtmlService');
     this._charts = slice.getComponent('ChartService');
+    this._icons = slice.getComponent('IconProvider');
     this._viewHeaderSlot = this.querySelector('.viewheader-slot');
     const viewHeader = await slice.build('ViewHeader', { sliceId: 'dashViewHeader', title: 'Dashboard', subtitle: 'Resumen de tus respuestas — progreso, asignaciones, votaciones, rankings y texto libre.' });
     if (viewHeader instanceof Node) this._viewHeaderSlot.appendChild(viewHeader);
@@ -58,6 +59,7 @@ export default class DashboardView extends HTMLElement {
   async _buildShell() {
     const roster = this._roster;
     const esc = (s) => this._html.esc(s);
+    const ic = (n, s) => this._icons.svg(n, s);
     const temas = roster.getTemas();
     const temasReparto = roster.getTemasParticipables();
     const temasVotacion = roster.getTemasVotacion();
@@ -79,10 +81,10 @@ export default class DashboardView extends HTMLElement {
     if (!temas.length) {
       this.$root.innerHTML = '';
       const empty = await slice.build('EmptyState', {
-        icon: '\uD83D\uDCCB',
+        icon: 'clipboard',
         title: 'Todav\u00EDa no hay una Plantilla',
         description: 'Cre\u00E1 una plantilla con Temas y Opciones para empezar a asignar equipos, votar y m\u00E1s.',
-        buttonLabel: '\uD83D\uDCD0 Ir a Plantilla',
+        buttonLabel: 'Ir a Plantilla',
         buttonRoute: '/plantilla',
       });
       if (empty instanceof Node) this.$root.appendChild(empty);
@@ -118,7 +120,7 @@ export default class DashboardView extends HTMLElement {
 
     if (temasReparto.length) {
       html += `
-        <h3 class="view-title dash-section-title">🎯 Asignación</h3>
+        <h3 class="view-title dash-section-title">${ic('target', 16)} Asignación</h3>
         <p class="view-sub">Cada barra muestra las opciones asignadas frente al mínimo y máximo. Toca un tema para ver quiénes quedaron.</p>
         <div class="tema-grid">
           ${temasReparto.map((t) => {
@@ -138,9 +140,9 @@ export default class DashboardView extends HTMLElement {
         </div>`;
     }
 
-    if (temasVotacion.length) html += modoSection('🗳️ Votación', 'Respondido = elegiste una opción en el tema.', temasVotacion, 'voto');
-    if (temasRanking.length) html += modoSection('🏆 Ranking', 'Respondido = ordenaste las opciones del tema.', temasRanking, 'rank');
-    if (temasTexto.length) html += modoSection('📝 Texto libre', 'Respondido = escribiste tu propuesta.', temasTexto, 'texto');
+    if (temasVotacion.length) html += modoSection(`${ic('vote', 16)} Votación`, 'Respondido = elegiste una opción en el tema.', temasVotacion, 'voto');
+    if (temasRanking.length) html += modoSection(`${ic('trophy', 16)} Ranking`, 'Respondido = ordenaste las opciones del tema.', temasRanking, 'rank');
+    if (temasTexto.length) html += modoSection(`${ic('pen', 16)} Texto libre`, 'Respondido = escribiste tu propuesta.', temasTexto, 'texto');
 
     this.$root.innerHTML = this._html.sanitize(html);
 
@@ -160,7 +162,8 @@ export default class DashboardView extends HTMLElement {
     if (this._els.shareBtnSlot) {
       const shareBtn = await slice.build('Button', {
         sliceId: 'dashShareBtn',
-        value: '📤 Compartir respuestas',
+        value: 'Compartir respuestas',
+        icon: { name: 'share-2' },
         variant: 'filled',
         onClick: () => {
           const modal = slice.getComponent('exportRespuestasModal');
@@ -244,21 +247,23 @@ export default class DashboardView extends HTMLElement {
 
     this._els.sub.textContent = `Resumen de tus respuestas${autor ? ' — ' + autor : ''}.`;
 
+    const esc = (s) => this._html.esc(s);
     const nombrePlantilla = roster.getNombre();
     const nReparto = roster.getTemas().filter((c) => c.modo === 'reparto').length;
     const nVotacion = roster.getTemasVotacion().length;
     const nRanking = roster.getTemasRanking().length;
     const nTexto = roster.getTemasTexto().length;
+    const ic = (n, s) => this._icons.svg(n, s);
     const composicion = [
-      nReparto ? `🎯 ${nReparto} de asignación` : null,
-      nVotacion ? `🗳️ ${nVotacion} de votación` : null,
-      nRanking ? `🏆 ${nRanking} de ranking` : null,
-      nTexto ? `📝 ${nTexto} de texto libre` : null,
+      nReparto ? `${ic('target', 14)} ${nReparto} de asignación` : null,
+      nVotacion ? `${ic('vote', 14)} ${nVotacion} de votación` : null,
+      nRanking ? `${ic('trophy', 14)} ${nRanking} de ranking` : null,
+      nTexto ? `${ic('pen', 14)} ${nTexto} de texto libre` : null,
     ].filter(Boolean).join(' · ');
     const maxName = (nombrePlantilla || 'Plantilla sin nombre').slice(0, DASHBOARD_NAME_MAX);
-    this._els.plantillaName.textContent = `📋 ${maxName}${(nombrePlantilla || '').length > DASHBOARD_NAME_MAX ? '…' : ''}`;
+    this._els.plantillaName.innerHTML = `${ic('clipboard', 16)} ${esc(maxName)}${(nombrePlantilla || '').length > DASHBOARD_NAME_MAX ? '…' : ''}`;
     this._els.plantillaName.title = nombrePlantilla || '';
-    this._els.plantillaMeta.textContent = composicion;
+    this._els.plantillaMeta.innerHTML = composicion;
     this._els.plantillaMeta.hidden = !composicion;
 
     this._els.totalTemas.textContent = roster.getTemas().length;
@@ -290,7 +295,7 @@ export default class DashboardView extends HTMLElement {
       this._teamEls[t.id].bar.style.width = `${pct}%`;
       if (this._badges[t.id]) slice.setComponentProps(this._badges[t.id], { status: st, label: roster.statusLabel(t, n) });
       const lider = slice.getComponent('SettingsService').getEffectiveLider(t.id);
-      this._teamEls[t.id].lider.textContent = lider && lider.opcion ? `👑 ${lider.opcion.nombre}` : '';
+      this._teamEls[t.id].lider.innerHTML = lider && lider.opcion ? `${ic('crown', 14)} ${this._html.esc(lider.opcion.nombre)}` : '';
     });
 
     const resp = slice.getComponent('RespuestasService').getState();
@@ -305,6 +310,7 @@ export default class DashboardView extends HTMLElement {
 
   async _openTemaModal(temaId) {
     const roster = this._roster;
+    const ic = (n, s) => this._icons.svg(n, s);
     const tema = roster.getTemasParticipables().find((t) => t.id === temaId);
     if (!tema) return;
 
@@ -322,7 +328,7 @@ export default class DashboardView extends HTMLElement {
       document.body.appendChild(this._teamModal);
     }
 
-    this._teamModal.title = `${tema.nombre} ${lider ? '👑' : ''}`;
+    this._teamModal.title = `${tema.nombre}${lider ? ` ${ic('crown', 16)}` : ''}`;
     this._teamOpcionList.innerHTML = this._html.sanitize(opciones.length
       ? opciones.map((m) => `
         <div class="tema-opcion-item${liderId === String(m.id) ? ' is-lider' : ''}">

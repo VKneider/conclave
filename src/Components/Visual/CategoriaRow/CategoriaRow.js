@@ -1,3 +1,5 @@
+
+
 const MODO_OPTIONS = [
   { text: 'Selección', value: 'seleccion' },
   { text: 'Texto libre', value: 'texto_libre' },
@@ -95,7 +97,7 @@ export default class CategoriaRow extends HTMLElement {
     if (!c) return;
     const isSeleccion = c.modo === 'seleccion';
 
-    this.$icon.textContent = isSeleccion ? '🎯' : '📝';
+    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(isSeleccion ? 'target' : 'file-text', 14);
     this.$icon.title = isSeleccion ? 'Selección' : 'Texto libre';
     this.$hint.textContent = isSeleccion
       ? 'Ej: un equipo, una charla — las Opciones se ubican acá.'
@@ -120,7 +122,7 @@ export default class CategoriaRow extends HTMLElement {
     this._expanded = expanded;
     const isSeleccion = this._categoria?.modo === 'seleccion';
     this.$extra.hidden = !expanded || !isSeleccion;
-    this.$toggle.textContent = `${expanded ? '▾' : '▸'} Detalles`;
+    this.$toggle.innerHTML = `${expanded ? slice.getComponent('IconProvider').svg('chevron-down', 14) : slice.getComponent('IconProvider').svg('chevron-right', 14)} Detalles`;
     this.$toggle.setAttribute('aria-expanded', String(expanded));
   }
 

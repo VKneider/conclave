@@ -1,8 +1,8 @@
 const KIND_TABS = [
-  { id: 'seleccion', label: '🎯 Asignación' },
-  { id: 'votacion', label: '🗳️ Votación' },
-  { id: 'ranking', label: '🏆 Ranking' },
-  { id: 'texto', label: '📝 Texto libre' },
+  { id: 'seleccion', label: 'Asignación' },
+  { id: 'votacion', label: 'Votación' },
+  { id: 'ranking', label: 'Ranking' },
+  { id: 'texto', label: 'Texto libre' },
 ];
 const HEADER_MAP = {
   seleccion: { title: 'Asignar opciones', subtitle: 'Asigna cada Opción a un Tema de tipo <b>Asignación</b>. Navega con las flechas ‹ › o el teclado (← →).' },
@@ -55,15 +55,17 @@ export default class RespuestasView extends HTMLElement {
 
   async init() {
     this._plantilla = slice.getComponent('PlantillaService');
+    this._icons = slice.getComponent('IconProvider');
+    this.querySelector('[data-el="kindNoticeIcon"]').innerHTML = this._icons.svg('info', 16);
 
     this._viewHeader = await slice.build('ViewHeader', { sliceId: 'avViewHeader', title: 'Mis respuestas' });
     if (this._viewHeader instanceof Node) this.$viewHeaderSlot.appendChild(this._viewHeader);
 
     this._emptyCmp = await slice.build('EmptyState', {
-      icon: '\uD83D\uDCC2',
+      icon: 'clipboard',
       title: 'Todav\u00EDa no hay nada que responder',
       description: 'Tu Plantilla todav\u00EDa no tiene nada para responder \u2014 ni Opciones para asignar, ni Temas de votaci\u00F3n o texto libre. Ve a Plantilla para armarla.',
-      buttonLabel: '\uD83D\uDCD0 Ir a Plantilla',
+      buttonLabel: 'Ir a Plantilla',
       buttonRoute: '/plantilla',
     });
     if (this._emptyCmp instanceof Node) this.$emptySlot.appendChild(this._emptyCmp);
@@ -103,7 +105,8 @@ export default class RespuestasView extends HTMLElement {
 
     this._exportBtn = await slice.build('Button', {
       sliceId: 'avExportBtn',
-      value: '📤 Compartir respuestas',
+      value: 'Compartir respuestas',
+      icon: { name: 'share-2' },
       variant: 'filled',
       onClick: () => this._openExportModal(),
     });
@@ -138,7 +141,7 @@ export default class RespuestasView extends HTMLElement {
   _updateTabItems() {
     const items = (this._availableKinds || KIND_TABS).map((k) => ({
       id: k.id,
-      label: this._kindComplete[k.id] ? `✅ ${k.label}` : k.label,
+      label: k.label,
     }));
     this._kindTabsCmp.items = items;
   }
@@ -187,8 +190,8 @@ export default class RespuestasView extends HTMLElement {
       this.$nextSection.hidden = false;
       const email = slice.getComponent('SettingsService')?.getState().email?.trim();
       this.$nextText.textContent = email
-        ? `¡Todas las secciones están completas! 🎉 Recuerda enviar tus respuestas a ${email} al finalizar.`
-        : '¡Todas las secciones están completas! 🎉 Recuerda exportar tus respuestas al finalizar.';
+        ? `Todas las secciones están completas. Recuerda enviar tus respuestas a ${email} al finalizar.`
+        : 'Todas las secciones están completas. Recuerda exportar tus respuestas al finalizar.';
       this._nextBtnCmp.value = 'Todo listo';
       this._nextBtnCmp.$button.disabled = false;
       this._nextBtnCmp.onClick = () => this._openExportModal();
@@ -219,7 +222,7 @@ export default class RespuestasView extends HTMLElement {
 
     const text = document.createElement('span');
     text.className = 'av-slot-prompt__text';
-    text.textContent = '✅ ¡Sección completa! Pasá a la siguiente →';
+    text.textContent = 'Sección completa. Pasá a la siguiente →';
     prompt.appendChild(text);
 
     const btn = await slice.build('Button', {

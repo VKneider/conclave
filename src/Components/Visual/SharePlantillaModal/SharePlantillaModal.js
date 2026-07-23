@@ -1,6 +1,7 @@
 import QRCode from 'qrcode';
 import { APP_NAME, DATA_VERSION, EXT_PLANTILLA, MIME_OCTET } from '../../Core/AppConfig/AppConfig.js';
 
+
 export default class SharePlantillaModal extends HTMLElement {
   constructor(props) {
     super();
@@ -17,7 +18,7 @@ export default class SharePlantillaModal extends HTMLElement {
   async _buildModal() {
     this.$modal = await slice.build('Modal', {
       sliceId: 'sharePlantillaDialog',
-      title: '📤 Compartir plantilla',
+      title: 'Compartir plantilla',
       dismissable: true,
     });
     this.$modal.classList.add('export-respuestas-modal');
@@ -41,8 +42,9 @@ export default class SharePlantillaModal extends HTMLElement {
     downloadActions.className = 'export-modal__actions';
 
     this.$downloadBtn = await slice.build('Button', {
-      value: '⬇ Descargar archivo',
+      value: 'Descargar archivo',
       variant: 'filled',
+      icon: { name: 'download' },
       onClick: () => { this._close(); this._exportPlantilla(); }
     });
     this.$downloadBtn.classList.add('export-modal__action');
@@ -64,8 +66,9 @@ export default class SharePlantillaModal extends HTMLElement {
     shareActions.className = 'export-modal__actions';
 
     this.$copyBtn = await slice.build('Button', {
-      value: '🔗 Copiar enlace',
+      value: 'Copiar enlace',
       variant: 'outlined',
+      icon: { name: 'link' },
       onClick: () => { this._close(); slice.getComponent('PlantillaService').copyShareLink(); }
     });
     this.$copyBtn.classList.add('export-modal__action');
@@ -73,7 +76,8 @@ export default class SharePlantillaModal extends HTMLElement {
     this.$shareBtn = null;
     if (typeof navigator.share === 'function') {
       this.$shareBtn = await slice.build('Button', {
-        value: '📱 Compartir',
+        value: 'Compartir',
+        icon: { name: 'share-2' },
         variant: 'filled',
         onClick: () => { this._close(); this._nativeShare(); }
       });
@@ -82,15 +86,17 @@ export default class SharePlantillaModal extends HTMLElement {
     }
 
     this.$emailBtn = await slice.build('Button', {
-      value: '✉️ Enviar por correo',
+      value: 'Enviar por correo',
       variant: 'outlined',
+      icon: { name: 'mail' },
       onClick: () => { this._close(); slice.getComponent('PlantillaService').sendShareLinkEmail(); }
     });
     this.$emailBtn.classList.add('export-modal__action');
 
     this.$qrBtn = await slice.build('Button', {
-      value: '📷 Código QR',
+      value: 'Código QR',
       variant: 'outlined',
+      icon: { name: 'qr-code' },
       onClick: () => { this._close(); this._showQR(); }
     });
     this.$qrBtn.classList.add('export-modal__action');
@@ -211,7 +217,8 @@ export default class SharePlantillaModal extends HTMLElement {
     const canLink = p.canShareByLink();
     this.$shareGroup.hidden = !canLink;
     if (canLink && this.$shareBtn) {
-      this.$shareBtn.value = '📱 Compartir';
+      this.$shareBtn.value = 'Compartir';
+      this.$shareBtn.icon = { name: 'share-2' };
       this.$shareBtn.onClick = () => { this._close(); this._nativeShare(); };
     }
     this.$modal.open = true;
@@ -225,7 +232,7 @@ export default class SharePlantillaModal extends HTMLElement {
   async _buildQRModal() {
     this.$qrModal = await slice.build('Modal', {
       sliceId: 'qrDialog',
-      title: '📷 Código QR',
+      title: 'Código QR',
       dismissable: true,
     });
     this.$qrModal.classList.add('qr-modal');
@@ -251,7 +258,7 @@ export default class SharePlantillaModal extends HTMLElement {
     if (!p.canShareByLink()) {
       this.$qrBody.innerHTML = `
         <div class="qr-modal__error">
-          <span class="qr-modal__error-icon">⚠️</span>
+          <span class="qr-modal__error-icon">${slice.getComponent('IconProvider').svg('alert-triangle', 24)}</span>
           <p>El enlace es demasiado largo para generar un código QR.</p>
           <p class="qr-modal__error-hint">Prueba compartiendo por correo o descargando el archivo.</p>
         </div>`;
@@ -270,7 +277,7 @@ export default class SharePlantillaModal extends HTMLElement {
     } catch {
       this.$qrBody.innerHTML = `
         <div class="qr-modal__error">
-          <span class="qr-modal__error-icon">⚠️</span>
+          <span class="qr-modal__error-icon">${slice.getComponent('IconProvider').svg('alert-triangle', 24)}</span>
           <p>El enlace es demasiado largo para generar un código QR.</p>
           <p class="qr-modal__error-hint">Prueba compartiendo por correo o descargando el archivo.</p>
         </div>`;

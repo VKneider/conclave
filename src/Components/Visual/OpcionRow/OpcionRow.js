@@ -57,6 +57,7 @@ export default class OpcionRow extends HTMLElement {
   async init() {
     this._html = slice.getComponent('HtmlService');
     this._plantilla = slice.getComponent('PlantillaService');
+    this._icons = slice.getComponent('IconProvider');
 
     const [nameInput, rolfijoInput, fijoCheckbox] = await Promise.all([
       slice.build('Input', { sliceId: `${this.sliceId}-name`, placeholder: 'Nombre' }),
@@ -96,6 +97,7 @@ export default class OpcionRow extends HTMLElement {
     const fijo = !!o.meta?.fijo;
 
     this.$fijoTag.hidden = !fijo;
+    if (fijo && this._icons) this.$fijoTag.innerHTML = this._icons.svg('lock', 14);
     this.$remove.hidden = fijo;
 
     if (this.$nameInput && this.$nameInput.value !== o.nombre) this.$nameInput.value = o.nombre || '';

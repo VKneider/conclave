@@ -110,11 +110,12 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$importFile.accept = ACCEPT_ALL;
     this._plantilla = slice.getComponent('PlantillaService');
     this._html = slice.getComponent('HtmlService');
+    this._icons = slice.getComponent('IconProvider');
     const settings = slice.getComponent('SettingsService');
 
     const [nombreInput, lideresCheckbox, addCatInput, addOpcInput, viewHeader] = await Promise.all([
       slice.build('Input', { sliceId: 'pbNombre', placeholder: 'Nombre de la Plantilla' }),
-      slice.build('Checkbox', { sliceId: 'pbLideres', label: '👑 Habilitar responsables de tema' }),
+      slice.build('Checkbox', { sliceId: 'pbLideres', label: 'Habilitar responsables de tema' }),
       slice.build('Input', { sliceId: 'pbAddCat', placeholder: 'Nuevo tema… — escribe y presiona Enter' }),
       slice.build('Input', { sliceId: 'pbAddOpc', placeholder: 'Nueva opción… — escribe y presiona Enter' }),
       slice.build('ViewHeader', { sliceId: 'pbViewHeader', title: 'Plantilla', subtitle: 'Una Plantilla es una lista de <b>Temas</b>. Cada Tema elige su <b>modo</b>: <i>Asignación</i> (repartir una lista de personas u opciones entre equipos), <i>Votación</i> (elegir una), <i>Ranking</i> (ordenar) o <i>Texto libre</i> (responder con una idea). Puedes mezclar modos en la misma Plantilla — o empezar desde un ejemplo:' }),
@@ -160,6 +161,12 @@ export default class PlantillaBuilderView extends HTMLElement {
         this.$lideresCheckbox.checked = s.lideresEnabled === true;
       }
     });
+
+    this.$sharePlantillaBtn.innerHTML = `${this._icons.svg('share-2', 14)} Compartir plantilla`;
+    this.$importBtn.innerHTML = `${this._icons.svg('upload', 14)} Importar Plantilla`;
+    this.$catClearAll.innerHTML = `${this._icons.svg('trash-2', 14)} Borrar todo`;
+    this.$opcClearAll.innerHTML = `${this._icons.svg('trash-2', 14)} Borrar todo`;
+    this.querySelector('.pb-presets summary').innerHTML = `${this._icons.svg('sparkles', 14)} Empieza desde una plantilla de ejemplo`;
   }
 
   update() {
@@ -212,12 +219,13 @@ export default class PlantillaBuilderView extends HTMLElement {
   }
 
   _renderCatFilters(_temas) {
-    const modoLabels = { reparto: '🎯 Asignación', votacion: '🗳️ Votación', ranking: '🏆 Ranking', texto_libre: '📝 Texto libre' };
+    const modoLabels = { reparto: 'Asignación', votacion: 'Votación', ranking: 'Ranking', texto_libre: 'Texto libre' };
+    const modoIcons = { reparto: 'target', votacion: 'vote', ranking: 'trophy', texto_libre: 'pen' };
     const filters = ['all', ...Object.keys(modoLabels)];
     if (!filters.includes(this._catFilter)) this._catFilter = 'all';
 
     this.$catFilters.innerHTML = this._html.sanitize(filters.map((f) =>
-      `<button class="pb-filter-btn${f === this._catFilter ? ' active' : ''}" data-filter="${f}" type="button">${f === 'all' ? 'Todas' : modoLabels[f]}</button>`
+      `<button class="pb-filter-btn${f === this._catFilter ? ' active' : ''}" data-filter="${f}" type="button">${f === 'all' ? 'Todas' : `${this._icons.svg(modoIcons[f], 14)} ${modoLabels[f]}`}</button>`
     ).join(''));
 
     Array.from(this.$catFilters.children).forEach((btn) => {
@@ -267,7 +275,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     const esc = (s) => this._html.esc(s);
     this.$presetGrid.innerHTML = this._html.sanitize(PRESETS.map((p) => `
       <button class="pb-preset" type="button" data-preset="${esc(p.id)}">
-        <span class="pb-preset__icon">${esc(p.icon)}</span>
+        <span class="pb-preset__icon">${this._icons.svg(p.icon, 24)}</span>
         <span class="pb-preset__body">
           <span class="pb-preset__name">${esc(p.nombre)}</span>
           <span class="pb-preset__desc">${esc(p.descripcion)}</span>

@@ -213,3 +213,32 @@ This is safe because `pushState` is synchronous — `window.location.pathname` r
 `slice.router.navigate()` is safe to call AFTER `init()` completes (e.g. from a `confirm:request` callback triggered by a modal button click), because by then the AppShell and all its children are fully built and registered. The Router will find the existing instance and reuse it without creating a duplicate.
 
 Introduced in commit `6137519` (feat: mobile TopBar restructure) which added `slice.router.navigate('/mis-respuestas')` inside `_tryImportPlantilla`'s `proceed()` callback. Previously the data was loaded with no navigation, so no race existed. Commit `5492026` attempted to mitigate the rendering half with `renderIfCurrentRoute()` but didn't fix the duplicate registration.
+
+### 36. The bundler does NOT wire ESM imports when both modules land in the same bundle — inline the data instead
+
+The Slice.js CLI's bundler (`slicejs-cli`) places shared dependencies into a `vendorShared` bundle when multiple routes depend on them. When two modules within that **same** bundle have an import relationship (e.g. `icons.js` does `import { Check } from 'lucide'` and both are in `vendorShared`), the bundler:
+
+1. Concatenates each module into its own IIFE
+2. Assigns the results to `SLICE_BUNDLE_DEPENDENCIES["..."]`
+3. **Strips the ES `import` statement entirely** — but does NOT replace bare variable references with the correct dependency lookup
+
+**Result:** the IIFE executes and tries to access the bare name — `ReferenceError: Check is not defined`. The build succeeds because Babel resolves imports during AST analysis; only runtime fails.
+
+Both named imports and `import * as namespace` imports fail identically — the IIFE still has an unbound variable, so `lucide.Check` crashes the same way as bare `Check`.
+
+**Fix: Don't import from the npm package at all — inline the data.**
+
+Since the lucide icon constants are plain arrays of `[tag, attrs]` tuples (not functions or classes), they can be extracted at build time with a one-time Node.js script:
+
+```js
+const l = require('lucide');
+// Extract NODE_MAP for every icon key used in the app
+const icons = JSON.stringify(
+  Object.fromEntries(
+    Object.entries(NODE_MAP).map(([k, v]) => [k, l[v]])
+  )
+);
+// Write icons.json and rewrite icons.js to use inline data
+```
+
+This completely removes the import dependency, so the bundler has nothing to strip. The vendor-shared bundle shrinks (no lucide IIFE), and the runtime error disappears. Applicable whenever the imported symbols are pure data (SVG paths, config objects, etc.). If the imported package provides runtime functions/classes, the only option is to ensure it ends up in a **different bundle** than its consumer (add/remove route-level imports so the analyzer puts them in separate chunks).

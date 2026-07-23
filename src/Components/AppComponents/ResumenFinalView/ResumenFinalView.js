@@ -24,6 +24,7 @@ export default class ResumenFinalView extends HTMLElement {
     this._html = slice.getComponent('HtmlService');
     this._roster = slice.getComponent('PlantillaService');
     this._consenso = slice.getComponent('ConsensoService');
+    this._icons = slice.getComponent('IconProvider');
 
     const viewHeader = await slice.build('ViewHeader', { sliceId: 'rfViewHeader', title: 'Resumen del consenso final', subtitle: 'Todas las decisiones finales \u2014 asignaciones, votos, rankings y textos adoptados \u2014 en un solo vistazo.' });
     if (viewHeader instanceof Node) this.$viewHeaderSlot.appendChild(viewHeader);
@@ -39,14 +40,16 @@ export default class ResumenFinalView extends HTMLElement {
     this.$includeNotesCheckboxSlot.replaceWith(this.$includeNotesCheckbox);
 
     this.$shareBtn = await slice.build('Button', {
-      value: '\uD83D\uDCC4 Compartir decisiones',
+      value: 'Compartir decisiones',
+      icon: { name: 'file-text' },
       variant: 'filled',
       onClick: () => this._openShareModal(),
     });
     this.$shareBtnSlot.replaceWith(this.$shareBtn);
 
     this.$importBtn = await slice.build('Button', {
-      value: `\uD83D\uDCC2 Importar (${EXT_CONSENSO})`,
+      value: `Importar (${EXT_CONSENSO})`,
+      icon: { name: 'folder-open' },
       variant: 'ghost',
       onClick: () => this.$importFile.click(),
     });
@@ -56,12 +59,12 @@ export default class ResumenFinalView extends HTMLElement {
     this.$importFile.addEventListener('change', () => this._handleImportFile());
 
     this.$exportDropDown = await slice.build('DropDown', {
-      label: `\uD83D\uDCBE Exportar / Backup`,
+      label: 'Exportar / Backup',
       options: [
-        { text: '\uD83D\uDCC4 Descargar HTML', callback: () => this._consenso.exportHtml({ includeNotes: this._includeNotes, notesByTema: this._notesByTema }) },
-        { text: '\uD83D\uDDA8 Imprimir', callback: () => this._consenso.exportPrint({ includeNotes: this._includeNotes, notesByTema: this._notesByTema }) },
-        { text: '\u2B07 Exportar backup completo', callback: () => slice.getComponent('ExportService').downloadBackup() },
-        { text: '\uD83D\uDCC2 Importar backup', callback: () => this.$backupImportFile.click() }
+        { text: 'Descargar HTML', callback: () => this._consenso.exportHtml({ includeNotes: this._includeNotes, notesByTema: this._notesByTema }) },
+        { text: 'Imprimir', callback: () => this._consenso.exportPrint({ includeNotes: this._includeNotes, notesByTema: this._notesByTema }) },
+        { text: 'Exportar backup completo', callback: () => slice.getComponent('ExportService').downloadBackup() },
+        { text: 'Importar backup', callback: () => this.$backupImportFile.click() }
       ]
     });
     this.$exportDropDownSlot.replaceWith(this.$exportDropDown);
@@ -125,7 +128,7 @@ export default class ResumenFinalView extends HTMLElement {
     const temas = this._noteTemas();
     if (!temas.some((t) => String(t.id) === String(this._activeTemaId))) this._activeTemaId = temas[0].id;
     await this._notesModal.show({
-      title: '\uD83D\uDCDD Notas del resumen',
+      title: 'Notas del resumen',
       temas,
       notesByTema: this._notesByTema,
       currentTemaId: this._activeTemaId,

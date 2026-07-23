@@ -1,5 +1,6 @@
 import { APP_NAME, DATA_VERSION, EXT_CONSENSO, MIME_OCTET } from '../../Core/AppConfig/AppConfig.js';
 
+
 export default class ShareConsensoModal extends HTMLElement {
   constructor(props) {
     super();
@@ -16,7 +17,7 @@ export default class ShareConsensoModal extends HTMLElement {
   async _buildModal() {
     this.$modal = await slice.build('Modal', {
       sliceId: 'shareConsensoDialog',
-      title: '\uD83D\uDCC4 Compartir resumen final',
+      title: 'Compartir resumen final',
       dismissable: true,
     });
     this.$modal.classList.add('export-respuestas-modal');
@@ -40,7 +41,8 @@ export default class ShareConsensoModal extends HTMLElement {
     downloadActions.className = 'export-modal__actions';
 
     this.$downloadBtn = await slice.build('Button', {
-      value: `⬇ Descargar archivo (${EXT_CONSENSO})`,
+      value: `Descargar archivo (${EXT_CONSENSO})`,
+      icon: { name: 'download' },
       variant: 'filled',
       onClick: () => { this._close(); this._downloadFile(); }
     });
@@ -63,7 +65,8 @@ export default class ShareConsensoModal extends HTMLElement {
     shareActions.className = 'export-modal__actions';
 
     this.$copyBtn = await slice.build('Button', {
-      value: '\uD83D\uDD17 Copiar enlace',
+      value: 'Copiar enlace',
+      icon: { name: 'link' },
       variant: 'outlined',
       onClick: () => { this._close(); slice.getComponent('ConsensoService').copyShareLink(); }
     });
@@ -72,7 +75,8 @@ export default class ShareConsensoModal extends HTMLElement {
     this.$shareBtn = null;
     if (typeof navigator.share === 'function') {
       this.$shareBtn = await slice.build('Button', {
-        value: '\uD83D\uDCF1 Compartir',
+        value: 'Compartir',
+        icon: { name: 'share-2' },
         variant: 'filled',
         onClick: () => { this._close(); this._nativeShare(); }
       });
@@ -162,7 +166,8 @@ export default class ShareConsensoModal extends HTMLElement {
     const canLink = cs.canShareByLink();
     this.$shareGroup.hidden = !canLink;
     if (canLink && this.$shareBtn) {
-      this.$shareBtn.value = '\uD83D\uDCF1 Compartir';
+      this.$shareBtn.value = 'Compartir';
+      this.$shareBtn.icon = { name: 'share-2' };
       this.$shareBtn.onClick = () => { this._close(); this._nativeShare(); };
     }
     this.$modal.open = true;

@@ -83,10 +83,9 @@ slice-toast .slice-toast__icon[data-type="default"] {
   display: none;
 }
 
-slice-toast .slice-toast__icon[data-type="success"]::before { content: "✓"; }
-slice-toast .slice-toast__icon[data-type="error"]::before   { content: "✕"; }
-slice-toast .slice-toast__icon[data-type="warning"]::before { content: "⚠"; }
-slice-toast .slice-toast__icon[data-type="info"]::before    { content: "ℹ"; }
+slice-toast .slice-toast__icon svg {
+  display: block;
+}
 
 slice-toast .slice-toast__message {
   flex: 1;

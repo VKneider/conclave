@@ -1,3 +1,5 @@
+
+
 export default class CompareCarousel extends HTMLElement {
   constructor(props) {
     super();
@@ -187,7 +189,7 @@ export default class CompareCarousel extends HTMLElement {
     const stTxt = { agree: 'Coincide', disagree: 'Difiere', partial: 'Faltan votos', none: 'Sin asignar' }[status];
 
     html += `<div class="cc-body">
-      <button class="cc-arrow" data-ccact="prev" ${this._index === 0 ? 'disabled' : ''}>‹</button>
+      <button class="cc-arrow" data-ccact="prev" ${this._index === 0 ? 'disabled' : ''}>${slice.getComponent('IconProvider').svg('chevron-left', 20)}</button>
       <div class="cc-card">
         <div class="cc-card-top">
           <div>
@@ -227,7 +229,7 @@ export default class CompareCarousel extends HTMLElement {
           ${needsReview && suggestion ? `<span class="cc-suggestion-hint">↳ ${this._html.esc(this._svcName(suggestion))}</span>` : ''}
         </div>
       </div>
-      <button class="cc-arrow" data-ccact="next" ${this._index === opciones.length - 1 ? 'disabled' : ''}>›</button>
+      <button class="cc-arrow" data-ccact="next" ${this._index === opciones.length - 1 ? 'disabled' : ''}>${slice.getComponent('IconProvider').svg('chevron-right', 20)}</button>
     </div>`;
 
     // Dots

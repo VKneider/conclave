@@ -1,5 +1,6 @@
 import { ACCEPT_ALL, APP_NAME, APP_VERSION } from '../../Core/AppConfig/AppConfig.js';
 
+
 // Compact "yo" hub in the topbar — identity (tu nombre), theme, and every
 // "mis Respuestas" action (exportar/importar/reiniciar). Replaces both the
 // old standalone SettingsView route and AppShell's footer: none of this is
@@ -61,7 +62,8 @@ export default class UserMenu extends HTMLElement {
     if (themeSwitcher instanceof Node) { this.$themeSlot.appendChild(themeSwitcher); this._children.push(themeSwitcher); }
 
     this.$shareBtn = await slice.build('Button', {
-      value: '\uD83D\uDCE4 Compartir respuestas',
+      value: 'Compartir respuestas',
+      icon: { name: 'share-2' },
       variant: 'ghost',
       onClick: () => {
         const modal = slice.getComponent('exportRespuestasModal');
@@ -72,21 +74,24 @@ export default class UserMenu extends HTMLElement {
     if (this.$shareBtn instanceof Node) { this._children.push(this.$shareBtn); }
 
     this.$importBtn = await slice.build('Button', {
-      value: '\uD83D\uDCC2 Importar mis Respuestas',
+      value: 'Importar mis Respuestas',
+      icon: { name: 'folder-open' },
       variant: 'ghost',
       onClick: () => this.$importFile.click()
     });
     if (this.$importBtn instanceof Node) { this._children.push(this.$importBtn); }
 
     this.$resetBtn = await slice.build('Button', {
-      value: '\uD83D\uDDD1 Reiniciar mis Respuestas',
+      value: 'Reiniciar mis Respuestas',
+      icon: { name: 'trash-2' },
       variant: 'ghost',
       onClick: () => this._confirmReset()
     });
     if (this.$resetBtn instanceof Node) { this._children.push(this.$resetBtn); }
 
     this.$backupExportBtn = await slice.build('Button', {
-      value: '\uD83D\uDCBE Backup completo',
+      value: 'Backup completo',
+      icon: { name: 'hard-drive' },
       variant: 'ghost',
       onClick: () => {
         slice.getComponent('ExportService').downloadBackup();
@@ -123,7 +128,7 @@ export default class UserMenu extends HTMLElement {
 
   _syncAutor(autor) {
     if (document.activeElement !== this.$autorField?.querySelector('input')) this.$autorField.value = autor || '';
-    this.$avatar.textContent = autor?.trim() ? autor.trim()[0].toUpperCase() : '👤';
+    this.$avatar.innerHTML = autor?.trim() ? autor.trim()[0].toUpperCase() : slice.getComponent('IconProvider').svg('user', 20);
     this.$trigger.title = autor?.trim() ? autor.trim() : 'Tu cuenta';
   }
 

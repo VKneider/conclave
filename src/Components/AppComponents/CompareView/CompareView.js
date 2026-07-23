@@ -31,6 +31,7 @@ export default class CompareView extends HTMLElement {
     this._roster = slice.getComponent('PlantillaService');
     this._imports = slice.getComponent('RespuestasImportService');
     this._html = slice.getComponent('HtmlService');
+    this._icons = slice.getComponent('IconProvider');
     this.sources = this._imports.getSources();
 
     const viewHeader = await slice.build('ViewHeader', { sliceId: 'cmpViewHeader', title: 'Comparar respuestas', subtitle: 'Importa los archivos de respuestas de cada persona y decidan juntos — asignaciones, votaciones e ideas. Se incluye automáticamente tu trabajo actual.' });
@@ -66,7 +67,7 @@ export default class CompareView extends HTMLElement {
     this._kindTabsCmp = await slice.build('Tabs', {
       sliceId: 'cmpKindTabs',
       variant: 'primary',
-      items: [{ id: 'seleccion', label: '🎯 Asignación' }, { id: 'votacion', label: '🗳️ Votación' }, { id: 'ranking', label: '🏆 Ranking' }, { id: 'texto', label: '📝 Texto libre' }],
+      items: [{ id: 'seleccion', label: 'Asignación' }, { id: 'votacion', label: 'Votación' }, { id: 'ranking', label: 'Ranking' }, { id: 'texto', label: 'Texto libre' }],
       activeTab: this.cmpKind,
       onChange: (id) => { this.cmpKind = id; this._render(); },
     });
@@ -75,7 +76,7 @@ export default class CompareView extends HTMLElement {
     this._modeTabsCmp = await slice.build('Tabs', {
       sliceId: 'cmpModeTabs',
       variant: 'secondary',
-      items: [{ id: 'table', label: '📋 Tabla' }, { id: 'carousel', label: '🔄 Carrusel' }],
+      items: [{ id: 'table', label: 'Tabla' }, { id: 'carousel', label: 'Carrusel' }],
       activeTab: this.cmpMode,
       onChange: (id) => { this.cmpMode = id; this._render(); },
     });
@@ -83,7 +84,8 @@ export default class CompareView extends HTMLElement {
 
     this._fsBtn = await slice.build('Button', {
       sliceId: 'cmpFsBtn',
-      value: '⛶ Enfocar',
+      value: 'Enfocar',
+      icon: { name: 'maximize-2' },
       variant: 'filled',
       onClick: () => {
         this._fullscreen = !this._fullscreen;
@@ -93,7 +95,8 @@ export default class CompareView extends HTMLElement {
           if (this._fullscreen) topbar.hide();
           else topbar.show();
         }
-        this._fsBtn.value = this._fullscreen ? '✕ Salir' : '⛶ Enfocar';
+        this._fsBtn.value = this._fullscreen ? 'Salir' : 'Enfocar';
+        this._fsBtn.icon = this._fullscreen ? { name: 'x' } : { name: 'maximize-2' };
       },
     });
     this.$root.querySelector('.cmp-fs-slot').appendChild(this._fsBtn);
@@ -103,7 +106,8 @@ export default class CompareView extends HTMLElement {
         this.$root.classList.remove('cmp-fullscreen');
         const topbar = slice.getComponent('appTopbar');
         if (topbar) topbar.show();
-        this._fsBtn.value = '⛶ Enfocar';
+        this._fsBtn.value = 'Enfocar';
+        this._fsBtn.icon = { name: 'maximize-2' };
       }
     };
     document.addEventListener('keydown', this._boundEsc);
@@ -142,7 +146,7 @@ export default class CompareView extends HTMLElement {
 
     this._anonSwitch = await slice.build('Switch', {
       sliceId: 'cmpAnon',
-      label: '👤 Identificado',
+      label: 'Identificado',
       checked: false,
       labelPlacement: 'left',
       onChange: (checked) => {
@@ -304,19 +308,19 @@ export default class CompareView extends HTMLElement {
     const q = this.cmpQuery?.toLowerCase().trim();
     if (kind === 'votacion') {
       const temas = this._roster.getTemasVotacion().filter((t) => !q || t.nombre.toLowerCase().includes(q));
-      return { kind, temas, modalTitle: '📝 Notas de votación' };
+      return { kind, temas, modalTitle: 'Notas de votación' };
     }
     if (kind === 'ranking') {
       const temas = this._roster.getTemasRanking().filter((t) => !q || t.nombre.toLowerCase().includes(q));
-      return { kind, temas, modalTitle: '📝 Notas de ranking' };
+      return { kind, temas, modalTitle: 'Notas de ranking' };
     }
     if (kind === 'texto') {
       const temas = this._roster.getTemasTexto().filter((t) => !q || t.nombre.toLowerCase().includes(q));
-      return { kind, temas, modalTitle: '📝 Notas de texto libre' };
+      return { kind, temas, modalTitle: 'Notas de texto libre' };
     }
     const all = this._roster.getTemasParticipables();
     const temas = this.cmpService ? all.filter((t) => String(t.id) === String(this.cmpService)) : all;
-    return { kind, temas, modalTitle: '📝 Notas de asignación' };
+    return { kind, temas, modalTitle: 'Notas de asignación' };
   }
 
   _buildRows(all) {
@@ -418,7 +422,7 @@ export default class CompareView extends HTMLElement {
         : '<div class="cmp-vt-final cmp-vt-final--none">Sin votos todavía</div>';
 
       return `<div class="cmp-vt-card">
-        <h3 class="cmp-vt-title">🗳️ ${esc(tema.nombre)} <span class="cmp-vt-total">${totalVotes} voto${totalVotes !== 1 ? 's' : ''}</span></h3>
+        <h3 class="cmp-vt-title">${this._icons.svg('vote', 16)} ${esc(tema.nombre)} <span class="cmp-vt-total">${totalVotes} voto${totalVotes !== 1 ? 's' : ''}</span></h3>
         <div class="cmp-vt-opciones">${opcHtml}</div>
         ${banner}
       </div>`;
@@ -490,7 +494,7 @@ export default class CompareView extends HTMLElement {
           : '<div class="cmp-rk-final cmp-rk-final--none">Nadie ordenó todavía</div>';
 
       return `<div class="cmp-rk-card">
-        <h3 class="cmp-rk-title">🏆 ${esc(tema.nombre)} <span class="cmp-rk-total">${nSources} orden${nSources !== 1 ? 'es' : ''}</span></h3>
+        <h3 class="cmp-rk-title">${this._icons.svg('trophy', 16)} ${esc(tema.nombre)} <span class="cmp-rk-total">${nSources} orden${nSources !== 1 ? 'es' : ''}</span></h3>
         <div class="cmp-rk-items">${itemsHtml}</div>
         ${banner}
       </div>`;
@@ -501,10 +505,10 @@ export default class CompareView extends HTMLElement {
 
   async _render() {
     const KINDS = [
-      { id: 'seleccion', label: '🎯 Asignación', ok: this._roster.getTemasParticipables().length > 0 },
-      { id: 'votacion', label: '🗳️ Votación', ok: this._roster.getTemasVotacion().length > 0 },
-      { id: 'ranking', label: '🏆 Ranking', ok: this._roster.getTemasRanking().length > 0 },
-      { id: 'texto', label: '📝 Texto libre', ok: this._roster.getTemasTexto().length > 0 },
+      { id: 'seleccion', label: 'Asignación', ok: this._roster.getTemasParticipables().length > 0 },
+      { id: 'votacion', label: 'Votación', ok: this._roster.getTemasVotacion().length > 0 },
+      { id: 'ranking', label: 'Ranking', ok: this._roster.getTemasRanking().length > 0 },
+      { id: 'texto', label: 'Texto libre', ok: this._roster.getTemasTexto().length > 0 },
     ];
     const available = KINDS.filter((k) => k.ok);
     if (!available.some((k) => k.id === this.cmpKind)) this.cmpKind = available.length ? available[0].id : 'seleccion';
@@ -631,7 +635,7 @@ export default class CompareView extends HTMLElement {
     });
     if (this._anonSwitch) {
       this._anonSwitch.checked = this._anonMode;
-      this._anonSwitch.label = this._anonMode ? '🔒 Anónimo' : '👤 Identificado';
+      this._anonSwitch.label = this._anonMode ? 'Anónimo' : 'Identificado';
     }
   }
 
@@ -679,9 +683,9 @@ export default class CompareView extends HTMLElement {
           <span class="res-progress-label">${resolvedConflicts}/${conflictCount} conflictos resueltos</span>
         </div>
         <span class="spacer" style="flex:1"></span>
-        <button class="btn btn-sm" id="btnFillSug">✓ Autocompletar con sugerencia</button>
+        <button class="btn btn-sm" id="btnFillSug">Autocompletar con sugerencia</button>
         <button class="btn btn-sm" id="btnClearRes">Vaciar decisiones</button>
-        <button class="btn btn-sm btn-primary" id="btnExportFinal">⬇ Exportar lista final</button>
+        <button class="btn btn-sm btn-primary" id="btnExportFinal">Exportar lista final</button>
       </div>
       <div class="cmp-filters">
         <button class="btn btn-sm ${this.cmpFilter === 'all' ? 'btn-primary' : ''}" data-f="all">Todos (${rows.length})</button>
@@ -695,8 +699,8 @@ export default class CompareView extends HTMLElement {
           </select>
         </label>
         <span class="spacer" style="flex:1"></span>
-        <button class="btn btn-sm" id="btnTemaView">◉ Vista por tema</button>
-        <button class="btn btn-sm" id="btnExportCmp">⬇ Exportar comparación como hoja de cálculo</button>
+        <button class="btn btn-sm" id="btnTemaView">Vista por tema</button>
+        <button class="btn btn-sm" id="btnExportCmp">Exportar comparación como hoja de cálculo</button>
       </div>`;
 
     let shown = rows;
@@ -770,7 +774,7 @@ export default class CompareView extends HTMLElement {
           </select>
         </label>
         <span class="spacer" style="flex:1"></span>
-        <button class="btn btn-sm btn-primary" id="btnOpcionView">☰ Vista por opción</button>
+        <button class="btn btn-sm btn-primary" id="btnOpcionView">Vista por opción</button>
       </div>`;
 
     let shown = temaRows;
@@ -840,7 +844,7 @@ export default class CompareView extends HTMLElement {
   _buildUrlImport() {
     const details = document.createElement('details');
     details.className = 'cmp-url-import';
-    details.innerHTML = `<summary>🔗 Importar desde enlaces compartidos</summary>
+    details.innerHTML = `<summary>${this._icons.svg('link', 14)} Importar desde enlaces compartidos</summary>
       <p class="view-sub" style="margin:8px 0 10px">Pegá los enlaces de respuestas que te compartieron (uno por línea).</p>
       <textarea class="cmp-url-import__input" placeholder="https://ejemplo.com/#respuestas=…"></textarea>
       <button class="btn btn-primary cmp-url-import__btn" type="button">Importar</button>

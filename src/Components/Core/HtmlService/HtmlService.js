@@ -20,6 +20,9 @@ export default class HtmlService {
   }
 
   sanitize(html) {
-    return domPurify.sanitize(html == null ? '' : String(html));
+    return domPurify.sanitize(html == null ? '' : String(html), {
+      ADD_TAGS: ['svg', 'path', 'circle', 'line', 'polyline', 'polygon', 'rect', 'g', 'defs', 'use'],
+      ADD_ATTR: ['d', 'cx', 'cy', 'r', 'x', 'y', 'width', 'height', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'xmlns'],
+    });
   }
 }

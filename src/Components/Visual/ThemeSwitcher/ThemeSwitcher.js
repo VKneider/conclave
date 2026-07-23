@@ -1,9 +1,11 @@
 // Display icon/label per known theme name — falls back to a generic swatch
 // icon and the raw theme name for anything not in this map, so a custom
 // theme never renders blank.
+
+
 const THEME_DISPLAY = {
-   light: { icon: '☀️', label: 'Claro' },
-   dark: { icon: '🌙', label: 'Oscuro' },
+   light: { icon: 'sun', label: 'Claro' },
+   dark: { icon: 'moon', label: 'Oscuro' },
 };
 
 export default class ThemeSwitcher extends HTMLElement {
@@ -63,7 +65,7 @@ export default class ThemeSwitcher extends HTMLElement {
    _sync(name) {
       const current = name || this._currentTheme();
       const display = THEME_DISPLAY[String(current).toLowerCase()];
-      if (this.$icon) this.$icon.textContent = display?.icon || '🎨';
+      if (this.$icon) this.$icon.innerHTML = slice.getComponent('IconProvider').svg(display?.icon || 'palette', 16);
       if (this.$value) this.$value.textContent = display?.label || current;
    }
 
