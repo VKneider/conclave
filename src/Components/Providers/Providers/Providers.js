@@ -92,6 +92,7 @@ export default class Providers {
     await slice.build('HtmlService', { singleton: true });
     await slice.build('DomService', { singleton: true });
     await slice.build('CompressionService', { singleton: true });
+    await slice.build('SoundService', { singleton: true });
 
     // PlantillaService must finish loading before any view reads
     // tema/opción data — it reads from localStorage (the `plantilla`
@@ -112,7 +113,23 @@ export default class Providers {
     toasts.setPosition('bottom-right');
     slice.events.subscribe('toast:show', (payload = {message: '', type: 'info'}) => {
       toasts.show(payload.message, { type: payload.type, duration: TOAST_DURATION });
+      const sound = slice.getComponent('SoundService');
+      if (payload.type === 'success') sound.play('toast.success');
+      else if (payload.type === 'error') sound.play('toast.error');
+      else if (payload.type === 'warning') sound.play('toast.warning');
+      else if (payload.type === 'info') sound.play('toast.info');
     });
+
+    // Unlock AudioContext + attach declarative data-sfx bridge on first gesture.
+    const sound = slice.getComponent('SoundService');
+    sound.attachSFX();
+    const firstGesture = async () => {
+      await sound.unlock();
+      document.removeEventListener('pointerdown', firstGesture);
+      document.removeEventListener('keydown', firstGesture);
+    };
+    document.addEventListener('pointerdown', firstGesture);
+    document.addEventListener('keydown', firstGesture);
 
     // App-wide visual modals built once here and reused via slice.getComponent.
     this.$confirmModal = await slice.build('ConfirmActionModal', { sliceId: 'confirmActionModal' });

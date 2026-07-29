@@ -24,6 +24,7 @@ const components = {
   "HtmlService": "Core",
   "IndexedDbManager": "Core",
   "LocalStorageManager": "Core",
+  "SoundService": "Core",
   "StoreService": "Core",
   "ConsensoService": "Domain",
   "ExportService": "Domain",

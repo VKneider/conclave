@@ -278,6 +278,7 @@ export default class PorTemaView extends HTMLElement {
 
   _handleDrop(destTemaId, opcionId, asLider) {
     if (!opcionId) return;
+    const sound = slice.getComponent('SoundService');
     const assignment = slice.getComponent('RespuestasService');
     const settings = slice.getComponent('SettingsService');
     if (destTemaId) {
@@ -291,7 +292,12 @@ export default class PorTemaView extends HTMLElement {
     } else {
       assignment.unassignOpcion(opcionId);
     }
+    sound.play('ui.tap');
     this._render();
+    const roster = this._roster;
+    const asignaciones = assignment.getState().seleccion;
+    const unassigned = roster.getOpcionesDisponibles().filter((m) => !asignaciones[m.id]).length;
+    if (unassigned === 0) sound.play('ui.celebrate');
   }
 }
 
