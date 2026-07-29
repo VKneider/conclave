@@ -36,6 +36,14 @@ pnpm install
 pnpm run dev              # servidor de desarrollo (puerto 3001 por defecto)
 ```
 
+> **Importante:** Este branch requiere el CLI en la rama [`fix/vendor-shared-module-imports`](https://github.com/VKneider/slicejs-cli/tree/fix/vendor-shared-module-imports) de `slicejs-cli`. El `icons.js` usa imports individuales de `lucide`, y el CLI necesita el fix de propagación de `moduleImports` en el pipeline vendor-shared para no producir `ReferenceError: lucide is not defined`. Antes de hacer `pnpm run dev` o `pnpm run build`, asegurate de que el CLI instalado tenga ese fix:
+>
+> ```bash
+> cd node_modules/slicejs-cli
+> git fetch origin fix/vendor-shared-module-imports
+> git checkout fix/vendor-shared-module-imports
+> ```
+
 Otros comandos útiles:
 
 ```bash
