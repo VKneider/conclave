@@ -249,7 +249,7 @@ export default class ExportRespuestasModal extends HTMLElement {
     } catch {
       this.$qrBody.innerHTML = `
         <div class="qr-modal__error">
-          <span class="qr-modal__error-icon">${slice.getComponent('IconProvider').svg('alert-triangle', 24)}</span>
+          <span class="qr-modal__error-icon">${slice.getComponent('IconProvider').svg('alert-triangle', 24, 'var(--warning-color)')}</span>
           <p>El enlace es demasiado largo para generar un código QR.</p>
           <p class="qr-modal__error-hint">Prueba compartiendo por correo o descargando el archivo.</p>
         </div>`;

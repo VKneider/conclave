@@ -38,7 +38,7 @@ export default class RespuestasVotacionView extends HTMLElement {
 
   _render() {
     const esc = (s) => this._html.esc(s);
-    const ic = (n, s) => this._icons.svg(n, s);
+    const ic = (n, s, c) => this._icons.svg(n, s, c);
     const temas = this._plantilla.getTemasVotacion();
 
     if (!temas.length) {
@@ -63,7 +63,7 @@ export default class RespuestasVotacionView extends HTMLElement {
         : '<div class="vv-noopc">Este tema todavía no tiene opciones — cargalas en Plantilla.</div>';
       return `<div class="vv-card${answered ? ' vv-card--answered' : ''}">
         <div class="vv-card__head">
-          <h3 class="vv-card__title">${ic('vote', 16)} ${esc(t.nombre)}</h3>
+          <h3 class="vv-card__title">${ic('vote', 16, 'var(--secondary-color)')} ${esc(t.nombre)}</h3>
           <span class="vv-card__status">${answered ? '✓ Elegida' : 'Elige una'}</span>
         </div>
         <div class="vv-opciones">${opcHtml}</div>

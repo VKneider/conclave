@@ -57,7 +57,7 @@ export default class PorTemaView extends HTMLElement {
 
   async _buildShell() {
     const roster = this._roster;
-    const ic = (n, s) => this._icons.svg(n, s);
+    const ic = (n, s, c) => this._icons.svg(n, s, c);
     const temas = roster.getTemasParticipables();
 
     let html = `
@@ -79,7 +79,7 @@ export default class PorTemaView extends HTMLElement {
       html += `
         <div class="ps-square dropzone" data-drop="${t.id}" style="--svc:${col}">
           <div class="lider-drop" data-lider="${t.id}">
-            <span class="lider-drop__icon">${ic('crown', 14)}</span>
+            <span class="lider-drop__icon">${ic('crown', 14, 'var(--warning-color)')}</span>
             <span class="lider-drop__name" data-lider-name="${t.id}"></span>
           </div>
           <div class="ps-sq-head">
@@ -225,7 +225,7 @@ export default class PorTemaView extends HTMLElement {
     });
     const noMatches = unassigned.length > 0 && visibleUnassigned.length === 0;
     this._unassignedEls.empty.hidden = !(unassigned.length === 0 || noMatches);
-    this._unassignedEls.empty.innerHTML = unassigned.length === 0 ? `¡Todos asignados! ${this._icons.svg('party-popper', 16)}` : 'No hay coincidencias.';
+    this._unassignedEls.empty.innerHTML = unassigned.length === 0 ? `¡Todos asignados! ${this._icons.svg('party-popper', 16, 'var(--secondary-color)')}` : 'No hay coincidencias.';
     slice.setComponentProps(this._unassignedBadge, { status: 'empty', label: String(unassigned.length) });
 
     temas.forEach((t) => {

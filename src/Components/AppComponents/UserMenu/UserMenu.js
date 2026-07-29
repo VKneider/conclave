@@ -63,7 +63,7 @@ export default class UserMenu extends HTMLElement {
 
     this.$shareBtn = await slice.build('Button', {
       value: 'Compartir respuestas',
-      icon: { name: 'share-2' },
+      icon: { name: 'share-2', color: 'var(--primary-color)' },
       variant: 'ghost',
       onClick: () => {
         const modal = slice.getComponent('exportRespuestasModal');
@@ -75,7 +75,7 @@ export default class UserMenu extends HTMLElement {
 
     this.$importBtn = await slice.build('Button', {
       value: 'Importar mis Respuestas',
-      icon: { name: 'folder-open' },
+      icon: { name: 'folder-open', color: 'var(--secondary-color)' },
       variant: 'ghost',
       onClick: () => this.$importFile.click()
     });
@@ -83,7 +83,7 @@ export default class UserMenu extends HTMLElement {
 
     this.$resetBtn = await slice.build('Button', {
       value: 'Reiniciar mis Respuestas',
-      icon: { name: 'trash-2' },
+      icon: { name: 'trash-2', color: 'var(--danger-color)' },
       variant: 'ghost',
       onClick: () => this._confirmReset()
     });
@@ -91,7 +91,7 @@ export default class UserMenu extends HTMLElement {
 
     this.$backupExportBtn = await slice.build('Button', {
       value: 'Backup completo',
-      icon: { name: 'hard-drive' },
+      icon: { name: 'hard-drive', color: 'var(--font-secondary-color)' },
       variant: 'ghost',
       onClick: () => {
         slice.getComponent('ExportService').downloadBackup();

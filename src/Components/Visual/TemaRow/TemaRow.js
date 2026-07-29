@@ -137,7 +137,7 @@ export default class TemaRow extends HTMLElement {
     const hasExtra = isReparto || ownsOpciones;
 
     if (this.$order) this.$order.textContent = c.orden || '';
-    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(isReparto ? 'target' : isVotacion ? 'vote' : isRanking ? 'trophy' : 'file-text', 14);
+    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(isReparto ? 'target' : isVotacion ? 'vote' : isRanking ? 'trophy' : 'file-text', 14, isReparto ? 'var(--primary-color)' : isVotacion ? 'var(--secondary-color)' : isRanking ? 'var(--warning-color)' : 'var(--success-color)');
     this.$icon.title = isReparto ? 'Asignación' : isVotacion ? 'Votación' : isRanking ? 'Ranking' : 'Texto libre';
     this.$hint.textContent = isReparto
       ? 'Ej: un equipo, una charla — las Opciones se ubican acá.'

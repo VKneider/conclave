@@ -48,7 +48,7 @@ export default class RespuestasRankingView extends HTMLElement {
 
   _render() {
     const esc = (s) => this._html.esc(s);
-    const ic = (n, s) => this._icons.svg(n, s);
+    const ic = (n, s, c) => this._icons.svg(n, s, c);
     const temas = this._plantilla.getTemasRanking();
 
     if (!temas.length) {
@@ -79,7 +79,7 @@ export default class RespuestasRankingView extends HTMLElement {
 
       return `<div class="rk-card${answered ? ' rk-card--answered' : ''}">
         <div class="rk-card__head">
-          <h3 class="rk-card__title">${ic('trophy', 16)} ${esc(t.nombre)}</h3>
+          <h3 class="rk-card__title">${ic('trophy', 16, 'var(--warning-color)')} ${esc(t.nombre)}</h3>
           <span class="rk-card__status">${answered ? '✓ Ordenada' : 'Ordena con ▲▼'}</span>
         </div>
         <div class="rk-items">${items}</div>

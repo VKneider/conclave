@@ -23,16 +23,16 @@ export default class LandingView extends HTMLElement {
     const roster = this._roster;
     const nombre = roster.getNombre();
     const esc = (s) => this._html.esc(s);
-    const ic = (name, size) => this._icons.svg(name, size);
+    const ic = (name, size, c) => this._icons.svg(name, size, c);
 
     const temas = roster.getTemas();
     const byModo = { reparto: 0, votacion: 0, ranking: 0, texto_libre: 0 };
     temas.forEach((t) => { if (byModo[t.modo] != null) byModo[t.modo]++; });
     const compBadges = [
-      byModo.reparto ? `<span class="lp-badge">${ic('target', 14)} ${byModo.reparto} asignación</span>` : '',
-      byModo.votacion ? `<span class="lp-badge">${ic('vote', 14)} ${byModo.votacion} votación</span>` : '',
-      byModo.ranking ? `<span class="lp-badge">${ic('trophy', 14)} ${byModo.ranking} ranking</span>` : '',
-      byModo.texto_libre ? `<span class="lp-badge">${ic('pen', 14)} ${byModo.texto_libre} texto libre</span>` : '',
+      byModo.reparto ? `<span class="lp-badge">${ic('target', 14, 'var(--primary-color)')} ${byModo.reparto} asignación</span>` : '',
+      byModo.votacion ? `<span class="lp-badge">${ic('vote', 14, 'var(--secondary-color)')} ${byModo.votacion} votación</span>` : '',
+      byModo.ranking ? `<span class="lp-badge">${ic('trophy', 14, 'var(--warning-color)')} ${byModo.ranking} ranking</span>` : '',
+      byModo.texto_libre ? `<span class="lp-badge">${ic('pen', 14, 'var(--success-color)')} ${byModo.texto_libre} texto libre</span>` : '',
     ].filter(Boolean).join('');
 
     this.$root.innerHTML = this._html.sanitize(`
@@ -54,19 +54,19 @@ export default class LandingView extends HTMLElement {
 
       <div class="landing-actions">
         <button class="la-card" data-href="/mis-respuestas">
-          <span class="la-icon">${ic('pen', 20)}</span><span class="la-label">Responder</span>
+          <span class="la-icon">${ic('pen', 20, 'var(--success-color)')}</span><span class="la-label">Responder</span>
           <span class="la-sub">Tu propuesta</span>
         </button>
         <button class="la-card" data-href="/comparar">
-          <span class="la-icon">${ic('shuffle', 20)}</span><span class="la-label">Comparar</span>
+          <span class="la-icon">${ic('shuffle', 20, 'var(--secondary-color)')}</span><span class="la-label">Comparar</span>
           <span class="la-sub">Y decidir juntos</span>
         </button>
         <button class="la-card" data-href="/dashboard">
-          <span class="la-icon">${ic('bar-chart', 20)}</span><span class="la-label">Dashboard</span>
+          <span class="la-icon">${ic('bar-chart', 20, 'var(--primary-color)')}</span><span class="la-label">Dashboard</span>
           <span class="la-sub">Resumen</span>
         </button>
         <button class="la-card" data-href="/plantilla">
-          <span class="la-icon">${ic('ruler', 20)}</span><span class="la-label">Plantilla</span>
+          <span class="la-icon">${ic('ruler', 20, 'var(--warning-color)')}</span><span class="la-label">Plantilla</span>
           <span class="la-sub">Arma el setup</span>
         </button>
       </div>
@@ -98,22 +98,22 @@ export default class LandingView extends HTMLElement {
         <h2 class="landing-section-title">Un modo para cada decisión</h2>
         <div class="usecases-grid">
           <button class="usecase-card usecase-card--primary" data-href="/plantilla">
-            <span class="usecase-icon">${ic('target', 24)}</span>
+            <span class="usecase-icon">${ic('target', 24, 'var(--primary-color)')}</span>
             <h3>Asignación</h3>
             <p>Reparte un grupo de personas entre equipos con cupos mín/máx. Comparen las listas y decidan la versión final.</p>
           </button>
           <button class="usecase-card usecase-card--secondary" data-href="/plantilla">
-            <span class="usecase-icon">${ic('vote', 24)}</span>
+            <span class="usecase-icon">${ic('vote', 24, 'var(--secondary-color)')}</span>
             <h3>Votación</h3>
             <p>Una pregunta con varias opciones; cada quien elige una y gana la mayoría. Ideal para "¿qué fecha?" o un Sí/No.</p>
           </button>
           <button class="usecase-card usecase-card--warning" data-href="/plantilla">
-            <span class="usecase-icon">${ic('trophy', 24)}</span>
+            <span class="usecase-icon">${ic('trophy', 24, 'var(--warning-color)')}</span>
             <h3>Ranking</h3>
             <p>Ordena un conjunto de opciones por prioridad. Se agregan los órdenes de todos para un ranking de consenso.</p>
           </button>
           <button class="usecase-card usecase-card--success" data-href="/plantilla">
-            <span class="usecase-icon">${ic('lightbulb', 24)}</span>
+            <span class="usecase-icon">${ic('lightbulb', 24, 'var(--success-color)')}</span>
             <h3>Lluvia de ideas</h3>
             <p>Preguntas abiertas; cada persona escribe su propuesta. Compárenlas lado a lado en cards grandes.</p>
           </button>

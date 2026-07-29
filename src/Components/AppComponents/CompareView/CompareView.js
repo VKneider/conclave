@@ -422,7 +422,7 @@ export default class CompareView extends HTMLElement {
         : '<div class="cmp-vt-final cmp-vt-final--none">Sin votos todavía</div>';
 
       return `<div class="cmp-vt-card">
-        <h3 class="cmp-vt-title">${this._icons.svg('vote', 16)} ${esc(tema.nombre)} <span class="cmp-vt-total">${totalVotes} voto${totalVotes !== 1 ? 's' : ''}</span></h3>
+        <h3 class="cmp-vt-title">${this._icons.svg('vote', 16, 'var(--secondary-color)')} ${esc(tema.nombre)} <span class="cmp-vt-total">${totalVotes} voto${totalVotes !== 1 ? 's' : ''}</span></h3>
         <div class="cmp-vt-opciones">${opcHtml}</div>
         ${banner}
       </div>`;
@@ -494,7 +494,7 @@ export default class CompareView extends HTMLElement {
           : '<div class="cmp-rk-final cmp-rk-final--none">Nadie ordenó todavía</div>';
 
       return `<div class="cmp-rk-card">
-        <h3 class="cmp-rk-title">${this._icons.svg('trophy', 16)} ${esc(tema.nombre)} <span class="cmp-rk-total">${nSources} orden${nSources !== 1 ? 'es' : ''}</span></h3>
+        <h3 class="cmp-rk-title">${this._icons.svg('trophy', 16, 'var(--warning-color)')} ${esc(tema.nombre)} <span class="cmp-rk-total">${nSources} orden${nSources !== 1 ? 'es' : ''}</span></h3>
         <div class="cmp-rk-items">${itemsHtml}</div>
         ${banner}
       </div>`;

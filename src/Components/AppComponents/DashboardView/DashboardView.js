@@ -59,7 +59,7 @@ export default class DashboardView extends HTMLElement {
   async _buildShell() {
     const roster = this._roster;
     const esc = (s) => this._html.esc(s);
-    const ic = (n, s) => this._icons.svg(n, s);
+    const ic = (n, s, c) => this._icons.svg(n, s, c);
     const temas = roster.getTemas();
     const temasReparto = roster.getTemasParticipables();
     const temasVotacion = roster.getTemasVotacion();
@@ -120,7 +120,7 @@ export default class DashboardView extends HTMLElement {
 
     if (temasReparto.length) {
       html += `
-        <h3 class="view-title dash-section-title">${ic('target', 16)} Asignación</h3>
+        <h3 class="view-title dash-section-title">${ic('target', 16, 'var(--primary-color)')} Asignación</h3>
         <p class="view-sub">Cada barra muestra las opciones asignadas frente al mínimo y máximo. Toca un tema para ver quiénes quedaron.</p>
         <div class="tema-grid">
           ${temasReparto.map((t) => {
@@ -140,9 +140,9 @@ export default class DashboardView extends HTMLElement {
         </div>`;
     }
 
-    if (temasVotacion.length) html += modoSection(`${ic('vote', 16)} Votación`, 'Respondido = elegiste una opción en el tema.', temasVotacion, 'voto');
-    if (temasRanking.length) html += modoSection(`${ic('trophy', 16)} Ranking`, 'Respondido = ordenaste las opciones del tema.', temasRanking, 'rank');
-    if (temasTexto.length) html += modoSection(`${ic('pen', 16)} Texto libre`, 'Respondido = escribiste tu propuesta.', temasTexto, 'texto');
+    if (temasVotacion.length) html += modoSection(`${ic('vote', 16, 'var(--secondary-color)')} Votación`, 'Respondido = elegiste una opción en el tema.', temasVotacion, 'voto');
+    if (temasRanking.length) html += modoSection(`${ic('trophy', 16, 'var(--warning-color)')} Ranking`, 'Respondido = ordenaste las opciones del tema.', temasRanking, 'rank');
+    if (temasTexto.length) html += modoSection(`${ic('pen', 16, 'var(--success-color)')} Texto libre`, 'Respondido = escribiste tu propuesta.', temasTexto, 'texto');
 
     this.$root.innerHTML = this._html.sanitize(html);
 
@@ -253,15 +253,15 @@ export default class DashboardView extends HTMLElement {
     const nVotacion = roster.getTemasVotacion().length;
     const nRanking = roster.getTemasRanking().length;
     const nTexto = roster.getTemasTexto().length;
-    const ic = (n, s) => this._icons.svg(n, s);
+    const ic = (n, s, c) => this._icons.svg(n, s, c);
     const composicion = [
-      nReparto ? `${ic('target', 14)} ${nReparto} de asignación` : null,
-      nVotacion ? `${ic('vote', 14)} ${nVotacion} de votación` : null,
-      nRanking ? `${ic('trophy', 14)} ${nRanking} de ranking` : null,
-      nTexto ? `${ic('pen', 14)} ${nTexto} de texto libre` : null,
+      nReparto ? `${ic('target', 14, 'var(--primary-color)')} ${nReparto} de asignación` : null,
+      nVotacion ? `${ic('vote', 14, 'var(--secondary-color)')} ${nVotacion} de votación` : null,
+      nRanking ? `${ic('trophy', 14, 'var(--warning-color)')} ${nRanking} de ranking` : null,
+      nTexto ? `${ic('pen', 14, 'var(--success-color)')} ${nTexto} de texto libre` : null,
     ].filter(Boolean).join(' · ');
     const maxName = (nombrePlantilla || 'Plantilla sin nombre').slice(0, DASHBOARD_NAME_MAX);
-    this._els.plantillaName.innerHTML = `${ic('clipboard', 16)} ${esc(maxName)}${(nombrePlantilla || '').length > DASHBOARD_NAME_MAX ? '…' : ''}`;
+    this._els.plantillaName.innerHTML = `${ic('clipboard', 16, 'var(--font-secondary-color)')} ${esc(maxName)}${(nombrePlantilla || '').length > DASHBOARD_NAME_MAX ? '…' : ''}`;
     this._els.plantillaName.title = nombrePlantilla || '';
     this._els.plantillaMeta.innerHTML = composicion;
     this._els.plantillaMeta.hidden = !composicion;
@@ -310,7 +310,7 @@ export default class DashboardView extends HTMLElement {
 
   async _openTemaModal(temaId) {
     const roster = this._roster;
-    const ic = (n, s) => this._icons.svg(n, s);
+    const ic = (n, s, c) => this._icons.svg(n, s, c);
     const tema = roster.getTemasParticipables().find((t) => t.id === temaId);
     if (!tema) return;
 
@@ -328,7 +328,7 @@ export default class DashboardView extends HTMLElement {
       document.body.appendChild(this._teamModal);
     }
 
-    this._teamModal.title = `${tema.nombre}${lider ? ` ${ic('crown', 16)}` : ''}`;
+    this._teamModal.title = `${tema.nombre}${lider ? ` ${ic('crown', 16, 'var(--warning-color)')}` : ''}`;
     this._teamOpcionList.innerHTML = this._html.sanitize(opciones.length
       ? opciones.map((m) => `
         <div class="tema-opcion-item${liderId === String(m.id) ? ' is-lider' : ''}">

@@ -164,9 +164,9 @@ export default class PlantillaBuilderView extends HTMLElement {
 
     this.$sharePlantillaBtn.innerHTML = `${this._icons.svg('share-2', 14)} Compartir plantilla`;
     this.$importBtn.innerHTML = `${this._icons.svg('upload', 14)} Importar Plantilla`;
-    this.$catClearAll.innerHTML = `${this._icons.svg('trash-2', 14)} Borrar todo`;
-    this.$opcClearAll.innerHTML = `${this._icons.svg('trash-2', 14)} Borrar todo`;
-    this.querySelector('.pb-presets summary').innerHTML = `${this._icons.svg('sparkles', 14)} Empieza desde una plantilla de ejemplo`;
+    this.$catClearAll.innerHTML = `${this._icons.svg('trash-2', 14, 'var(--danger-color)')} Borrar todo`;
+    this.$opcClearAll.innerHTML = `${this._icons.svg('trash-2', 14, 'var(--danger-color)')} Borrar todo`;
+    this.querySelector('.pb-presets summary').innerHTML = `${this._icons.svg('sparkles', 14, 'var(--primary-color)')} Empieza desde una plantilla de ejemplo`;
   }
 
   update() {
@@ -221,11 +221,12 @@ export default class PlantillaBuilderView extends HTMLElement {
   _renderCatFilters(_temas) {
     const modoLabels = { reparto: 'Asignación', votacion: 'Votación', ranking: 'Ranking', texto_libre: 'Texto libre' };
     const modoIcons = { reparto: 'target', votacion: 'vote', ranking: 'trophy', texto_libre: 'pen' };
+    const modoColors = { reparto: 'var(--primary-color)', votacion: 'var(--secondary-color)', ranking: 'var(--warning-color)', texto_libre: 'var(--success-color)' };
     const filters = ['all', ...Object.keys(modoLabels)];
     if (!filters.includes(this._catFilter)) this._catFilter = 'all';
 
     this.$catFilters.innerHTML = this._html.sanitize(filters.map((f) =>
-      `<button class="pb-filter-btn${f === this._catFilter ? ' active' : ''}" data-filter="${f}" type="button">${f === 'all' ? 'Todas' : `${this._icons.svg(modoIcons[f], 14)} ${modoLabels[f]}`}</button>`
+      `<button class="pb-filter-btn${f === this._catFilter ? ' active' : ''}" data-filter="${f}" type="button">${f === 'all' ? 'Todas' : `${this._icons.svg(modoIcons[f], 14, modoColors[f])} ${modoLabels[f]}`}</button>`
     ).join(''));
 
     Array.from(this.$catFilters.children).forEach((btn) => {

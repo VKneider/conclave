@@ -97,7 +97,7 @@ export default class CategoriaRow extends HTMLElement {
     if (!c) return;
     const isSeleccion = c.modo === 'seleccion';
 
-    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(isSeleccion ? 'target' : 'file-text', 14);
+    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(isSeleccion ? 'target' : 'file-text', 14, isSeleccion ? 'var(--primary-color)' : 'var(--success-color)');
     this.$icon.title = isSeleccion ? 'Selección' : 'Texto libre';
     this.$hint.textContent = isSeleccion
       ? 'Ej: un equipo, una charla — las Opciones se ubican acá.'

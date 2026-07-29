@@ -115,7 +115,7 @@ export default class MisRespuestasView extends HTMLElement {
             </div>
           </div>
           <div class="current-assign">Asignado a: <b>${this._html.esc(roster.getTemaById(sel)?.nombre || '—')}</b>
-          ${sel && slice.getComponent('SettingsService').isLideresEnabled() && !slice.getComponent('PlantillaService').isLiderLocked(sel) ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.opcion?.id === opcion.id ? ' is-lider' : ''}" data-lider-toggle="${opcion.id}" type="button" title="Marcar/quitar como responsable">${this._icons.svg('crown', 14)}</button>` : ''}
+          ${sel && slice.getComponent('SettingsService').isLideresEnabled() && !slice.getComponent('PlantillaService').isLiderLocked(sel) ? `<button class="lider-toggle${slice.getComponent('SettingsService').getEffectiveLider(sel)?.opcion?.id === opcion.id ? ' is-lider' : ''}" data-lider-toggle="${opcion.id}" type="button" title="Marcar/quitar como responsable">${this._icons.svg('crown', 14, 'var(--warning-color)')}</button>` : ''}
            </div>
           <div class="assign-summary" id="assignSummary"></div>
           <div class="tema-pills">
