@@ -1,4 +1,4 @@
-import { test, expect } from '../../../../playwright/harness/sliceFixtures.js';
+import { test, expect, waitForSliceReady } from '../../../../playwright/harness/sliceFixtures.js';
 
 const RANKING_PLANTILLA = {
    nombre: 'Ranking Test',
@@ -34,7 +34,7 @@ test.describe('5. Llenar Respuestas — Ranking', () => {
             localStorage.setItem('conclave-respuestas-v1', JSON.stringify({ seleccion: {}, texto: {}, voto: {}, ranking: {} }));
          }, RANKING_PLANTILLA);
          await app.page.reload();
-         await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+         await waitForSliceReady(app.page);
          await app.page.waitForTimeout(500);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('.rk-list')).toBeVisible({ timeout: 5000 });

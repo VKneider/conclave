@@ -143,7 +143,12 @@ test.describe('11. Importar Plantilla', () => {
       };
 
       const hash = makePlantillaHash(plantillaData);
+      // The fixture already loaded '/', so goto('/#...') only changes the
+      // fragment — a same-document navigation that never re-runs
+      // AppShell.init(), and therefore never re-runs _tryImportFromHash().
+      // Reload so the app actually boots with the hash in the URL.
       await app.page.goto('/' + hash);
+      await app.page.reload();
       await app.page.waitForFunction(
         () => window.slice?.context?.getState?.('plantilla')?.nombre === 'Importada por URL',
         { timeout: 12000 }
@@ -162,7 +167,10 @@ test.describe('11. Importar Plantilla', () => {
       };
 
       const hash = makePlantillaHash(plantillaData);
+      // Fragment-only navigation does not re-boot the app — reload so
+      // _tryImportFromHash() runs against this hash. See 11.2.2.
       await app.page.goto('/' + hash);
+      await app.page.reload();
 
       // Wait for navigate to /mis-respuestas (the impact=0 branch does this)
       await app.page.waitForFunction(

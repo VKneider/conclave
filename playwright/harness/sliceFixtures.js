@@ -2,6 +2,23 @@ import { test as base, expect } from '@playwright/test';
 
 const DEFAULT_THEME = 'LIGHT';
 
+/**
+ * Wait until the Slice runtime has finished booting.
+ *
+ * `window.slice` and `slice.build` are assigned early in Slice.js init(), long
+ * before it finishes — waiting on those returns while themes, components and
+ * the router are still being fetched. Reloading or seeding at that point aborts
+ * the in-flight requests, init() throws on the aborted fetch, and the runtime
+ * ends up half-built (`Failed to fetch`, no slice.router, routes that never
+ * render). `slice.router` is the last thing init() assigns, so it is the only
+ * one of the three that actually means "ready".
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+export async function waitForSliceReady(page) {
+   await page.waitForFunction(() => !!window.slice?.router);
+}
+
 // ── Existing: mount a single component in the /__test harness ────────
 
 export const test = base.extend({
@@ -12,7 +29,7 @@ export const test = base.extend({
       page.on('pageerror', (err) => pageErrors.push(err.message));
 
       await page.goto('/__test');
-      await page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+      await waitForSliceReady(page);
       await page.waitForSelector('[data-test-root]', { state: 'attached' });
 
       async function mount(name, props = {}, opts = {}) {
@@ -85,7 +102,7 @@ export const test = base.extend({
       page.on('pageerror', (err) => pageErrors.push(err.message));
 
       await page.goto('/__test');
-      await page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+      await waitForSliceReady(page);
       await page.waitForSelector('[data-test-root]', { state: 'attached' });
 
       async function mountHtml(html = '', opts = {}) {
@@ -129,9 +146,9 @@ export const test = base.extend({
       page.on('console', (msg) => consoleMessages.push({ type: msg.type(), text: msg.text() }));
       page.on('pageerror', (err) => pageErrors.push(err.message));
 
-      // Boot: navigate to root and wait for Slice runtime
+      // Boot: navigate to root and wait for the app (not just the framework)
       await page.goto('/');
-      await page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+      await waitForSliceReady(page);
       await page.waitForTimeout(150);
 
       /**
@@ -145,7 +162,7 @@ export const test = base.extend({
                .forEach((k) => localStorage.removeItem(k));
          });
          await page.reload();
-         await page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+         await waitForSliceReady(page);
          await page.waitForTimeout(200);
       }
 

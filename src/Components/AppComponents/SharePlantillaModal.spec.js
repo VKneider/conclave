@@ -1,4 +1,4 @@
-import { test, expect } from '../../../playwright/harness/sliceFixtures.js';
+import { test, expect, waitForSliceReady } from '../../../playwright/harness/sliceFixtures.js';
 import { seedAsignacion } from '../../../playwright/harness/seedHelpers.js';
 
 test.describe('9. Compartir Plantilla', () => {
@@ -56,7 +56,7 @@ test.describe('9. Compartir Plantilla', () => {
         localStorage.setItem('conclave-settings-v3', JSON.stringify({ autor: 'TestUser', email: 'test@ejemplo.com' }));
       });
       await app.page.reload();
-      await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+      await waitForSliceReady(app.page);
       await app.page.waitForTimeout(500);
 
       // Verify the mailto URL is addressed to the creator's email

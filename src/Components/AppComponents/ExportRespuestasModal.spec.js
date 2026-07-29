@@ -1,4 +1,4 @@
-import { test, expect } from '../../../playwright/harness/sliceFixtures.js';
+import { test, expect, waitForSliceReady } from '../../../playwright/harness/sliceFixtures.js';
 import { seedAsignacion } from '../../../playwright/harness/seedHelpers.js';
 
 test.describe('8. Compartir Respuestas', () => {
@@ -90,7 +90,7 @@ test.describe('8. Compartir Respuestas', () => {
         localStorage.setItem('conclave-settings-v3', JSON.stringify({ autor: 'TestUser', email: '' }));
       });
       await app.page.reload();
-      await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+      await waitForSliceReady(app.page);
       await app.page.waitForTimeout(500);
 
       await app.navigateTo('/mis-respuestas');
@@ -116,7 +116,7 @@ test.describe('8. Compartir Respuestas', () => {
         localStorage.setItem('conclave-settings-v3', JSON.stringify({ autor: 'TestUser', email: '' }));
       });
       await app.page.reload();
-      await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+      await waitForSliceReady(app.page);
       await app.page.waitForTimeout(500);
 
       await app.navigateTo('/mis-respuestas');
@@ -137,7 +137,7 @@ test.describe('8. Compartir Respuestas', () => {
         localStorage.setItem('conclave-settings-v3', JSON.stringify({ autor: 'TestUser', email: '' }));
       });
       await app.page.reload();
-      await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+      await waitForSliceReady(app.page);
       await app.page.waitForTimeout(500);
 
       // Inject creadoEmail into the live PlantillaService state
@@ -193,7 +193,7 @@ test.describe('8. Compartir Respuestas', () => {
         localStorage.setItem('conclave-settings-v3', JSON.stringify({ autor: 'TestUser', email: '' }));
       });
       await app.page.reload();
-      await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+      await waitForSliceReady(app.page);
       await app.page.waitForTimeout(500);
 
       await app.navigateTo('/mis-respuestas');

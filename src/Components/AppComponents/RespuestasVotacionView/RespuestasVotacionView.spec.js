@@ -1,4 +1,4 @@
-import { test, expect } from '../../../../playwright/harness/sliceFixtures.js';
+import { test, expect, waitForSliceReady } from '../../../../playwright/harness/sliceFixtures.js';
 
 const VOTACION_PLANTILLA = {
    nombre: 'Votación Test',
@@ -37,7 +37,7 @@ test.describe('4. Llenar Respuestas — Votación', () => {
             localStorage.setItem('conclave-respuestas-v1', JSON.stringify({ seleccion: {}, texto: {}, voto: {}, ranking: {} }));
          }, VOTACION_PLANTILLA);
          await app.page.reload();
-         await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+         await waitForSliceReady(app.page);
          await app.page.waitForTimeout(1500);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('.vv-list')).toBeVisible({ timeout: 10000 });

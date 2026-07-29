@@ -1,4 +1,4 @@
-import { test, expect } from '../../../playwright/harness/sliceFixtures.js';
+import { test, expect, waitForSliceReady } from '../../../playwright/harness/sliceFixtures.js';
 
 test.describe('2. Navegación', () => {
 
@@ -195,7 +195,7 @@ test.describe('2. Navegación', () => {
 
          // Reload and check persistence
          await app.page.reload();
-         await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+         await waitForSliceReady(app.page);
          await app.page.waitForTimeout(200);
          await app.page.locator('.user-menu__trigger').click();
          await app.page.waitForTimeout(200);
@@ -217,7 +217,7 @@ test.describe('2. Navegación', () => {
          await app.page.waitForTimeout(200);
 
          await app.page.reload();
-         await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+         await waitForSliceReady(app.page);
          await app.page.waitForTimeout(200);
          await app.page.locator('.user-menu__trigger').click();
          await app.page.waitForTimeout(200);

@@ -1,4 +1,4 @@
-import { test, expect } from '../../../playwright/harness/sliceFixtures.js';
+import { test, expect, waitForSliceReady } from '../../../playwright/harness/sliceFixtures.js';
 import { seedAsignacion, injectPlantilla } from '../../../playwright/harness/seedHelpers.js';
 
 const VOTACION_PLANTILLA = {
@@ -24,10 +24,7 @@ const RANKING_PLANTILLA = {
 
 async function reloadAndWait(app) {
   await app.page.reload();
-  await app.page.waitForFunction(
-    () => !!(window.slice && typeof window.slice.build === 'function'),
-    { timeout: 10000 }
-  );
+  await waitForSliceReady(app.page);
   await app.page.waitForFunction(() => {
     try { return !!window.slice.getComponent('PlantillaService'); }
     catch { return false; }

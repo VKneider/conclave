@@ -3,7 +3,7 @@
 // when a test needs a specific seed (e.g. the old "Asignación" seed with
 // reparto temas + pool opciones) regardless of the app's default preset.
 
-import { expect } from './sliceFixtures.js';
+import { expect, waitForSliceReady } from './sliceFixtures.js';
 
 const ASIGNACION_ATRIBUTOS = [
   { key: 'sexo', label: 'Sexo', type: 'lista', opciones: ['M', 'F'] },
@@ -65,7 +65,7 @@ export async function injectPlantilla(app, plantilla, extraStorage = {}) {
     }
   }, { pl: plantilla, extra: extraStorage });
   await app.page.reload();
-  await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+  await waitForSliceReady(app.page);
   await app.page.waitForTimeout(200);
 }
 

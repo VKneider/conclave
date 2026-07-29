@@ -1,4 +1,4 @@
-import { test, expect } from '../../../../playwright/harness/sliceFixtures.js';
+import { test, expect, waitForSliceReady } from '../../../../playwright/harness/sliceFixtures.js';
 import { seedAsignacion } from '../../../../playwright/harness/seedHelpers.js';
 import LZString from 'lz-string';
 
@@ -63,7 +63,7 @@ async function injectPlantilla(app, plantilla, extraContexts = {}) {
       }
    }, { plantilla, extra: extraContexts });
    await app.page.reload();
-   await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+   await waitForSliceReady(app.page);
    await app.page.waitForTimeout(500);
    await app.navigateTo('/resumen');
    await expect(app.page.locator('.resumen-view')).toBeVisible({ timeout: 5000 });
@@ -230,11 +230,12 @@ test.describe('14. Resumen Final', () => {
          };
          const hash = makeConsensoHash(payload);
 
+         // Fragment-only navigation does not re-boot the app, so
+         // _tryImportFromHash() would never see this hash. Reload to force a
+         // real document load with it. See ImportarPlantilla 11.2.2.
          await app.page.goto('/' + hash);
-         await app.page.waitForFunction(
-            () => !!(window.slice && typeof window.slice.build === 'function'),
-            { timeout: 10000 }
-         );
+         await app.page.reload();
+         await waitForSliceReady(app.page);
          await app.page.waitForTimeout(500);
 
          await app.confirmDialog();

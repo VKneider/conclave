@@ -1,4 +1,4 @@
-import { test, expect } from '../../../../playwright/harness/sliceFixtures.js';
+import { test, expect, waitForSliceReady } from '../../../../playwright/harness/sliceFixtures.js';
 
 const TEXTO_PLANTILLA = {
    nombre: 'Texto Libre Test',
@@ -30,7 +30,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
             localStorage.setItem('conclave-respuestas-v1', JSON.stringify({ seleccion: {}, texto: {}, voto: {}, ranking: {} }));
          }, TEXTO_PLANTILLA);
          await app.page.reload();
-         await app.page.waitForFunction(() => !!(window.slice && typeof window.slice.build === 'function'));
+         await waitForSliceReady(app.page);
          await app.page.waitForTimeout(500);
          await app.navigateTo('/mis-respuestas');
          await expect(app.page.locator('slice-respuestastextoview')).toBeVisible({ timeout: 5000 });
