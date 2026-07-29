@@ -69,6 +69,6 @@
     "@playwright/test": "^1.61.1",
     "eslint": "^9.39.5",
     "globals": "^17.7.0",
-    "slicejs-cli": "4.1.0"
+    "slicejs-cli": "4.1.1"
   }
 }
