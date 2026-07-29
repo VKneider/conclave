@@ -69,8 +69,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       slicejs-web-framework:
-        specifier: ^4.0.1
-        version: 4.0.1
+        specifier: ^4.0.2
+        version: 4.0.2
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -1643,8 +1643,8 @@ packages:
     resolution: {integrity: sha512-tP9Y0R5lWOWCi+ggnzlwpJvwTMj4zZAZX59LfBZU3Vy0iLdIVArIcLQdglzurhR9iv9MeRJpxijeRmyFw13L+A==}
     engines: {node: '>=20'}
 
-  slicejs-web-framework@4.0.1:
-    resolution: {integrity: sha512-kLe4VlFMaKX4EnXlsRrLlRw8tZ1YReqEoKs08WNNYTgg1ZIktjTYks7ipItZdB22mccSwJMrZLyEp2kFgJF+9g==}
+  slicejs-web-framework@4.0.2:
+    resolution: {integrity: sha512-homVktLSEDQMBnDShGGsD1KdGHFc1A4SrB74G9DthKneZgYaA5pit2+83fRYTbFhGXpH/cn6I/HCpiXHZibhcQ==}
     engines: {node: '>=20'}
 
   source-map-support@0.5.21:
@@ -3372,7 +3372,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  slicejs-web-framework@4.0.1:
+  slicejs-web-framework@4.0.2:
     dependencies:
       compression: 1.8.1
       es-module-lexer: 2.3.1
