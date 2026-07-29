@@ -167,13 +167,73 @@ See DESIGN.md §Drag and drop: DragDropService for the full API description. Key
 
 ## Iconography
 
-No custom SVG system. Emoji used sparingly and functionally:
-- 🏷️ brand mark
-- 👥 people
-- ⬇ export
-- ‹ › carousel arrows
-- 👑 leader toggle (carousel)
-- ✕ unassign
-- ✓ checkmark (carousel feedback, via CSS `::after`)
+Icons are **Lucide SVG icons** (not emoji) via `src/Components/Visual/Icon/icons.js`. The `IconProvider` wraps the map for any component that needs icons outside `<slice-icon>`. Every view that uses `<slice-icon>` specifies:
 
-A few get a "sticker" treatment: rotated 4–6 degrees inside a bordered solid-color square (`.brand-mark`, `.help-ico`).
+- `name`: a Lucide icon key (e.g. `"target"`, `"vote"`, `"trophy"`, `"pen"`, `"check"`, `"trash-2"`, `"share-2"`, `"users"`, `"volume-2"`, `"folder-open"`, `"hard-drive"`).
+- `size` (default 16): pixel dimension.
+- `color` (optional): CSS color value — used to give icons semantic meaning (e.g. target→`primary-color`, vote→`secondary-color`, trophy→`warning-color`, pen→`success-color`, trash→`danger-color`).
+
+### Semantic color mapping
+
+| Icon context | Color token | Examples |
+|---|---|---|
+| Modo Asignación (reparto) | `--primary-color` (tomato) | `target` in DashboardView modo cards |
+| Modo Votación | `--secondary-color` (turquoise) | `vote` in modo tabs |
+| Modo Ranking | `--warning-color` (amber) | `trophy` in modo tabs & cards |
+| Modo Texto libre | `--success-color` (green) | `pen` in modo tabs & cards |
+| Danger actions | `--danger-color` (red) | `trash-2` on delete buttons |
+| Secondary actions | `--font-secondary-color` (muted) | `hard-drive` on backup, `eye-off` on unassign |
+
+Use semantic colors consistently — never hardcode a raw hue for an icon in a new view.
+
+Icon names are passed through `slice.build('Icon', { name, size, color })` or `<slice-icon name="..." size="..." color="...">`. The `Button` component also accepts `icon: { name, color }` in its props — colors propagate to the inner `<slice-icon>` automatically.
+
+A few icons still get the old "sticker" treatment: rotated 4–6 degrees inside a bordered solid-color square (`.brand-mark`, `.help-ico`).
+
+## Sound effects
+
+`SoundService` (Core service) provides semantic audio feedback using the **Web Audio API** — zero external audio files. Built once from `Providers.init()` and recovered anywhere as `slice.getComponent('SoundService')`.
+
+### Architecture
+
+- **Recipes**: each sound cue is a set of oscillator steps (`{ f, d, type?, g?, at?, to? }`) defined in `SoundService.RECIPES`. Steps are played on `OscillatorNode` with a `GainNode` envelope (attack 6ms, instant release). No shared state — each `play()` call creates fresh nodes.
+- **Rate limiting**: per-cue `MIN_INTERVAL` (e.g. `ui.tap` 45ms, `ui.nav` 80ms, default 120ms) prevents overlapping the same cue. A global voice cap (`MAX_VOICES = 8`) prevents stacking too many concurrent sounds.
+- **Autoplay policy**: `AudioContext` is created lazily in `unlock()`, called from the first `pointerdown` gesture via `attachSFX`. Until unlocked, `play()` silently returns `false`.
+- **Mute**: delegated to `SettingsService.soundEnabled` (persisted in `settings` context). Toggle available in `UserMenu` via `Switch` component with `volume-2` icon.
+
+### Available cues
+
+| Cue | Trigger | Sound |
+|---|---|---|
+| `ui.tap` | Any `<button>` or `role="button"` (auto-detected) | Short triangle 520Hz, 35ms |
+| `ui.toggle` | Checkbox / Switch clicks | Two-tone 440→660Hz, 50ms |
+| `ui.nav` | `<a href="/...">` link clicks (auto-detected) | Low sine 380Hz, 60ms |
+| `modal.open` | Modal opening | Slide-up sine 300→520Hz, 120ms |
+| `modal.close` | Modal closing | Slide-down sine 520→280Hz, 110ms |
+| `toast.info` | Info toast notification | Sine 660Hz, 100ms |
+| `toast.success` | Success toast | C5→E5→G5 arpeggio (triangle), 160ms tail |
+| `toast.warning` | Warning toast | Square 494Hz double-pulse, 130ms |
+| `toast.error` | Error toast | Descending triangle 320→200Hz, 220ms |
+| `ui.blocked` | Blocked/invalid action | Low square 160Hz, 90ms |
+| `ui.celebrate` | Download/share/copy success | C5→E5→G5→C6 arpeggio (triangle), 320ms tail |
+
+### `attachSFX` bridge
+
+Called once from `Providers.init()`:
+
+```js
+slice.getComponent('SoundService').attachSFX();
+```
+
+Installs a `pointerdown` listener on `document` that auto-detects:
+1. Elements with `data-sfx` attribute → plays the cue name in the attribute.
+2. `<button>` / `role="button"` elements → plays `ui.tap`.
+3. `<a href="/...">` links → plays `ui.nav`.
+
+Manual trigger: `slice.getComponent('SoundService').play('ui.celebrate')`.
+
+`ui.celebrate` is wired to the share/download actions in `SharePlantillaModal`, `ExportRespuestasModal`, and `ShareConsensoModal` — plays after the action completes, not on click.
+
+### `prefers-reduced-motion`
+
+Sound has no explicit `prefers-reduced-motion` query. The browser's autoplay policy already gates sound from playing before user interaction. The mute toggle (`soundEnabled: false`) silences all cues.

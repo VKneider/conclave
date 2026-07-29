@@ -10,14 +10,15 @@
 >   replaces `utils/context.js`), `HtmlService` (`esc` + `sanitize`, replaces
 >   FormatService/SanitizeService + `utils/format.js`), `DomService`
 >   (`reconcile`), `CompressionService` (`packForURI`/`unpackFromURI` + LZ
->   compress), `ChartService`, `FetchManager`, `FileDownloadService`,
+>   compress), `SoundService` (Web Audio API synth cues, `attachSFX` bridge,
+>   rate-limited), `ChartService`, `FetchManager`, `FileDownloadService`,
 >   `IndexedDbManager`, `LocalStorageManager`.
 > - **`Domain`** (business): `PlantillaService`, `RespuestasService`,
 >   `ConsensoService`, `SettingsService`, `RespuestasImportService`,
 >   `ExportService`.
 > - **`Providers`** (wiring + provider-services): `Providers`, `ToastProvider`,
 >   `ConfirmActionModal`, `ExportRespuestasModal`, `SharePlantillaModal`,
->   `DragDropService`.
+>   `DragDropService`, `IconProvider`.
 > - There is no `utils/` folder. Visual = UI only; domain logic lives in a
 >   Domain service. Every context-owning Domain service calls
 >   `StoreService.ensure()` **once** in `init()`.
@@ -25,7 +26,7 @@
 > **Contexts** now carry the four-modo model — see `docs/DATA.md` for shapes:
 > `plantilla { nombre, atributos, temas, opciones }`, `respuestas`/`decisionFinal`
 > `{ seleccion, texto, voto, ranking }`, `respuestasImportadas`, `settings
-> { autor, email, lideres, lideresEnabled }`.
+> { autor, email, lideres, lideresEnabled, soundEnabled }`.
 >
 > **Views** (`AppComponents`): `LandingView`, `DashboardView`, `RespuestasView`
 > (tab shell → `MisRespuestasView` carousel, `PorTemaView` board,
@@ -49,21 +50,23 @@ AppShell.init() → slice.build('Providers')
       1. slice.events.register() — declares toast:show, confirm:request
       2. StoreService — context persistence wrapper
       3. HtmlService — esc + sanitize (vendored DOMPurify)
-      4. DomService — reconcile (leak-safe list rendering)
-      5. CompressionService — packForURI/unpackFromURI + LZ compress
-      6. PlantillaService — ensures `plantilla` context, seed fallback
-      7. FileDownloadService — stateless, download helper
-      8. SettingsService — ensures `settings` context
-      9. RespuestasService — ensures `respuestas` context
-     10. ConsensoService — ensures `decisionFinal` context
-     11. ExportService — stateless, download helpers
-     12. RespuestasImportService — ensures `respuestasImportadas` context, normalizes against plantilla
-     13. DragDropService — registered after the above
-     14. ChartService — wraps vendored Chart.js
-     15. ToastProvider — lazy (builds container on first .show())
-     16. ConfirmActionModal — lazy (builds <slice-modal> on first use)
-     17. ExportRespuestasModal — lazy (builds <slice-modal> on first show())
-     18. SharePlantillaModal — lazy (builds <slice-modal> on first show())
+4. DomService — reconcile (leak-safe list rendering)
+       5. CompressionService — packForURI/unpackFromURI + LZ compress
+       6. SoundService — Web Audio API, semantic synth cues, attachSFX bridge
+       7. PlantillaService — ensures `plantilla` context, seed fallback
+       8. FileDownloadService — stateless, download helper
+       9. SettingsService — ensures `settings` context
+      10. RespuestasService — ensures `respuestas` context
+      11. ConsensoService — ensures `decisionFinal` context
+      12. ExportService — stateless, download helpers
+      13. RespuestasImportService — ensures `respuestasImportadas` context, normalizes against plantilla
+      14. DragDropService — registered after the above
+      15. ChartService — wraps vendored Chart.js
+      16. IconProvider — lucide SVG icon resolver
+      17. ToastProvider — lazy (builds container on first .show())
+      18. ConfirmActionModal — lazy (builds <slice-modal> on first use)
+      19. ExportRespuestasModal — lazy (builds <slice-modal> on first show())
+      20. SharePlantillaModal — lazy (builds <slice-modal> on first show())
 ```
 
 `PlantillaService` must finish before anything else reads categoría/opción data — every other Service/view assumes it's already loaded.
@@ -83,6 +86,9 @@ AppShell.init() → slice.build('Providers')
 | `DragDropService` | Official Slice.js registry component + visual. Pointer-based drag-and-drop for `PorCategoriaView`. |
 | `FileDownloadService` | Generic Blob download helper. |
 | `ChartService` | Wraps the vendored Chart.js UMD bundle (`src/libs/chartjs/chart.umd.js`) — `create(canvas, config)`/`destroy(chart)`/`themeColor(varName)` (resolves a CSS custom property to a literal color string, since `<canvas>` can't read `var(--x)` directly). Consumers never import Chart.js themselves. First usage: `DashboardView`'s completion doughnut. |
+| `SoundService` | Web Audio API synth engine — no external audio files. Provides semantic sound cues (`ui.tap`, `ui.nav`, `toast.*`, `modal.*`, `ui.celebrate`, etc.) each defined as frequency recipes with rate-limiting per cue and a global voice cap. `attachSFX(root)` installs a `pointerdown` listener that auto-plays the matching cue on any `data-sfx` attribute, `<button>`, or `<a href="/...">` element. Muting is delegated to `SettingsService.isSoundEnabled()`. AudioContext is lazily created + unlocked on first user gesture. |
+
+| `IconProvider` | Thin wrapper over `src/Components/Visual/Icon/icons.js` which maps icon names to Lucide SVG components. Exposes `svg(name, size, color)` (returns SVG string) and `getNode(name)` (returns the Lucide icon function). Registered as a singleton Provider for any component that needs to render icons outside of `<slice-icon>`. |
 
 | `CompressionService` | Stateless LZ-string compress/decompress + key mapping. `packForURI(data)` maps long keys to short ones (`nombre→n`, `temas→ts`, etc.) before compression to produce shorter URL hashes. `unpackFromURI(data)` reverses the map. Unknown keys pass through unchanged (backward compatible with pre-short-key URLs). |
 

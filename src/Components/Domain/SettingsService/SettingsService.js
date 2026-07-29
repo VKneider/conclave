@@ -8,7 +8,7 @@
 // guarantees init runs before any consumer, so no per-method defensive ensure.
 const CONTEXT = 'settings';
 const STORAGE_KEY = 'conclave-settings-v3';
-const INITIAL_STATE = { autor: '', email: '', lideres: {}, lideresEnabled: false };
+const INITIAL_STATE = { autor: '', email: '', lideres: {}, lideresEnabled: false, soundEnabled: true };
 
 export default class SettingsService {
   init() {
@@ -67,5 +67,13 @@ export default class SettingsService {
     const opcionId = this.getLider(temaId);
     if (opcionId) return { opcion: plantilla.getOpcionById(opcionId), locked: false };
     return null;
+  }
+
+  isSoundEnabled() {
+    return this.getState().soundEnabled !== false;
+  }
+
+  setSoundEnabled(enabled) {
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, soundEnabled: enabled === true }));
   }
 }

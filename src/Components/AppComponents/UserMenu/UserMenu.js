@@ -61,6 +61,31 @@ export default class UserMenu extends HTMLElement {
     });
     if (themeSwitcher instanceof Node) { this.$themeSlot.appendChild(themeSwitcher); this._children.push(themeSwitcher); }
 
+    this.$soundSlot = this.querySelector('[data-el="soundSlot"]');
+    if (this.$soundSlot) {
+      const settings = slice.getComponent('SettingsService');
+      const icon = document.createElement('slice-icon');
+      icon.setAttribute('name', 'volume-2');
+      icon.setAttribute('size', '16');
+      const label = document.createElement('span');
+      label.textContent = 'Sonido';
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;align-items:center;gap:8px;';
+      wrapper.appendChild(icon);
+      wrapper.appendChild(label);
+      this.$soundSwitch = await slice.build('Switch', {
+        checked: settings.isSoundEnabled(),
+        onChange: (checked) => settings.setSoundEnabled(checked),
+        label: '',
+      });
+      const row = document.createElement('div');
+      row.className = 'user-menu__sound-toggle';
+      row.appendChild(wrapper);
+      row.appendChild(this.$soundSwitch);
+      this.$soundSlot.appendChild(row);
+      this._children.push(this.$soundSwitch);
+    }
+
     this.$shareBtn = await slice.build('Button', {
       value: 'Compartir respuestas',
       icon: { name: 'share-2', color: 'var(--primary-color)' },
@@ -107,7 +132,7 @@ export default class UserMenu extends HTMLElement {
 
     if (this.$version) this.$version.textContent = `${APP_NAME} v${APP_VERSION}`;
 
-    slice.context.watch('settings', this, (s) => { this._syncAutor(s.autor); this._syncEmail(s.email); });
+    slice.context.watch('settings', this, (s) => { this._syncAutor(s.autor); this._syncEmail(s.email); this._syncSound(s.soundEnabled); });
     const settings = slice.getComponent('SettingsService');
     this._syncAutor(settings.getState().autor);
     this._syncEmail(settings.getState().email);
@@ -134,6 +159,10 @@ export default class UserMenu extends HTMLElement {
 
   _syncEmail(email) {
     if (document.activeElement !== this.$emailField?.querySelector('input')) this.$emailField.value = email || '';
+  }
+
+  _syncSound(enabled) {
+    if (this.$soundSwitch) this.$soundSwitch.checked = enabled !== false;
   }
 
   _handleImport(e) {

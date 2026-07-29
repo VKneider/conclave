@@ -45,7 +45,7 @@ export default class SharePlantillaModal extends HTMLElement {
       value: 'Descargar archivo',
       variant: 'filled',
       icon: { name: 'download' },
-      onClick: () => { this._close(); this._exportPlantilla(); }
+      onClick: () => { this._close(); this._exportPlantilla(); slice.getComponent('SoundService').play('ui.celebrate'); }
     });
     this.$downloadBtn.classList.add('export-modal__action');
 
@@ -69,7 +69,7 @@ export default class SharePlantillaModal extends HTMLElement {
       value: 'Copiar enlace',
       variant: 'outlined',
       icon: { name: 'link' },
-      onClick: () => { this._close(); slice.getComponent('PlantillaService').copyShareLink(); }
+      onClick: () => { this._close(); slice.getComponent('PlantillaService').copyShareLink(); slice.getComponent('SoundService').play('ui.celebrate'); }
     });
     this.$copyBtn.classList.add('export-modal__action');
 
@@ -79,7 +79,7 @@ export default class SharePlantillaModal extends HTMLElement {
         value: 'Compartir',
         icon: { name: 'share-2' },
         variant: 'filled',
-        onClick: () => { this._close(); this._nativeShare(); }
+        onClick: () => { this._close(); this._nativeShare(); slice.getComponent('SoundService').play('ui.celebrate'); }
       });
       this.$shareBtn.classList.add('export-modal__action');
       shareActions.appendChild(this.$shareBtn);
@@ -89,7 +89,7 @@ export default class SharePlantillaModal extends HTMLElement {
       value: 'Enviar por correo',
       variant: 'outlined',
       icon: { name: 'mail' },
-      onClick: () => { this._close(); slice.getComponent('PlantillaService').sendShareLinkEmail(); }
+      onClick: () => { this._close(); slice.getComponent('PlantillaService').sendShareLinkEmail(); slice.getComponent('SoundService').play('ui.celebrate'); }
     });
     this.$emailBtn.classList.add('export-modal__action');
 
@@ -97,7 +97,7 @@ export default class SharePlantillaModal extends HTMLElement {
       value: 'Código QR',
       variant: 'outlined',
       icon: { name: 'qr-code' },
-      onClick: () => { this._close(); this._showQR(); }
+      onClick: () => { this._close(); this._showQR(); slice.getComponent('SoundService').play('ui.celebrate'); }
     });
     this.$qrBtn.classList.add('export-modal__action');
 

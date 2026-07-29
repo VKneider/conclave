@@ -242,3 +242,24 @@ const icons = JSON.stringify(
 ```
 
 This completely removes the import dependency, so the bundler has nothing to strip. The vendor-shared bundle shrinks (no lucide IIFE), and the runtime error disappears. Applicable whenever the imported symbols are pure data (SVG paths, config objects, etc.). If the imported package provides runtime functions/classes, the only option is to ensure it ends up in a **different bundle** than its consumer (add/remove route-level imports so the analyzer puts them in separate chunks).
+
+### 37. `export const` / `export function` at module level in a Service file crashes Terser during bundle generation
+
+The Slice.js bundler wraps each Service's code in a factory function for lazy loading:
+```js
+const SLICE_CLASS_FACTORY_SliceComponent_MyService = () => {
+  export const FOO = [...];  // ❌ Terser: "Export" statement may only appear at the top level
+  export default class MyService { ... }
+};
+```
+
+Terser (the minifier) rejects `export` keywords inside a function body — they're only valid at the top level of a module. Other Core/Domain services (e.g. `SettingsService`, `CompressionService`) avoid this by keeping module-level constants **un-exported** (plain `const`/`let`/`var`), with only the class itself as `export default`. Following the same pattern prevents the build error:
+
+```js
+const FOO = [...];            // ✓ plain const, not exported
+export default class MyService { ... }
+```
+
+**Diagnostic:** if `pnpm run build` fails with `Terser failed for slice-bundle.*.js: "Export" statement may only appear at the top level`, inspect every Service source file in the failed bundle for `export` keywords at module scope (outside the class). `export default` for the class itself is fine — the bundler hoists it. Named `export` (`export const`, `export function`, `export class`) is the problem.
+
+**Fix:** Remove the `export` keyword from the named declaration. If the constant/function needs to be accessible from outside the Service file, expose it as a **static method or property on the exported class** instead — that stays inside the class body where Terser accepts it.

@@ -54,7 +54,7 @@ export default class TopBar extends HTMLElement {
 
   _renderTabs() {
     this.$tabs.innerHTML = TABS
-      .map((t) => `<a href="${t.path}" class="tab" data-path="${t.path}">${t.label}</a>`)
+      .map((t) => `<a href="${t.path}" class="tab" data-path="${t.path}" data-sfx="ui.nav">${t.label}</a>`)
       .join('');
   }
 

@@ -120,16 +120,8 @@ export default class Providers {
       else if (payload.type === 'info') sound.play('toast.info');
     });
 
-    // Unlock AudioContext + attach declarative data-sfx bridge on first gesture.
-    const sound = slice.getComponent('SoundService');
-    sound.attachSFX();
-    const firstGesture = async () => {
-      await sound.unlock();
-      document.removeEventListener('pointerdown', firstGesture);
-      document.removeEventListener('keydown', firstGesture);
-    };
-    document.addEventListener('pointerdown', firstGesture);
-    document.addEventListener('keydown', firstGesture);
+    // Unlock AudioContext + bridge declarativo data-sfx.
+    slice.getComponent('SoundService').attachSFX();
 
     // App-wide visual modals built once here and reused via slice.getComponent.
     this.$confirmModal = await slice.build('ConfirmActionModal', { sliceId: 'confirmActionModal' });

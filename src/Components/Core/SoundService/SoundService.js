@@ -1,4 +1,4 @@
-export const CUES = [
+const CUES = [
   'ui.tap',
   'ui.toggle',
   'ui.nav',
@@ -11,8 +11,6 @@ export const CUES = [
   'ui.blocked',
   'ui.celebrate',
 ];
-
-const STORAGE_KEY = 'conclave:sound';
 
 const RECIPES = {
   'ui.tap':       { steps: [{ f: 520, d: 0.035, type: 'triangle', g: 0.22 }] },
@@ -82,13 +80,7 @@ export default class SoundService {
     this._master = null;
     this._voices = 0;
     this._lastPlayed = new Map();
-    this._muted = false;
     this._volume = 0.7;
-    try {
-      this._muted = localStorage.getItem(STORAGE_KEY) === 'off';
-    } catch {
-      // localStorage no disponible
-    }
   }
 
   async unlock() {
@@ -101,12 +93,12 @@ export default class SoundService {
       this._master.gain.value = this._volume;
       this._master.connect(this._ctx.destination);
     }
-    if (this._ctx.state === 'suspended') await this._ctx.resume();
-    return this._ctx.state === 'running';
+    if (this._ctx.state === 'suspended') { try { await this._ctx.resume(); } catch { /* autoplay policy still blocking */ } }
+    return this._ctx?.state === 'running';
   }
 
   play(cue) {
-    if (this._muted) return false;
+    if (this.muted) return false;
     if (!RECIPES[cue]) return false;
     const min = MIN_INTERVAL[cue] ?? MIN_INTERVAL.__default;
     const now = performance.now();
@@ -120,10 +112,13 @@ export default class SoundService {
     return true;
   }
 
-  get muted() { return this._muted; }
+  get muted() {
+    try { return !slice.getComponent('SettingsService').isSoundEnabled(); }
+    catch { return false; }
+  }
   set muted(v) {
-    this._muted = Boolean(v);
-    try { localStorage.setItem(STORAGE_KEY, this._muted ? 'off' : 'on'); } catch { /* localStorage no disponible */ }
+    try { slice.getComponent('SettingsService').setSoundEnabled(!v); }
+    catch { /* SettingsService aún no disponible */ }
   }
 
   get volume() { return this._volume; }
@@ -134,13 +129,23 @@ export default class SoundService {
 
   attachSFX(root = document) {
     let unlocked = false;
-    const handler = async () => {
-      if (!unlocked) {
-        unlocked = await this.unlock();
-      }
+    const handler = (event) => {
       const el = event.composedPath().find((n) => n?.dataset?.sfx);
-      if (el) this.play(el.dataset.sfx);
+      if (el) { if (unlocked) this.play(el.dataset.sfx); else return; }
+      const btn = event.composedPath().find((n) =>
+        n?.tagName === 'BUTTON' || n?.getAttribute?.('role') === 'button'
+      );
+      if (btn) { if (unlocked) this.play('ui.tap'); }
+      const link = event.composedPath().find((n) =>
+        n?.tagName === 'A' && n?.getAttribute?.('href')?.startsWith?.('/')
+      );
+      if (link) { if (unlocked) this.play('ui.nav'); }
     };
+    const unlocker = async () => {
+      unlocked = await this.unlock();
+      document.removeEventListener('pointerdown', unlocker);
+    };
+    document.addEventListener('pointerdown', unlocker);
     root.addEventListener('pointerdown', handler, { passive: true });
     return () => root.removeEventListener('pointerdown', handler);
   }

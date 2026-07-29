@@ -44,7 +44,7 @@ export default class ShareConsensoModal extends HTMLElement {
       value: `Descargar archivo (${EXT_CONSENSO})`,
       icon: { name: 'download' },
       variant: 'filled',
-      onClick: () => { this._close(); this._downloadFile(); }
+      onClick: () => { this._close(); this._downloadFile(); slice.getComponent('SoundService').play('ui.celebrate'); }
     });
     this.$downloadBtn.classList.add('export-modal__action');
 
@@ -68,7 +68,7 @@ export default class ShareConsensoModal extends HTMLElement {
       value: 'Copiar enlace',
       icon: { name: 'link' },
       variant: 'outlined',
-      onClick: () => { this._close(); slice.getComponent('ConsensoService').copyShareLink(); }
+      onClick: () => { this._close(); slice.getComponent('ConsensoService').copyShareLink(); slice.getComponent('SoundService').play('ui.celebrate'); }
     });
     this.$copyBtn.classList.add('export-modal__action');
 
@@ -78,7 +78,7 @@ export default class ShareConsensoModal extends HTMLElement {
         value: 'Compartir',
         icon: { name: 'share-2' },
         variant: 'filled',
-        onClick: () => { this._close(); this._nativeShare(); }
+        onClick: () => { this._close(); this._nativeShare(); slice.getComponent('SoundService').play('ui.celebrate'); }
       });
       this.$shareBtn.classList.add('export-modal__action');
       shareActions.appendChild(this.$shareBtn);

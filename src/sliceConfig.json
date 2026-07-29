@@ -32,10 +32,10 @@
       "enabled": true,
       "defaultTheme": "Light",
       "saveThemeLocally": true,
-      "useBrowserTheme": true
+      "useBrowserTheme": false
    },
    "logger": {
-      "enabled": false,
+      "enabled": true,
       "showLogs": {
          "console": {
             "error": true,
