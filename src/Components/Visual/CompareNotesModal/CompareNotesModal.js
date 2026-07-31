@@ -15,7 +15,8 @@ export default class CompareNotesModal extends HTMLElement {
   }
 
   init() {
-    this.$fab.innerHTML = `${slice.getComponent('IconProvider').svg('pencil', 16)} Notas`;
+    this.$fab.innerHTML = `${slice.getComponent('IconProvider').svg('pencil', 16)}`;
+
   }
 
   get fab() {
