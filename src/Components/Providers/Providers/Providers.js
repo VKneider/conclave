@@ -37,7 +37,7 @@
 //                         Created by  RespuestasImportService   Watched by  CompareView,
 //                         CompareCarousel, FinalTally, TextCompareCards
 //
-import { TOAST_DURATION } from '../../Core/AppConfig/AppConfig.js';
+import { TOAST_DURATION } from '../../../AppConfig.js';
 
 // ── Event catalog ─────────────────────────────────────────────────────
 //   toast:show          → Providers →  ToastProvider.show()
@@ -111,7 +111,7 @@ export default class Providers {
 
     const toasts = await slice.build('ToastProvider', { singleton: true });
     toasts.setPosition('bottom-right');
-    slice.events.subscribe('toast:show', (payload = {message: '', type: 'info'}) => {
+    slice.events.subscribe('toast:show', (payload = { message: '', type: 'info' }) => {
       toasts.show(payload.message, { type: payload.type, duration: TOAST_DURATION });
       const sound = slice.getComponent('SoundService');
       if (payload.type === 'success') sound.play('toast.success');

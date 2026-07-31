@@ -1,4 +1,4 @@
-import { TOAST_DURATION, TOAST_MAX } from '../../Core/AppConfig/AppConfig.js';
+import { TOAST_DURATION, TOAST_MAX } from '../../../AppConfig.js';
 
 const VALID_POSITIONS = new Set([
   'top-right', 'top-left', 'bottom-right', 'bottom-left', 'top-center', 'bottom-center'

@@ -1,21 +1,12 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "strict": false,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "maxNodeModuleJsDepth": 2
-  },
-  "include": [
-    "src/Components/**/*.js",
-    "src/**/*.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/libs/**",
-    "tests/**",
-    "src/public/**"
-  ]
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "strict": false,
+        "noImplicitAny": false,
+        "strictNullChecks": false,
+        "maxNodeModuleJsDepth": 2
+    },
+    "include": ["src/Components/**/*.js", "src/**/*.d.ts", "src/AppConfig.js"],
+    "exclude": ["node_modules", "dist", "src/libs/**", "tests/**", "src/public/**"]
 }

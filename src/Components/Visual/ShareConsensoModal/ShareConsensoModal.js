@@ -1,4 +1,4 @@
-import { APP_NAME, DATA_VERSION, EXT_CONSENSO, MIME_OCTET } from '../../Core/AppConfig/AppConfig.js';
+import { APP_NAME, DATA_VERSION, EXT_CONSENSO, MIME_OCTET } from '../../../AppConfig.js';
 
 
 export default class ShareConsensoModal extends HTMLElement {

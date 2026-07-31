@@ -1,4 +1,4 @@
-import { MIME_TEXT } from '../AppConfig/AppConfig.js';
+import { MIME_TEXT } from '../../../AppConfig.js';
 
 export default class FileDownloadService {
   download(filename, content, mimeType = MIME_TEXT) {

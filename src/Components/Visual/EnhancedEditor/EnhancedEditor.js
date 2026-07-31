@@ -2,7 +2,7 @@
 // Toolbar: bold, italic, bullet list, ordered list.
 // Keyboard shortcuts: Ctrl+B, Ctrl+I, Ctrl+Shift+7, Ctrl+Shift+8.
 // Usage: slice.build('EnhancedEditor', { value, placeholder, oninput, onblur })
-import { TEXTO_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
+import { TEXTO_MAX_LENGTH } from '../../../AppConfig.js';
 
 export default class EnhancedEditor extends HTMLElement {
   constructor(props) {

@@ -1,4 +1,4 @@
-import { ACCEPT_ALL, APP_NAME, APP_VERSION } from '../../Core/AppConfig/AppConfig.js';
+import { ACCEPT_ALL, APP_NAME, APP_VERSION } from '../../../AppConfig.js';
 
 
 // Compact "yo" hub in the topbar — identity (tu nombre), theme, and every

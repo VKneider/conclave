@@ -1,4 +1,4 @@
-import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH, COLOR_PALETTE, ID_MAX_LENGTH, DEFAULT_PLANTILLA_PRESET } from '../../Core/AppConfig/AppConfig.js';
+import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH, COLOR_PALETTE, ID_MAX_LENGTH, DEFAULT_PLANTILLA_PRESET } from '../../../AppConfig.js';
 import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../public/data/seedData.js';
 import { PRESETS } from '../../../public/data/presets.js';
 const CONTEXT = 'plantilla';
@@ -150,9 +150,9 @@ export default class PlantillaService {
     }
     const url = this.getShareLink();
     navigator.clipboard.writeText(url).then(() => {
-      slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success'});
+      slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
     }, () => {
-      slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error'});
+      slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error' });
     });
   }
 
@@ -611,7 +611,7 @@ export default class PlantillaService {
     // the imported Plantilla's ids. Manual creation gets a fresh opaque id.
     const id = tema?.id && this.isSafeId(tema.id) ? String(tema.id) : this._genId('t');
     const c = {
-      id, nombre: '', modo: DEFAULT_TEMA_MODO , orden: numero, min: null, max: null,
+      id, nombre: '', modo: DEFAULT_TEMA_MODO, orden: numero, min: null, max: null,
       participable: true, meta: { lider: null, numero },
       ...tema,
     };

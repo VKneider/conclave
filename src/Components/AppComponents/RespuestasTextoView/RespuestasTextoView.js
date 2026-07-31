@@ -1,6 +1,6 @@
 // Manages a reconciled list of TextoCard Slice components via CarouselView.
 // Mode toggle: grid (all at once), single (one at a time with arrows), columns.
-import { SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../Core/AppConfig/AppConfig.js';
+import { SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../../AppConfig.js';
 
 export default class RespuestasTextoView extends HTMLElement {
   constructor(props) {

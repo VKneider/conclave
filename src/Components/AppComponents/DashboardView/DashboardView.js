@@ -1,4 +1,4 @@
-import { DASHBOARD_NAME_MAX } from '../../Core/AppConfig/AppConfig.js';
+import { DASHBOARD_NAME_MAX } from '../../../AppConfig.js';
 
 export default class DashboardView extends HTMLElement {
   constructor(props) {
@@ -124,8 +124,8 @@ export default class DashboardView extends HTMLElement {
         <p class="view-sub">Cada barra muestra las opciones asignadas frente al mínimo y máximo. Toca un tema para ver quiénes quedaron.</p>
         <div class="tema-grid">
           ${temasReparto.map((t) => {
-            const col = roster.colorFor(t.id);
-            return `
+        const col = roster.colorFor(t.id);
+        return `
             <div class="tema-card" data-tema-id="${t.id}" style="--tema-color:${col}">
               <div class="tema-head">
                 <h3><span class="color-dot" style="background:${col}"></span>${esc(t.nombre)}</h3>
@@ -136,7 +136,7 @@ export default class DashboardView extends HTMLElement {
               <div class="bar"><span data-el="bar-${t.id}" style="background:${col}"></span></div>
               <div class="badge-slot" data-badge="${t.id}"></div>
             </div>`;
-          }).join('')}
+      }).join('')}
         </div>`;
     }
 

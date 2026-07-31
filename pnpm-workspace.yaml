@@ -2,5 +2,5 @@ allowBuilds:
   esbuild: false
   slicejs-cli: true
 minimumReleaseAgeExclude:
-  - slicejs-cli@4.1.0 || 4.1.1
+  - slicejs-cli@4.1.0 || 4.1.1 || 4.2.0
   - slicejs-web-framework@4.0.1 || 4.0.2

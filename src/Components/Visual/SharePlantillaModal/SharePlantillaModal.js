@@ -1,5 +1,5 @@
 import QRCode from 'qrcode';
-import { APP_NAME, DATA_VERSION, EXT_PLANTILLA, MIME_OCTET } from '../../Core/AppConfig/AppConfig.js';
+import { APP_NAME, DATA_VERSION, EXT_PLANTILLA, MIME_OCTET } from '../../../AppConfig.js';
 
 
 export default class SharePlantillaModal extends HTMLElement {

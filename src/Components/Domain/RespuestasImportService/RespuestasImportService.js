@@ -1,4 +1,4 @@
-import { EXT_PLANTILLA, EXT_RESPUESTAS } from '../../Core/AppConfig/AppConfig.js';
+import { EXT_PLANTILLA, EXT_RESPUESTAS } from '../../../AppConfig.js';
 
 const CONTEXT = 'respuestasImportadas';
 const STORAGE_KEY = 'conclave-respuestas-importadas-v1';

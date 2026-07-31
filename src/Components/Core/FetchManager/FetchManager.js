@@ -1,4 +1,4 @@
-import { MIME_JSON, FETCH_TIMEOUT } from '../AppConfig/AppConfig.js';
+import { MIME_JSON, FETCH_TIMEOUT } from '../../../AppConfig.js';
 
 export default class FetchManager {
    constructor(props) {

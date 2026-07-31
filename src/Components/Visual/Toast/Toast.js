@@ -1,4 +1,4 @@
-import { TOAST_DURATION } from '../../Core/AppConfig/AppConfig.js';
+import { TOAST_DURATION } from '../../../AppConfig.js';
 
 
 const TOAST_TYPES = new Set(['success', 'error', 'warning', 'info', 'default']);

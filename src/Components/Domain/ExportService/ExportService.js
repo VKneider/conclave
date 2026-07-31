@@ -1,4 +1,4 @@
-import { EXT_PLANTILLA, EXT_RESPUESTAS, EXT_CONSENSO, EXT_BACKUP, APP_NAME, DATA_VERSION, MIME_OCTET } from '../../Core/AppConfig/AppConfig.js';
+import { EXT_PLANTILLA, EXT_RESPUESTAS, EXT_CONSENSO, EXT_BACKUP, APP_NAME, DATA_VERSION, MIME_OCTET } from '../../../AppConfig.js';
 
 export default class ExportService {
   _sanitize(name) {

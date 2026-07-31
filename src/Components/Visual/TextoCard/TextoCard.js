@@ -1,4 +1,4 @@
-import { SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../Core/AppConfig/AppConfig.js';
+import { SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../../AppConfig.js';
 
 // Self-contained text-response card — title, expand button, EnhancedEditor,
 // and inline save/status. Built as a Slice component so the parent can

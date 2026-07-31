@@ -1,4 +1,4 @@
-import { PRINT_DELAY_MS, PRINT_CLEANUP_MS, SHARE_URL_MAX_LENGTH } from '../../Core/AppConfig/AppConfig.js';
+import { PRINT_DELAY_MS, PRINT_CLEANUP_MS, SHARE_URL_MAX_LENGTH } from '../../../AppConfig.js';
 
 // Context is created ONCE in init() via StoreService.ensure() — boot order
 // guarantees init runs before any consumer, so no per-method defensive ensure.
@@ -195,9 +195,9 @@ export default class ConsensoService {
     }
     const url = this.getShareLink();
     navigator.clipboard.writeText(url).then(() => {
-      slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success'});
+      slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
     }, () => {
-      slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error'});
+      slice.events.emit('toast:show', { message: 'No se pudo copiar el enlace', type: 'error' });
     });
   }
 

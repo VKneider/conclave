@@ -9,7 +9,7 @@
 // order (Providers) guarantees init runs before any consumer, so no per-method
 // defensive ensure is needed (replaces the old utils/context.js pattern).
 const CONTEXT = 'respuestas';
-import { SHARE_URL_MAX_LENGTH, PRINT_DELAY_MS, PRINT_CLEANUP_MS } from '../../Core/AppConfig/AppConfig.js';
+import { SHARE_URL_MAX_LENGTH, PRINT_DELAY_MS, PRINT_CLEANUP_MS } from '../../../AppConfig.js';
 
 const STORAGE_KEY = 'conclave-respuestas-v1';
 // seleccion: reparto (pool → temas). texto: texto_libre answers. voto:

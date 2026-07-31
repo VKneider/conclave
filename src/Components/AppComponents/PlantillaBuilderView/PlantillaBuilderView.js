@@ -1,4 +1,4 @@
-import { ACCEPT_ALL } from '../../Core/AppConfig/AppConfig.js';
+import { ACCEPT_ALL } from '../../../AppConfig.js';
 import { PRESETS } from '../../../public/data/presets.js';
 
 // Replaces HelpView's CSV/JSON textarea with real visual CRUD for
@@ -324,16 +324,16 @@ export default class PlantillaBuilderView extends HTMLElement {
     const atributos = this._plantilla.getAtributos();
     const html = atributos.length
       ? atributos.map((a) => {
-          const optsField = a.type === 'lista'
-            ? `<input class="pb-atrib__opts" data-atrib-field="opciones" data-atrib-key="${esc(a.key)}" type="text" placeholder="opciones separadas por coma" value="${esc((a.opciones || []).join(', '))}" />`
-            : '';
-          return `<div class="pb-atrib">
+        const optsField = a.type === 'lista'
+          ? `<input class="pb-atrib__opts" data-atrib-field="opciones" data-atrib-key="${esc(a.key)}" type="text" placeholder="opciones separadas por coma" value="${esc((a.opciones || []).join(', '))}" />`
+          : '';
+        return `<div class="pb-atrib">
             <input class="pb-atrib__label" data-atrib-field="label" data-atrib-key="${esc(a.key)}" type="text" value="${esc(a.label)}" />
             <span class="pb-atrib__type">${esc(TYPE_LABEL[a.type] || a.type)}</span>
             ${optsField}
             <button class="pb-atrib__rm" type="button" data-atrib-remove="${esc(a.key)}" title="Quitar atributo">✕</button>
           </div>`;
-        }).join('')
+      }).join('')
       : '<div class="pb-atrib__empty">Sin atributos. Agrega campos extra para tus Opciones (opcional).</div>';
     this.$atribList.innerHTML = this._html.sanitize(html);
   }

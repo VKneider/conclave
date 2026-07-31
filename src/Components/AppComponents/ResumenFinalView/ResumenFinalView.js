@@ -1,4 +1,4 @@
-import { EXT_CONSENSO, EXT_BACKUP, SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../Core/AppConfig/AppConfig.js';
+import { EXT_CONSENSO, EXT_BACKUP, SAVE_STATUS_MS, DEBOUNCE_SAVE_MS } from '../../../AppConfig.js';
 
 export default class ResumenFinalView extends HTMLElement {
   constructor(props) {

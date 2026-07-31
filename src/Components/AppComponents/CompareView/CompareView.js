@@ -1,4 +1,4 @@
-import { COLOR_PALETTE, MIME_CSV, DEBOUNCE_SAVE_MS, SAVE_STATUS_MS } from '../../Core/AppConfig/AppConfig.js';
+import { COLOR_PALETTE, MIME_CSV, DEBOUNCE_SAVE_MS, SAVE_STATUS_MS } from '../../../AppConfig.js';
 
 function csvCell(v) {
   const s = String(v == null ? '' : v);
@@ -400,20 +400,20 @@ export default class CompareView extends HTMLElement {
 
       const opcHtml = opciones.length
         ? opciones.map((o) => {
-            const n = counts[String(o.id)];
-            const pct = totalVotes ? Math.round((n / totalVotes) * 100) : 0;
-            const isFinal = effectiveFinal != null && String(o.id) === effectiveFinal;
-            const voterHtml = voters[String(o.id)].length
-              ? `<span class="cmp-vt-voters">${voters[String(o.id)].map((name) => `<span class="cmp-vt-voter">${esc(name)}</span>`).join(', ')}</span>`
-              : '';
-            return `<div class="cmp-vt-opc${isFinal ? ' cmp-vt-opc--final' : ''}">
+          const n = counts[String(o.id)];
+          const pct = totalVotes ? Math.round((n / totalVotes) * 100) : 0;
+          const isFinal = effectiveFinal != null && String(o.id) === effectiveFinal;
+          const voterHtml = voters[String(o.id)].length
+            ? `<span class="cmp-vt-voters">${voters[String(o.id)].map((name) => `<span class="cmp-vt-voter">${esc(name)}</span>`).join(', ')}</span>`
+            : '';
+          return `<div class="cmp-vt-opc${isFinal ? ' cmp-vt-opc--final' : ''}">
               <button class="cmp-vt-star" type="button" data-vt-pick data-tema="${esc(tema.id)}" data-opcion="${esc(o.id)}" title="Marcar como decisión final">${isFinal ? '★' : '☆'}</button>
               <span class="cmp-vt-name">${esc(o.nombre)}</span>
               <span class="cmp-vt-bar"><span class="cmp-vt-bar__fill" style="width:${pct}%"></span></span>
               <span class="cmp-vt-count">${n}</span>
               ${voterHtml}
             </div>`;
-          }).join('')
+        }).join('')
         : '<div class="cmp-vt-noopc">Este tema no tiene opciones cargadas.</div>';
 
       const finalName = effectiveFinal != null ? opciones.find((o) => String(o.id) === effectiveFinal)?.nombre : null;
@@ -473,18 +473,18 @@ export default class CompareView extends HTMLElement {
 
       const itemsHtml = opcIds.length
         ? effective.map((id, idx) => {
-            const o = byId[id];
-            if (!o) return '';
-            const voterHtml = rankers[id].length
-              ? `<span class="cmp-rk-voters">${rankers[id].map((v) => `<span class="cmp-rk-voter">${esc(v.autor)} #${v.pos}/${v.total}</span>`).join(', ')}</span>`
-              : '<span class="cmp-rk-voters cmp-rk-voters--none">Sin ordenar</span>';
-            return `<div class="cmp-rk-item">
+          const o = byId[id];
+          if (!o) return '';
+          const voterHtml = rankers[id].length
+            ? `<span class="cmp-rk-voters">${rankers[id].map((v) => `<span class="cmp-rk-voter">${esc(v.autor)} #${v.pos}/${v.total}</span>`).join(', ')}</span>`
+            : '<span class="cmp-rk-voters cmp-rk-voters--none">Sin ordenar</span>';
+          return `<div class="cmp-rk-item">
               <span class="cmp-rk-pos">${idx + 1}</span>
               <span class="cmp-rk-name">${esc(o.nombre)}</span>
               <span class="cmp-rk-pts">${points[id]} pts</span>
               ${voterHtml}
             </div>`;
-          }).join('')
+        }).join('')
         : '<div class="cmp-rk-noopc">Este tema no tiene opciones cargadas.</div>';
 
       const banner = hasManual

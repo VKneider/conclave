@@ -1,4 +1,4 @@
-import { ACCEPT_ALL } from '../../Core/AppConfig/AppConfig.js';
+import { ACCEPT_ALL } from '../../../AppConfig.js';
 
 export default class ImportDrop extends HTMLElement {
   constructor(props) {
