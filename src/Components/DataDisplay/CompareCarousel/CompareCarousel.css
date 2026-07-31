@@ -8,11 +8,20 @@ slice-comparecarousel .cc-search-slot { max-width: 220px; }
 
 /* Filters */
 slice-comparecarousel .cc-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-slice-comparecarousel .cc-filter-btn { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px; cursor: pointer; border: 2px solid var(--border-color); background: transparent; color: var(--font-secondary-color); text-transform: uppercase; letter-spacing: .03em; transition: transform .08s, box-shadow .08s, border-color .15s; }
-slice-comparecarousel .cc-filter-btn:hover { border-color: var(--font-primary-color); color: var(--font-primary-color); }
-slice-comparecarousel .cc-filter-btn.active { background: var(--primary-color); color: var(--primary-color-contrast); border-color: var(--primary-color); }
-slice-comparecarousel .cc-filter-select { background: var(--panel-background-color); border: 2px solid var(--border-color); color: var(--font-primary-color); border-radius: 8px; padding: 4px 8px; font-size: 12px; font-weight: 600; outline: none; cursor: pointer; }
-slice-comparecarousel .cc-filter-select:focus-visible { border-color: var(--primary-color); }
+slice-comparecarousel .cc-filters[hidden] { display: none; }
+/* Compact pill look for the filter buttons (built once in init, not in the
+   re-templated .cc-dynamic). No hard offset shadow here — these are small
+   state pills, not primary actions (see DESIGN.md §Pills). */
+slice-comparecarousel #ccFiltersSlot slice-button .slice_button,
+slice-comparecarousel #ccFiltersSlot slice-button .slice_button:hover {
+  font-size: 11px; padding: 4px 12px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: .03em;
+  box-shadow: none; transform: none;
+}
+slice-comparecarousel #ccFiltersSlot slice-button .slice_button:active { transform: translate(1px, 1px); }
+slice-comparecarousel #ccFiltersSlot slice-select { min-width: 150px; }
+slice-comparecarousel #ccFiltersSlot slice-select .slice_select_container { padding: 4px 8px; }
+slice-comparecarousel #ccFiltersSlot slice-select .slice_select { font-size: 12px; }
 slice-comparecarousel .cc-spacer { flex: 1; }
 
 /* Carousel body */

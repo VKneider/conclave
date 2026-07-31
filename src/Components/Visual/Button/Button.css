@@ -97,3 +97,28 @@ slice-button .slice_button--soft:hover {
   transform: none;
   box-shadow: none;
 }
+
+/* danger = solid danger bg + contrast text, keeps the ink border + hard
+   offset shadow (same as .btn-danger). Hover/active press are inherited
+   from the base .slice_button:hover/:active rules. */
+slice-button .slice_button--danger {
+  background: var(--danger-color);
+  color: var(--danger-contrast);
+  border-color: var(--font-primary-color);
+}
+
+/* sm = compact dimensions (mirrors .btn-sm in sliceStyles.css). */
+slice-button .slice_button--sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 var(--font-primary-color);
+}
+
+slice-button .slice_button--sm:hover {
+  box-shadow: 3px 3px 0 var(--font-primary-color);
+}
+
+slice-button .slice_button--sm:active {
+  box-shadow: 0 0 0 var(--font-primary-color);
+}

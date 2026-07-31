@@ -161,7 +161,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
          await expect(app.page.locator('.rt-fs')).toBeVisible();
 
          // Close with ✕ Cerrar
-         await app.page.locator('.rt-fs__close').click();
+         await app.page.locator('.rt-fs__close-slot .slice_button').click();
          await app.page.waitForTimeout(300);
 
          await expect(app.page.locator('.rt-fs')).not.toBeVisible();
@@ -184,7 +184,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
          await fsEditor.fill('Respuesta desde fullscreen');
 
          // Close → should save
-         await app.page.locator('.rt-fs__close').click();
+         await app.page.locator('.rt-fs__close-slot .slice_button').click();
          await app.page.waitForTimeout(300);
 
          const respuestas = await app.getContext('respuestas');

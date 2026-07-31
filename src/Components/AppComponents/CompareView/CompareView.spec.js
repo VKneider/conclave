@@ -108,7 +108,7 @@ test.describe('13. CompareView', () => {
       await app.navigateTo('/comparar');
       await app.page.waitForTimeout(500);
 
-      await app.page.locator('#btnTemaView').click();
+      await app.page.locator('[slice-id="cmpBtnTemaView"] .slice_button').click();
       await app.page.waitForTimeout(300);
 
       // Tema view uses .tema-table class
@@ -123,7 +123,7 @@ test.describe('13. CompareView', () => {
       await app.page.waitForTimeout(500);
 
       // Some rows disagree (different assignments)
-      const disagreeBtn = app.page.locator('[data-f="disagree"]');
+      const disagreeBtn = app.page.locator('[slice-id="cmpBtnFilterDisagree"] .slice_button');
       await expect(disagreeBtn).toBeVisible();
       await disagreeBtn.click();
       await app.page.waitForTimeout(300);
@@ -188,7 +188,7 @@ test.describe('13. CompareView', () => {
       await app.navigateTo('/comparar');
       await app.page.waitForTimeout(500);
 
-      await app.page.locator('#btnFillSug').click();
+      await app.page.locator('[slice-id="cmpBtnFillSug"] .slice_button').click();
       await app.page.waitForTimeout(200);
 
       // Confirm dialog appears
@@ -212,7 +212,7 @@ test.describe('13. CompareView', () => {
       await app.page.waitForTimeout(300);
 
       // Clear all
-      await app.page.locator('#btnClearRes').click();
+      await app.page.locator('[slice-id="cmpBtnClearRes"] .slice_button').click();
       await app.page.waitForTimeout(200);
       await app.confirmDialog();
       await app.page.waitForTimeout(300);
@@ -228,7 +228,7 @@ test.describe('13. CompareView', () => {
       await app.page.waitForTimeout(500);
 
       const downloadPromise = app.page.waitForEvent('download', { timeout: 5000 }).catch(() => null);
-      await app.page.locator('#btnExportCmp').click();
+      await app.page.locator('[slice-id="cmpBtnExportCmp"] .slice_button').click();
       await app.page.waitForTimeout(500);
 
       const download = await downloadPromise;

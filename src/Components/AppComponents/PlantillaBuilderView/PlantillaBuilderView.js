@@ -1,6 +1,13 @@
 import { ACCEPT_ALL } from '../../../AppConfig.js';
 import { PRESETS } from '../../../public/data/presets.js';
 
+const ATRIB_TYPE_OPTIONS = [
+  { text: 'Texto', value: 'texto' },
+  { text: 'Número', value: 'numero' },
+  { text: 'Lista', value: 'lista' },
+  { text: 'Sí/No', value: 'siNo' },
+];
+
 // Replaces HelpView's CSV/JSON textarea with real visual CRUD for
 // Temas/Opciones — the "SETUP now lives entirely in the UI, no files
 // on the server" direction. Tema/Opción rows are real Visual components
@@ -26,10 +33,12 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$presetGrid = this.querySelector('#presetGrid');
     this.$atribList = this.querySelector('#atribList');
     this.$atribAddLabel = this.querySelector('#atribAddLabel');
-    this.$atribAddType = this.querySelector('#atribAddType');
-    this.$atribAddBtn = this.querySelector('#atribAddBtn');
+    this.$atribAddTypeSlot = this.querySelector('#atribAddTypeSlot');
+    this.$atribAddBtnSlot = this.querySelector('#atribAddBtnSlot');
     this.$addCatSlot = this.querySelector('#addCatSlot');
     this.$addOpcSlot = this.querySelector('#addOpcSlot');
+    this.$addCatBtnSlot = this.querySelector('#addCatBtnSlot');
+    this.$addOpcBtnSlot = this.querySelector('#addOpcBtnSlot');
     this.$catList = this.querySelector('#catList');
     this.$opcList = this.querySelector('#opcList');
     this.$catCount = this.querySelector('#catCount');
@@ -39,18 +48,18 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$opcCount = this.querySelector('#opcCount');
     this.$opcEmpty = this.querySelector('#opcEmpty');
     this.$opcSection = this.querySelector('#opcSection');
-    this.$sharePlantillaBtn = this.querySelector('#sharePlantillaBtn');
-    this.$importBtn = this.querySelector('#importPlantillaBtn');
+    this.$shareBtnSlot = this.querySelector('#sharePlantillaBtnSlot');
+    this.$importBtnSlot = this.querySelector('#importPlantillaBtnSlot');
     this.$viewHeaderSlot = this.querySelector('.viewheader-slot');
     this.$importFile = this.querySelector('#importPlantillaFile');
-    this.$catClearAll = this.querySelector('#catClearAll');
+    this.$catClearAllSlot = this.querySelector('#catClearAllSlot');
     this.$catBulkBar = this.querySelector('#catBulkBar');
     this.$catBulkCount = this.querySelector('#catBulkCount');
-    this.$catBulkDelete = this.querySelector('#catBulkDelete');
-    this.$opcClearAll = this.querySelector('#opcClearAll');
+    this.$catBulkDeleteSlot = this.querySelector('#catBulkDeleteSlot');
+    this.$opcClearAllSlot = this.querySelector('#opcClearAllSlot');
     this.$opcBulkBar = this.querySelector('#opcBulkBar');
     this.$opcBulkCount = this.querySelector('#opcBulkCount');
-    this.$opcBulkDelete = this.querySelector('#opcBulkDelete');
+    this.$opcBulkDeleteSlot = this.querySelector('#opcBulkDeleteSlot');
 
     // Bulk selection — delegated event on the list container.
     this.$catList.addEventListener('change', (e) => {
@@ -59,10 +68,6 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$opcList.addEventListener('change', (e) => {
       if (e.target.classList.contains('opc-row__select')) this._updateOpcBulk();
     });
-    this.$catClearAll.onclick = () => this._confirmClear('temas');
-    this.$opcClearAll.onclick = () => this._confirmClear('opciones');
-    this.$catBulkDelete.onclick = () => this._confirmBulkDelete('temas');
-    this.$opcBulkDelete.onclick = () => this._confirmBulkDelete('opciones');
 
     // Preset gallery: load a starter Plantilla (confirm-gated if not empty).
     this.$presetGrid.addEventListener('click', (e) => {
@@ -73,7 +78,6 @@ export default class PlantillaBuilderView extends HTMLElement {
     });
 
     // Atributos editor: add / edit label / edit lista options / remove.
-    this.$atribAddBtn.onclick = () => this._addAtributo();
     this.$atribAddLabel.addEventListener('keydown', (e) => { if (e.key === 'Enter') this._addAtributo(); });
     this.$atribList.addEventListener('click', (e) => {
       const rm = e.target.closest('[data-atrib-remove]');
@@ -97,8 +101,6 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._syncQueues = Object.create(null);
     this._onTemaMove = ({ temaId, direction }) => this._plantilla.moveTema(temaId, direction);
 
-    this.$sharePlantillaBtn.onclick = () => slice.getComponent('sharePlantillaModal').show();
-    this.$importBtn.onclick = () => this.$importFile.click();
     this.$importFile.onchange = (e) => this._handleImportFile(e);
 
     slice.events.subscribe('tema:move', this._onTemaMove);
@@ -113,12 +115,22 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._icons = slice.getComponent('IconProvider');
     const settings = slice.getComponent('SettingsService');
 
-    const [nombreInput, lideresCheckbox, addCatInput, addOpcInput, viewHeader] = await Promise.all([
+    const [nombreInput, lideresCheckbox, addCatInput, addOpcInput, viewHeader, shareBtn, importBtn, catClearAll, opcClearAll, catBulkDelete, opcBulkDelete, addCatBtn, addOpcBtn, atribAddBtn, atribTypeSelect] = await Promise.all([
       slice.build('Input', { sliceId: 'pbNombre', placeholder: 'Nombre de la Plantilla' }),
       slice.build('Checkbox', { sliceId: 'pbLideres', label: 'Habilitar responsables de tema' }),
       slice.build('Input', { sliceId: 'pbAddCat', placeholder: 'Nuevo tema… — escribe y presiona Enter' }),
       slice.build('Input', { sliceId: 'pbAddOpc', placeholder: 'Nueva opción… — escribe y presiona Enter' }),
       slice.build('ViewHeader', { sliceId: 'pbViewHeader', title: 'Plantilla', subtitle: 'Una Plantilla es una lista de <b>Temas</b>. Cada Tema elige su <b>modo</b>: <i>Asignación</i> (repartir una lista de personas u opciones entre equipos), <i>Votación</i> (elegir una), <i>Ranking</i> (ordenar) o <i>Texto libre</i> (responder con una idea). Puedes mezclar modos en la misma Plantilla — o empezar desde un ejemplo:' }),
+      slice.build('Button', { sliceId: 'pbShareBtn', value: 'Compartir plantilla', icon: { name: 'share-2', size: '14' }, variant: 'filled', onClick: () => slice.getComponent('sharePlantillaModal').show() }),
+      slice.build('Button', { sliceId: 'pbImportBtn', value: 'Importar Plantilla', icon: { name: 'upload', size: '14' }, variant: 'ghost', onClick: () => this.$importFile.click() }),
+      slice.build('Button', { sliceId: 'pbCatClearAll', value: 'Borrar todo', icon: { name: 'trash-2', size: '14', color: 'var(--danger-color)' }, variant: 'ghost', customColor: { text: 'var(--danger-color)' }, onClick: () => this._confirmClear('temas') }),
+      slice.build('Button', { sliceId: 'pbOpcClearAll', value: 'Borrar todo', icon: { name: 'trash-2', size: '14', color: 'var(--danger-color)' }, variant: 'ghost', customColor: { text: 'var(--danger-color)' }, onClick: () => this._confirmClear('opciones') }),
+      slice.build('Button', { sliceId: 'pbCatBulkDelete', value: 'Borrar seleccionados', variant: 'danger', size: 'sm', onClick: () => this._confirmBulkDelete('temas') }),
+      slice.build('Button', { sliceId: 'pbOpcBulkDelete', value: 'Borrar seleccionadas', variant: 'danger', size: 'sm', onClick: () => this._confirmBulkDelete('opciones') }),
+      slice.build('Button', { sliceId: 'pbAddCatBtn', value: 'Agregar', icon: { name: 'plus', size: '14' }, variant: 'filled' }),
+      slice.build('Button', { sliceId: 'pbAddOpcBtn', value: 'Agregar', icon: { name: 'plus', size: '14' }, variant: 'filled' }),
+      slice.build('Button', { sliceId: 'pbAtribAddBtn', value: 'Agregar', variant: 'ghost', onClick: () => this._addAtributo() }),
+      slice.build('Select', { sliceId: 'pbAtribType', options: ATRIB_TYPE_OPTIONS, visibleProp: 'text' }),
     ]);
     if (viewHeader instanceof Node) this.$viewHeaderSlot.appendChild(viewHeader);
     this.$nombreInput = nombreInput;
@@ -130,6 +142,28 @@ export default class PlantillaBuilderView extends HTMLElement {
     this.$lideresSlot.appendChild(lideresCheckbox);
     this.$addCatSlot.appendChild(addCatInput);
     this.$addOpcSlot.appendChild(addOpcInput);
+    this.$shareBtnSlot.appendChild(shareBtn);
+    this.$importBtnSlot.appendChild(importBtn);
+    this.$catClearAllSlot.appendChild(catClearAll);
+    this.$opcClearAllSlot.appendChild(opcClearAll);
+    this.$catBulkDeleteSlot.appendChild(catBulkDelete);
+    this.$opcBulkDeleteSlot.appendChild(opcBulkDelete);
+    this.$addCatBtnSlot.appendChild(addCatBtn);
+    this.$addOpcBtnSlot.appendChild(addOpcBtn);
+    this.$atribAddBtnSlot.appendChild(atribAddBtn);
+    this.$atribAddTypeSlot.appendChild(atribTypeSelect);
+
+    this.$shareBtn = shareBtn;
+    this.$importBtn = importBtn;
+    this.$catClearAll = catClearAll;
+    this.$opcClearAll = opcClearAll;
+    this.$catBulkDelete = catBulkDelete;
+    this.$opcBulkDelete = opcBulkDelete;
+    this.$addCatBtn = addCatBtn;
+    this.$addOpcBtn = addOpcBtn;
+    this.$atribAddBtn = atribAddBtn;
+    this.$atribTypeSelect = atribTypeSelect;
+    atribTypeSelect.value = [ATRIB_TYPE_OPTIONS[0]];
 
     nombreInput.value = this._plantilla.getNombre();
     nombreInput.addEventListener('change', () => this._plantilla.setNombre(nombreInput.value.trim()));
@@ -137,10 +171,10 @@ export default class PlantillaBuilderView extends HTMLElement {
     lideresCheckbox.checked = settings.isLideresEnabled();
     lideresCheckbox.addEventListener('change', () => settings.setLideresEnabled(lideresCheckbox.checked));
 
-    this._bindAddInput(addCatInput, this.querySelector('#addCatBtn'), (name) => {
+    this._bindAddInput(addCatInput, addCatBtn, (name) => {
       this._plantilla.addTema({ nombre: name });
     });
-    this._bindAddInput(addOpcInput, this.querySelector('#addOpcBtn'), (name) => this._plantilla.addOpcion({ nombre: name }));
+    this._bindAddInput(addOpcInput, addOpcBtn, (name) => this._plantilla.addOpcion({ nombre: name }));
 
     this._renderPresets();
     await this._renderTemas();
@@ -162,10 +196,6 @@ export default class PlantillaBuilderView extends HTMLElement {
       }
     });
 
-    this.$sharePlantillaBtn.innerHTML = `${this._icons.svg('share-2', 14)} Compartir plantilla`;
-    this.$importBtn.innerHTML = `${this._icons.svg('upload', 14)} Importar Plantilla`;
-    this.$catClearAll.innerHTML = `${this._icons.svg('trash-2', 14, 'var(--danger-color)')} Borrar todo`;
-    this.$opcClearAll.innerHTML = `${this._icons.svg('trash-2', 14, 'var(--danger-color)')} Borrar todo`;
     this.querySelector('.pb-presets summary').innerHTML = `${this._icons.svg('sparkles', 14, 'var(--primary-color)')} Empieza desde una plantilla de ejemplo`;
   }
 
@@ -194,7 +224,7 @@ export default class PlantillaBuilderView extends HTMLElement {
     };
     // Enter works on desktop; on mobile the virtual "Go/Done/Intro" key is
     // unreliable (Android/Gboard often reports keyCode 229 / key 'Unidentified'
-    // mid-composition instead of a clean 'Enter'), so the visible "+ Agregar"
+    // mid-composition instead of a clean 'Enter'), so the visible "Agregar"
     // button is the dependable path there.
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); commit(); }
@@ -312,7 +342,9 @@ export default class PlantillaBuilderView extends HTMLElement {
   _addAtributo() {
     const label = this.$atribAddLabel.value.trim();
     if (!label) return;
-    this._plantilla.addAtributo({ label, type: this.$atribAddType.value || 'texto' });
+    const chosen = this.$atribTypeSelect.value;
+    const type = (chosen && typeof chosen === 'object' ? chosen.value : chosen) || 'texto';
+    this._plantilla.addAtributo({ label, type });
     this.$atribAddLabel.value = '';
     this.$atribAddLabel.focus();
   }

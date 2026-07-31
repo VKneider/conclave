@@ -18,7 +18,7 @@ const baseURL = `http://localhost:${PORT}`;
 export default defineConfig({
    testDir: './',
    testMatch: '**/*.spec.js',
-   testIgnore: ['**/node_modules/**', '**/playwright-report/**', '**/test-results/**'],
+   testIgnore: ['**/node_modules/**', '**/playwright-report/**', '**/test-results/**', '**/dist/**'],
 
    fullyParallel: true,
    forbidOnly: !!process.env.CI,

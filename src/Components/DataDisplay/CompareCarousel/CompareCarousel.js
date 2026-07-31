@@ -6,6 +6,7 @@ export default class CompareCarousel extends HTMLElement {
     slice.attachTemplate(this);
     this.$root = this.querySelector('.cmp-carousel');
     this.$searchSlot = this.querySelector('.cc-search-slot');
+    this.$filtersSlot = this.querySelector('#ccFiltersSlot');
     this.$dynamic = this.querySelector('.cc-dynamic');
     this._sources = [];
     this._index = 0;
@@ -14,6 +15,10 @@ export default class CompareCarousel extends HTMLElement {
     this._temaFilter = '';
     this._onKeydown = this._onKeydown.bind(this);
     this._boundPaint = () => this._render();
+    this._filterBtns = {};
+    this._temaFilterSel = null;
+    this._lastTemaIds = null;
+    this._lastTemaApplied = null;
     slice.controller.setComponentProps(this, props);
   }
 
@@ -31,8 +36,34 @@ export default class CompareCarousel extends HTMLElement {
       this._render();
     });
 
+    // Toolbar built once (like the search field) and kept out of .cc-dynamic,
+    // which is re-templated on every _render(). Active pill = filled variant,
+    // toggled by setter per render; the "Todos (N)" count updates via value.
+    const [allBtn, disagreeBtn, agreeBtn, pendingBtn, temaFilterSel] = await Promise.all([
+      slice.build('Button', { sliceId: 'ccFilterAll', value: 'Todos (0)', size: 'sm', variant: 'filled', onClick: () => this._setFilter('all') }),
+      slice.build('Button', { sliceId: 'ccFilterDisagree', value: 'Diferencias', size: 'sm', variant: 'outlined', onClick: () => this._setFilter('disagree') }),
+      slice.build('Button', { sliceId: 'ccFilterAgree', value: 'Coincidencias', size: 'sm', variant: 'outlined', onClick: () => this._setFilter('agree') }),
+      slice.build('Button', { sliceId: 'ccFilterPending', value: 'Por revisar', size: 'sm', variant: 'outlined', onClick: () => this._setFilter('pending') }),
+      slice.build('Select', { sliceId: 'ccTemaFilter', options: [{ text: 'Todos los temas', value: '' }], visibleProp: 'text' }),
+    ]);
+    this._filterBtns = { all: allBtn, disagree: disagreeBtn, agree: agreeBtn, pending: pendingBtn };
+    this._temaFilterSel = temaFilterSel;
+    this.$filtersSlot.append(allBtn, disagreeBtn, agreeBtn, pendingBtn, temaFilterSel);
+    temaFilterSel.onChange = () => {
+      const v = temaFilterSel.value;
+      this._temaFilter = v && typeof v === 'object' ? v.value : v;
+      this._index = 0;
+      this._render();
+    };
+
     slice.context.watch('decisionFinal', this, this._boundPaint);
     slice.context.watch('settings', this, this._boundPaint);
+    this._render();
+  }
+
+  _setFilter(filter) {
+    this._filter = filter;
+    this._index = 0;
     this._render();
   }
 
@@ -120,10 +151,12 @@ export default class CompareCarousel extends HTMLElement {
 
     if (all.length < 2) {
       this.$searchSlot.hidden = true;
+      this.$filtersSlot.hidden = true;
       this.$dynamic.innerHTML = '';
       return;
     }
     this.$searchSlot.hidden = false;
+    this.$filtersSlot.hidden = false;
 
     const rows = this._rows();
     const opciones = this._visibleOpciones();
@@ -138,6 +171,24 @@ export default class CompareCarousel extends HTMLElement {
     const conflictCount = rows.filter((r) => r.status === 'disagree').length;
     const resolvedConflicts = rows.filter((r) => r.status === 'disagree' && resolution.hasResolution(r.opcion.id)).length;
     const pendientes = conflictCount - resolvedConflicts;
+
+    // Toolbar (build-once, mounted in init) — reflect current state by setter.
+    this._filterBtns.all.value = `Todos (${opciones.length})`;
+    for (const k of Object.keys(this._filterBtns)) {
+      this._filterBtns[k].variant = this._filter === k ? 'filled' : 'outlined';
+    }
+    const temaOpts = [{ text: 'Todos los temas', value: '' }, ...temas.map((t) => ({ text: t.nombre, value: t.id }))];
+    const temaIds = temas.map((t) => t.id).join(',');
+    if (temaIds !== this._lastTemaIds) {
+      this._lastTemaIds = temaIds;
+      this._temaFilterSel.options = temaOpts;
+    }
+    if (this._temaFilter && !temaOpts.some((o) => o.value === this._temaFilter)) this._temaFilter = '';
+    const curTema = (this._temaFilter && temaOpts.find((o) => o.value === this._temaFilter)) || temaOpts[0];
+    if (!this._lastTemaApplied || this._lastTemaApplied.value !== curTema.value) {
+      this._lastTemaApplied = curTema;
+      this._temaFilterSel.value = [curTema];
+    }
 
     // Summary
     let html = `
@@ -158,19 +209,8 @@ export default class CompareCarousel extends HTMLElement {
         </div>
       </div>`;
 
-    // Filters — always render so the user can change even in empty state
-    // (the search field itself lives in .cc-search-slot, built once in init())
-    html += `<div class="cc-filters">
-      <button class="cc-filter-btn ${this._filter === 'all' ? 'active' : ''}" data-ccf="all">Todos (${opciones.length})</button>
-      <button class="cc-filter-btn ${this._filter === 'disagree' ? 'active' : ''}" data-ccf="disagree">Diferencias</button>
-      <button class="cc-filter-btn ${this._filter === 'agree' ? 'active' : ''}" data-ccf="agree">Coincidencias</button>
-      <button class="cc-filter-btn ${this._filter === 'pending' ? 'active' : ''}" data-ccf="pending">Por revisar</button>
-      <select class="cc-filter-select" id="ccTemaFilter">
-        <option value="">Todos los temas</option>
-        ${temas.map((t) => `<option value="${t.id}" ${this._temaFilter === t.id ? 'selected' : ''}>${this._html.esc(t.nombre)}</option>`).join('')}
-      </select>
-    </div>`;
-
+    // Filters live in the build-once toolbar (.cc-filters slot in the .html);
+    // this innerHTML region only carries the summary + carousel body.
     if (!opciones.length) {
       html += `<div class="cc-empty">No hay opciones que coincidan con los filtros.</div>`;
       this.$dynamic.innerHTML = this._html.sanitize(html);
@@ -248,25 +288,6 @@ export default class CompareCarousel extends HTMLElement {
 
   _bindInteractions(opciones) {
     const resolution = this._resolution();
-
-    // Filter buttons
-    this.$root.querySelectorAll('.cc-filter-btn').forEach((b) => {
-      b.onclick = () => {
-        this._filter = b.dataset.ccf;
-        this._index = 0;
-        this._render();
-      };
-    });
-
-    // Tema filter
-    const tf = this.$root.querySelector('#ccTemaFilter');
-    if (tf) {
-      tf.onchange = () => {
-        this._temaFilter = tf.value;
-        this._index = 0;
-        this._render();
-      };
-    }
 
     // Arrows
     const prev = this.$root.querySelector('[data-ccact="prev"]');

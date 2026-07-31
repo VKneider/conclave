@@ -32,32 +32,32 @@ export default {
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 959,
+          "line": 946,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 972,
+          "line": 959,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 302,
+          "line": 332,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 366,
+          "line": 398,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 382,
+          "line": 414,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 519,
+          "line": 551,
           "component": "PlantillaBuilderView"
         },
         {
@@ -121,11 +121,6 @@ export default {
           "component": "RespuestasService"
         },
         {
-          "file": "src/Components/Visual/CategoriaRow/CategoriaRow.js",
-          "line": 141,
-          "component": "CategoriaRow"
-        },
-        {
           "file": "src/Components/Visual/ExportRespuestasModal/ExportRespuestasModal.js",
           "line": 181,
           "component": "ExportRespuestasModal"
@@ -142,7 +137,7 @@ export default {
         },
         {
           "file": "src/Components/Visual/TemaRow/TemaRow.js",
-          "line": 225,
+          "line": 228,
           "component": "TemaRow"
         }
       ],
@@ -178,14 +173,14 @@ export default {
       "emitters": [
         {
           "file": "src/Components/Visual/TemaRow/TemaRow.js",
-          "line": 207,
+          "line": 210,
           "component": "TemaRow"
         }
       ],
       "listeners": [
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 104,
+          "line": 106,
           "component": "PlantillaBuilderView"
         }
       ]
@@ -223,42 +218,42 @@ export default {
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 895,
+          "line": 890,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 913,
+          "line": 908,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 920,
+          "line": 915,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 928,
+          "line": 923,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/CompareView/CompareView.js",
-          "line": 965,
+          "line": 952,
           "component": "CompareView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 292,
+          "line": 322,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 297,
+          "line": 327,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 558,
+          "line": 590,
           "component": "PlantillaBuilderView"
         },
         {
@@ -362,11 +357,6 @@ export default {
           "component": "RespuestasService"
         },
         {
-          "file": "src/Components/Visual/CategoriaRow/CategoriaRow.js",
-          "line": 148,
-          "component": "CategoriaRow"
-        },
-        {
           "file": "src/Components/Visual/ExportRespuestasModal/ExportRespuestasModal.js",
           "line": 147,
           "component": "ExportRespuestasModal"
@@ -393,7 +383,7 @@ export default {
         },
         {
           "file": "src/Components/Visual/TemaRow/TemaRow.js",
-          "line": 232,
+          "line": 235,
           "component": "TemaRow"
         }
       ],

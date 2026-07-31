@@ -19,7 +19,7 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          await app.fillInput('#addCatSlot input', 'Logística');
-         await app.clickAndWait('#addCatBtn');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          const plantilla = await app.getContext('plantilla');
          const added = plantilla.temas.find((t) => t.nombre === 'Logística');
@@ -34,7 +34,7 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          await app.fillInput('#addCatSlot input', 'Elegir fecha');
-         await app.clickAndWait('#addCatBtn');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          // New tema is inserted at the TOP of the list (by orden)
          const addedRow = app.page.locator('#catList slice-temarow').first();
@@ -57,7 +57,7 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          await app.fillInput('#addCatSlot input', 'Priorizar ideas');
-         await app.clickAndWait('#addCatBtn');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          const addedRow = app.page.locator('#catList slice-temarow').first();
          await addedRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
@@ -83,7 +83,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.page.waitForTimeout(200);
 
          await app.fillInput('#addCatSlot input', 'Sugerencias libres');
-         await app.clickAndWait('#addCatBtn');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          const plantilla = await app.getContext('plantilla');
          const added = plantilla.temas.find((t) => t.nombre === 'Sugerencias libres');
@@ -168,7 +168,7 @@ test.describe('PlantillaBuilderView', () => {
 
          // Add a tema then change its modo to votacion
          await app.fillInput('#addCatSlot input', '¿Dónde cenamos?');
-         await app.clickAndWait('#addCatBtn');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          const temaRow = app.page.locator('#catList slice-temarow').first();
          await temaRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
@@ -183,7 +183,7 @@ test.describe('PlantillaBuilderView', () => {
          // Add inline opcion
          const opcAddInput = temaRow.locator('.cat-row__opc-add');
          await opcAddInput.fill('Restaurante A');
-         await temaRow.locator('.cat-row__opc-add-btn').click();
+          await temaRow.locator('.cat-row__opc-add-btn-slot .slice_button').click();
          await app.page.waitForTimeout(300);
 
          const plantilla = await app.getContext('plantilla');
@@ -199,7 +199,7 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          await app.fillInput('#addCatSlot input', '¿Dónde cenamos?');
-         await app.clickAndWait('#addCatBtn');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          const temaRow = app.page.locator('#catList slice-temarow').first();
          await temaRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
@@ -211,7 +211,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.page.waitForTimeout(200);
 
          await temaRow.locator('.cat-row__opc-add').fill('Restaurante A');
-         await temaRow.locator('.cat-row__opc-add-btn').click();
+          await temaRow.locator('.cat-row__opc-add-btn-slot .slice_button').click();
          await app.page.waitForTimeout(300);
 
          // Update via service, verify UI reflects change
@@ -235,7 +235,7 @@ test.describe('PlantillaBuilderView', () => {
 
          // Create votacion tema with opcion inline
          await app.fillInput('#addCatSlot input', '¿Dónde cenamos?');
-         await app.clickAndWait('#addCatBtn');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          const temaRow = app.page.locator('#catList slice-temarow').first();
          await temaRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
@@ -247,7 +247,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.page.waitForTimeout(200);
 
          await temaRow.locator('.cat-row__opc-add').fill('Restaurante A');
-         await temaRow.locator('.cat-row__opc-add-btn').click();
+          await temaRow.locator('.cat-row__opc-add-btn-slot .slice_button').click();
          await app.page.waitForTimeout(300);
 
          // Remove it
@@ -270,7 +270,7 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          await app.fillInput('#addOpcSlot input', 'Juan Pérez');
-         await app.clickAndWait('#addOpcBtn');
+         await app.clickAndWait('#addOpcBtnSlot .slice_button');
 
          const plantilla = await app.getContext('plantilla');
          const added = plantilla.opciones.find((o) => o.nombre === 'Juan Pérez');
@@ -347,7 +347,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.page.locator('#opcList slice-opcionrow').nth(3).locator('.opc-row__select').check();
          await app.page.waitForTimeout(200);
 
-         await app.page.locator('#opcBulkDelete').click();
+         await app.page.locator('#opcBulkDeleteSlot .slice_button').click();
          await app.confirmDialog();
 
          const newCount = await app.page.locator('#opcList > *').count();
@@ -360,7 +360,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.navigateTo('/plantilla');
          await expect(app.page.locator('#opcList > *')).not.toHaveCount(0);
 
-         await app.page.locator('#opcClearAll').click();
+         await app.page.locator('#opcClearAllSlot .slice_button').click();
          await app.confirmDialog();
 
          await expect(app.page.locator('#opcList > *')).toHaveCount(0);
@@ -377,7 +377,7 @@ test.describe('PlantillaBuilderView', () => {
 
          await app.fillInput('#atribAddLabel', 'Rol');
          // Type defaults to "texto"
-         await app.clickAndWait('#atribAddBtn');
+         await app.clickAndWait('#atribAddBtnSlot .slice_button');
 
          const plantilla = await app.getContext('plantilla');
          const added = plantilla.atributos.find((a) => a.label === 'Rol');
@@ -392,9 +392,9 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          await app.fillInput('#atribAddLabel', 'Equipo');
-         await app.page.selectOption('#atribAddType', 'lista');
+         await app.selectOption('#atribAddTypeSlot .slice_select_container', 'Lista');
          await app.page.waitForTimeout(100);
-         await app.clickAndWait('#atribAddBtn');
+         await app.clickAndWait('#atribAddBtnSlot .slice_button');
 
          const plantilla = await app.getContext('plantilla');
          const added = plantilla.atributos.find((a) => a.label === 'Equipo');

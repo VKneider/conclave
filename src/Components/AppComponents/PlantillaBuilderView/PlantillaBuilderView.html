@@ -2,8 +2,8 @@
   <div class="viewheader-slot"></div>
 
   <div class="gen-main-actions">
-    <button class="btn btn-primary" id="sharePlantillaBtn">Compartir plantilla</button>
-    <button class="btn btn-ghost" id="importPlantillaBtn">Importar Plantilla</button>
+    <span id="sharePlantillaBtnSlot"></span>
+    <span id="importPlantillaBtnSlot"></span>
     <input type="file" id="importPlantillaFile" accept="application/json,.json,.plantilla,.respuestas" hidden />
   </div>
 
@@ -21,19 +21,19 @@
     <div class="pb-section-head">
       <h3 class="section-card__title">Temas</h3>
       <span class="gen-badge" id="catCount">0</span>
-      <button class="btn btn-ghost pb-clear-all" id="catClearAll" type="button" title="Borrar todos los temas">Borrar todo</button>
+      <span class="pb-clear-all" id="catClearAllSlot"></span>
     </div>
     <p class="view-sub">Cada Tema elige su propio modo: <b>Asignación</b> (asigna Opciones acá dentro, con un máximo opcional — equipos, charlas, turnos) o <b>Texto libre</b> (una pregunta abierta que cada persona responde con su propia idea, sin Opciones). Puedes mezclar los dos modos en la misma Plantilla — el filtro de abajo solo ordena la vista, no restringe qué puedes crear.</p>
     <div class="pb-bulk-bar" id="catBulkBar" hidden>
       <span class="pb-bulk-count" id="catBulkCount">0 seleccionados</span>
-      <button class="btn btn-danger pb-bulk-delete" id="catBulkDelete" type="button">Borrar seleccionados</button>
+      <span class="pb-bulk-delete" id="catBulkDeleteSlot"></span>
     </div>
     <div class="pb-cat-filters" id="catFilters"></div>
     <div class="pb-lideres-slot" id="lideresToggleSlot"></div>
     <p class="pb-modo-hint pb-lideres-hint">Solo aplica a Temas en modo Selección — cada una puede tener un responsable fijo (ver "Detalles" en su fila) o uno elegido desde "Mis respuestas".</p>
     <div class="pb-add-row">
       <div class="pb-add-slot" id="addCatSlot"></div>
-      <button class="btn btn-primary pb-add-btn" id="addCatBtn" type="button">+ Agregar</button>
+      <span class="pb-add-btn" id="addCatBtnSlot"></span>
     </div>
     <div class="empty-state" id="catEmpty" hidden>Todavía no hay temas. Escribe un nombre arriba y presiona Enter.</div>
     <div class="empty-state" id="catFilterEmpty" hidden>No hay temas de este tipo con el filtro actual.</div>
@@ -44,30 +44,25 @@
     <div class="pb-section-head">
       <h3 class="section-card__title">Opciones para repartir</h3>
       <span class="gen-badge" id="opcCount">0</span>
-      <button class="btn btn-ghost pb-clear-all" id="opcClearAll" type="button" title="Borrar toda la lista">Borrar todo</button>
+      <span class="pb-clear-all" id="opcClearAllSlot"></span>
     </div>
     <p class="view-sub">Esta es la lista que vas a <b>repartir</b> entre tus temas de <b>Asignación</b> — por ejemplo, las personas que asignas a los equipos. Cada una va a <b>un solo</b> tema. Los temas de Votación y Ranking no usan esta lista: cada uno tiene sus propias opciones adentro. (Esta sección solo aparece cuando tienes al menos un tema de Asignación.)</p>
     <div class="pb-bulk-bar" id="opcBulkBar" hidden>
       <span class="pb-bulk-count" id="opcBulkCount">0 seleccionadas</span>
-      <button class="btn btn-danger pb-bulk-delete" id="opcBulkDelete" type="button">Borrar seleccionadas</button>
+      <span class="pb-bulk-delete" id="opcBulkDeleteSlot"></span>
     </div>
     <div class="pb-atributos">
       <div class="pb-atributos__head">Atributos de las Opciones <span class="pb-atributos__hint">campos extra por opción (ej. Rol, Antigüedad) — genéricos, los definís vos</span></div>
       <div class="pb-atributos__list" id="atribList"></div>
       <div class="pb-atributos__add">
         <input class="pb-atributos__label-in" id="atribAddLabel" type="text" placeholder="Nombre del atributo (ej. Rol)" />
-        <select class="pb-atributos__type-in" id="atribAddType">
-          <option value="texto">Texto</option>
-          <option value="numero">Número</option>
-          <option value="lista">Lista</option>
-          <option value="siNo">Sí/No</option>
-        </select>
-        <button class="btn btn-ghost" id="atribAddBtn" type="button">+ Agregar</button>
+        <span id="atribAddTypeSlot"></span>
+        <span id="atribAddBtnSlot"></span>
       </div>
     </div>
     <div class="pb-add-row">
       <div class="pb-add-slot" id="addOpcSlot"></div>
-      <button class="btn btn-primary pb-add-btn" id="addOpcBtn" type="button">+ Agregar</button>
+      <span class="pb-add-btn" id="addOpcBtnSlot"></span>
     </div>
     <div class="empty-state" id="opcEmpty" hidden>Todavía no hay opciones. Escribe un nombre arriba y presiona Enter.</div>
     <div class="pb-list" id="opcList"></div>

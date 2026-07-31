@@ -21,7 +21,14 @@ export default class Button extends HTMLElement {
          type: 'string',
          default: 'filled',
          required: false,
-         allowedValues: ['filled', 'outlined', 'ghost', 'soft']
+         allowedValues: ['filled', 'outlined', 'ghost', 'soft', 'danger']
+      },
+      // Size variant. `sm` mirrors the global .btn-sm compact dimensions.
+      size: {
+         type: 'string',
+         default: 'md',
+         required: false,
+         allowedValues: ['md', 'sm']
       },
       // Canonical click handler. `onClickCallback` is kept as a deprecated alias.
       onClick: {
@@ -72,7 +79,7 @@ export default class Button extends HTMLElement {
       if (this._icon && !this.$icon) {
          this.$icon = await slice.build('Icon', {
             name: this._icon.name,
-            size: '20',
+            size: this._icon.size || '20',
             color: this._icon.color || 'currentColor',
          });
          this.$button.insertBefore(this.$icon, this.$value);
@@ -107,6 +114,7 @@ export default class Button extends HTMLElement {
       if (!this.$icon || !value) return;
       this.$icon.name = value.name;
       if (value.color) this.$icon.color = value.color;
+      if (value.size) this.$icon.size = value.size;
    }
 
    get variant() {
@@ -114,13 +122,27 @@ export default class Button extends HTMLElement {
    }
 
    set variant(value) {
-      const allowed = ['filled', 'outlined', 'ghost', 'soft'];
+      const allowed = ['filled', 'outlined', 'ghost', 'soft', 'danger'];
       const next = allowed.includes(value) ? value : 'filled';
       if (this._variant) {
          this.$button.classList.remove('slice_button--' + this._variant);
       }
       this._variant = next;
       this.$button.classList.add('slice_button--' + next);
+   }
+
+   get size() {
+      return this._size;
+   }
+
+   set size(value) {
+      const allowed = ['md', 'sm'];
+      const next = allowed.includes(value) ? value : 'md';
+      if (this._size) {
+         this.$button.classList.remove('slice_button--' + this._size);
+      }
+      this._size = next;
+      if (next === 'sm') this.$button.classList.add('slice_button--sm');
    }
 
    get value() {

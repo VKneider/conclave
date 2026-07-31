@@ -10,7 +10,7 @@ test.describe('9. Compartir Plantilla', () => {
       await app.navigateTo('/plantilla');
       await app.page.waitForTimeout(500);
 
-      await app.page.locator('#sharePlantillaBtn').click();
+      await app.page.locator('#sharePlantillaBtnSlot .slice_button').click();
       await app.page.waitForTimeout(300);
 
       await expect(app.page.locator('[slice-id="sharePlantillaDialog"]')).toBeVisible();
@@ -22,7 +22,7 @@ test.describe('9. Compartir Plantilla', () => {
       await app.navigateTo('/plantilla');
       await app.page.waitForTimeout(500);
 
-      await app.page.locator('#sharePlantillaBtn').click();
+      await app.page.locator('#sharePlantillaBtnSlot .slice_button').click();
       await app.page.waitForTimeout(300);
 
       const downloadPromise = app.page.waitForEvent('download', { timeout: 5000 }).catch(() => null);
@@ -41,7 +41,7 @@ test.describe('9. Compartir Plantilla', () => {
       await app.navigateTo('/plantilla');
       await app.page.waitForTimeout(500);
 
-      await app.page.locator('#sharePlantillaBtn').click();
+      await app.page.locator('#sharePlantillaBtnSlot .slice_button').click();
       await app.page.waitForTimeout(300);
 
       await app.page.locator('[slice-id="sharePlantillaDialog"] button:has-text("Copiar enlace")').click();
@@ -90,7 +90,7 @@ test.describe('9. Compartir Plantilla', () => {
       await app.navigateTo('/plantilla');
       await app.page.waitForTimeout(500);
 
-      await app.page.locator('#sharePlantillaBtn').click();
+      await app.page.locator('#sharePlantillaBtnSlot .slice_button').click();
       await app.page.waitForTimeout(300);
       await expect(app.page.locator('[slice-id="sharePlantillaDialog"] button:has-text("Enviar por correo")')).toBeVisible();
       await app.page.locator('[slice-id="sharePlantillaDialog"] button:has-text("Enviar por correo")').click();
@@ -106,7 +106,7 @@ test.describe('9. Compartir Plantilla', () => {
       await app.navigateTo('/plantilla');
       await app.page.waitForTimeout(500);
 
-      await app.page.locator('#sharePlantillaBtn').click();
+      await app.page.locator('#sharePlantillaBtnSlot .slice_button').click();
       await app.page.waitForTimeout(300);
 
       await expect(app.page.locator('[slice-id="sharePlantillaDialog"] button:has-text("Código QR")')).toBeVisible();

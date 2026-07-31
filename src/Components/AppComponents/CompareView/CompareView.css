@@ -26,6 +26,13 @@ slice-compareview .tag-status.disagree { background: var(--warning-color); color
 slice-compareview .tag-status.partial { background: var(--secondary-color); color: var(--secondary-color-contrast); }
 slice-compareview .tag-status.none { background: var(--secondary-background-color); color: var(--font-secondary-color); }
 slice-compareview .cmp-filters { display: flex; gap: 8px; margin: 4px 0 16px; flex-wrap: wrap; align-items: center; }
+/* The table toolbar (res-bar + filters) lives outside .cmp-dynamic as a
+   build-once region (see CompareView.js); [hidden] must beat the flex
+   display of its containers. */
+slice-compareview #cmpResBar[hidden], slice-compareview #cmpFilters[hidden] { display: none; }
+slice-compareview .cmp-tb-btn { display: inline-flex; }
+slice-compareview .cmp-tb-pills { display: inline-flex; gap: 8px; flex-wrap: wrap; }
+slice-compareview .cmp-tb-btn[hidden] { display: none; }
 
 /* Search field — a built registry Input (see CompareView.js), shared by
    _renderOpcionView/_renderTemaView and never regenerated, unlike the
@@ -91,9 +98,9 @@ slice-compareview .cmp-url-import__status { margin-left: 10px; font-size: 12px; 
 
 @media (max-width: 760px) {
   slice-compareview .cmp-summary { grid-template-columns: 1fr; }
-  slice-compareview .cmp-filters .btn { font-size: 11px; padding: 5px 10px; }
+  slice-compareview #cmpFilters slice-button .slice_button,
+  slice-compareview #cmpResBar slice-button .slice_button { font-size: 11px; padding: 5px 10px; }
   slice-compareview .cmp-search-slot { max-width: 160px; }
-  slice-compareview .res-bar .btn { font-size: 11px; padding: 5px 10px; }
   slice-compareview .res-progress { min-width: auto; }
   slice-compareview .res-progress-track { max-width: 60px; }
   slice-compareview .cmp-vt-card,

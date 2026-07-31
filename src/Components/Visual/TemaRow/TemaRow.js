@@ -44,7 +44,7 @@ export default class TemaRow extends HTMLElement {
     this.$votacionEditor = this.querySelector('.cat-row__votacion-editor');
     this.$opcList = this.querySelector('.cat-row__opc-list');
     this.$opcAdd = this.querySelector('.cat-row__opc-add');
-    this.$opcAddBtn = this.querySelector('.cat-row__opc-add-btn');
+    this.$opcAddBtnSlot = this.querySelector('.cat-row__opc-add-btn-slot');
 
     // Lives on the instance now, not in a Set the parent view has to track —
     // survives every `tema` update since the row itself is never rebuilt.
@@ -60,20 +60,12 @@ export default class TemaRow extends HTMLElement {
 
     // Votación/ranking editor: this Tema owns its opciones (temaId === this
     // tema). Plain-HTML list (no nested Slice components) so innerHTML is safe.
-    // Add via Enter (desktop) or the "+ Agregar" button (reliable on mobile,
+    // Add via Enter (desktop) or the "Agregar" button (reliable on mobile,
     // where the virtual Enter key is unreliable — same reason as the builder's
     // add rows).
-    const addOpc = () => {
-      const nombre = this.$opcAdd.value.trim();
-      if (!nombre || !this._tema) { this.$opcAdd.focus(); return; }
-      slice.getComponent('PlantillaService').addOpcion({ nombre, temaId: this._tema.id });
-      this.$opcAdd.value = '';
-      this.$opcAdd.focus();
-    };
     this.$opcAdd.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); addOpc(); }
+      if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); this._addOpc(); }
     });
-    this.$opcAddBtn.addEventListener('click', addOpc);
     this.$opcList.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-remove-opc]');
       if (btn) slice.getComponent('PlantillaService').removeOpcion(btn.dataset.removeOpc);
@@ -86,21 +78,24 @@ export default class TemaRow extends HTMLElement {
 
   async init() {
     this._html = slice.getComponent('HtmlService');
-    const [nameInput, modoSelect, liderInput, participableCheckbox] = await Promise.all([
+    const [nameInput, modoSelect, liderInput, participableCheckbox, opcAddBtn] = await Promise.all([
       slice.build('Input', { sliceId: `${this.sliceId}-name`, placeholder: 'Nombre' }),
       slice.build('Select', { sliceId: `${this.sliceId}-modo`, options: MODO_OPTIONS, visibleProp: 'text' }),
       slice.build('Input', { sliceId: `${this.sliceId}-lider`, placeholder: 'Responsable fijo (opcional)' }),
       slice.build('Checkbox', { sliceId: `${this.sliceId}-participable`, label: 'Participable' }),
+      slice.build('Button', { sliceId: `${this.sliceId}-opcadd`, value: 'Agregar', size: 'sm', variant: 'filled', icon: { name: 'plus', size: '14' }, onClick: () => this._addOpc() }),
     ]);
     this.$nameInput = nameInput;
     this.$modoSelect = modoSelect;
     this.$liderInput = liderInput;
     this.$participableCheckbox = participableCheckbox;
+    this.$opcAddBtn = opcAddBtn;
 
     this.$nameSlot.appendChild(nameInput);
     this.$modoSlot.appendChild(modoSelect);
     this.$liderSlot.appendChild(liderInput);
     this.$participableSlot.appendChild(participableCheckbox);
+    this.$opcAddBtnSlot.appendChild(opcAddBtn);
 
     nameInput.addEventListener('change', () => this._patch({ nombre: nameInput.value.trim() }));
     modoSelect.onChange = () => {
@@ -169,6 +164,14 @@ export default class TemaRow extends HTMLElement {
   // Plain-HTML list of this votación Tema's owned opciones — no nested Slice
   // components, so innerHTML is the right tool. The add <input> lives OUTSIDE
   // this container so a repaint never interrupts typing.
+  _addOpc() {
+    const nombre = this.$opcAdd.value.trim();
+    if (!nombre || !this._tema) { this.$opcAdd.focus(); return; }
+    slice.getComponent('PlantillaService').addOpcion({ nombre, temaId: this._tema.id });
+    this.$opcAdd.value = '';
+    this.$opcAdd.focus();
+  }
+
   _renderOpcList() {
     if (!this.$opcList || !this._tema) return;
     const opciones = slice.getComponent('PlantillaService').getOpcionesDeTema(this._tema.id);

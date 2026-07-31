@@ -62,9 +62,7 @@ slice-plantillabuilderview slice-checkbox .slice_checkbox_container { padding: 6
 
 /* Bulk selection / delete (multi-select rows + "Borrar todo") */
 slice-plantillabuilderview .pb-section-head .section-card__title { margin: 0; }
-slice-plantillabuilderview .pb-clear-all {
-  margin-left: auto; font-size: 12px; padding: 5px 12px; color: var(--danger-color);
-}
+slice-plantillabuilderview .pb-clear-all { margin-left: auto; }
 slice-plantillabuilderview .pb-bulk-bar {
   display: flex; align-items: center; gap: 12px; margin: 0 0 14px;
   padding: 8px 12px; border-radius: 12px;
@@ -73,7 +71,7 @@ slice-plantillabuilderview .pb-bulk-bar {
 }
 slice-plantillabuilderview .pb-bulk-bar[hidden] { display: none; }
 slice-plantillabuilderview .pb-bulk-count { font-weight: 700; font-size: 13px; }
-slice-plantillabuilderview .pb-bulk-delete { margin-left: auto; font-size: 12.5px; padding: 6px 14px; }
+slice-plantillabuilderview .pb-bulk-delete { margin-left: auto; }
 
 /* Pool de Asignación section hides when the Plantilla has no reparto Tema
    (GOTCHAS §18 companion — .hidden is toggled in _renderOpciones). */
@@ -112,10 +110,6 @@ slice-plantillabuilderview .pb-atrib__rm:hover { color: var(--danger-color); bac
 slice-plantillabuilderview .pb-atrib__empty { font-size: 12px; color: var(--font-secondary-color); font-style: italic; }
 slice-plantillabuilderview .pb-atributos__add { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 slice-plantillabuilderview .pb-atributos__label-in { flex: 1; min-width: 160px; }
-slice-plantillabuilderview .pb-atributos__type-in {
-  background: var(--panel-background-color); border: 1.5px solid var(--border-color); color: var(--font-primary-color);
-  border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; outline: none;
-}
 
 /* Preset gallery (Fase 5) */
 slice-plantillabuilderview .pb-presets {

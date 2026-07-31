@@ -112,6 +112,41 @@ export default class CompareView extends HTMLElement {
     };
     document.addEventListener('keydown', this._boundEsc);
 
+    // Table toolbar (res-bar + filter pills + view-switch + export buttons) —
+    // built once here and kept out of .cmp-dynamic, which is re-templated on
+    // every interaction. Pills/buttons update their state by setter per render
+    // (labels with counts, active variant); the res-info/progress chips are
+    // pure markup re-filled each render. The Tema filter stays a native
+    // <select> (options rebuilt via DOM) — it's the only per-view control and
+    // no Slice control belongs inside the innerHTML table region.
+    const [btnFillSug, btnClearRes, btnExportFinal, btnAll, btnDisagree, btnAgree, btnPending, btnTemaView, btnOpcionView, btnExportCmp] = await Promise.all([
+      slice.build('Button', { sliceId: 'cmpBtnFillSug', value: 'Autocompletar con sugerencia', size: 'sm', onClick: () => this._confirmFillSuggestions() }),
+      slice.build('Button', { sliceId: 'cmpBtnClearRes', value: 'Vaciar decisiones', size: 'sm', variant: 'danger', onClick: () => this._confirmClearResolutions() }),
+      slice.build('Button', { sliceId: 'cmpBtnExportFinal', value: 'Exportar lista final', size: 'sm', variant: 'filled', onClick: () => slice.getComponent('ConsensoService').exportFinal(this._lastRows || []) }),
+      slice.build('Button', { sliceId: 'cmpBtnFilterAll', value: 'Todos (0)', size: 'sm', variant: 'filled', onClick: () => this._setCmpFilter('all') }),
+      slice.build('Button', { sliceId: 'cmpBtnFilterDisagree', value: 'Solo diferencias (0)', size: 'sm', variant: 'outlined', onClick: () => this._setCmpFilter('disagree') }),
+      slice.build('Button', { sliceId: 'cmpBtnFilterAgree', value: 'Solo coincidencias (0)', size: 'sm', variant: 'outlined', onClick: () => this._setCmpFilter('agree') }),
+      slice.build('Button', { sliceId: 'cmpBtnFilterPending', value: 'Por revisar (0)', size: 'sm', variant: 'outlined', onClick: () => this._setCmpFilter('pending') }),
+      slice.build('Button', { sliceId: 'cmpBtnTemaView', value: 'Vista por tema', size: 'sm', onClick: () => { this.cmpView = 'tema'; this._render(); } }),
+      slice.build('Button', { sliceId: 'cmpBtnOpcionView', value: 'Vista por opción', size: 'sm', variant: 'filled', onClick: () => { this.cmpView = 'opcion'; this._render(); } }),
+      slice.build('Button', { sliceId: 'cmpBtnExportCmp', value: 'Exportar comparación como hoja de cálculo', size: 'sm', onClick: () => this._exportComparisonCSV(this._lastAll || [], this._lastRows || []) }),
+    ]);
+    this._filterBtns = { all: btnAll, disagree: btnDisagree, agree: btnAgree, pending: btnPending };
+    this.$resBar = this.$root.querySelector('#cmpResBar');
+    this.$resInfo = this.$root.querySelector('#cmpResInfo');
+    this.$resProgress = this.$root.querySelector('#cmpResProgress');
+    this.$filtersBar = this.$root.querySelector('#cmpFilters');
+    this.$svcFilter = this.$root.querySelector('#svcFilter');
+    this.$root.querySelector('#btnFillSugSlot').appendChild(btnFillSug);
+    this.$root.querySelector('#btnClearResSlot').appendChild(btnClearRes);
+    this.$root.querySelector('#btnExportFinalSlot').appendChild(btnExportFinal);
+    this.$root.querySelector('#cmpFilterPillsSlot').append(btnAll, btnDisagree, btnAgree, btnPending);
+    this.$root.querySelector('#btnTemaViewSlot').appendChild(btnTemaView);
+    this.$root.querySelector('#btnOpcionViewSlot').appendChild(btnOpcionView);
+    this.$root.querySelector('#btnExportCmpSlot').appendChild(btnExportCmp);
+    this._svcFilterKey = null;
+    this.$svcFilter.addEventListener('change', () => { this.cmpService = this.$svcFilter.value; this._render(); });
+
     // Votación comparison: pick/clear the final decision per tema (delegated on
     // the mount so it survives the innerHTML repaints of _renderVotacion).
     this.$root.querySelector('.cmp-votacion-mount').addEventListener('click', (e) => {
@@ -527,6 +562,7 @@ export default class CompareView extends HTMLElement {
       this.$root.querySelector('.cmp-mode-tabs').hidden = true;
       this.$root.querySelector('.cmp-search-slot').hidden = false;
       this.$root.querySelector('.cmp-dynamic').hidden = true;
+      this._setTableToolbarHidden(true);
       this.$root.querySelector('.cmp-carousel-mount').hidden = true;
       this.$root.querySelector('.cmp-text-mount').hidden = true;
       this.$root.querySelector('.cmp-final-heading').hidden = true;
@@ -544,6 +580,7 @@ export default class CompareView extends HTMLElement {
       this.$root.querySelector('.cmp-mode-tabs').hidden = true;
       this.$root.querySelector('.cmp-search-slot').hidden = false;
       this.$root.querySelector('.cmp-dynamic').hidden = true;
+      this._setTableToolbarHidden(true);
       this.$root.querySelector('.cmp-carousel-mount').hidden = true;
       this.$root.querySelector('.cmp-text-mount').hidden = true;
       this.$root.querySelector('.cmp-final-heading').hidden = true;
@@ -560,6 +597,7 @@ export default class CompareView extends HTMLElement {
       this.$root.querySelector('.cmp-mode-tabs').hidden = true;
       this.$root.querySelector('.cmp-search-slot').hidden = true;
       this.$root.querySelector('.cmp-dynamic').hidden = true;
+      this._setTableToolbarHidden(true);
       this.$root.querySelector('.cmp-carousel-mount').hidden = true;
       this.$root.querySelector('.cmp-text-mount').hidden = false;
       this.$root.querySelector('.cmp-final-heading').hidden = true;
@@ -579,6 +617,7 @@ export default class CompareView extends HTMLElement {
 
     if (all.length < 2) {
       this.$root.querySelector('.cmp-search-slot').hidden = true;
+      this._setTableToolbarHidden(true);
       this.$root.querySelector('.cmp-dynamic').innerHTML = '<div class="empty-state">Importa al menos un archivo de respuestas de otra persona para comparar.<br/>Tu trabajo actual ya cuenta como una fuente.</div>';
       this._finalTally.items = [];
       return;
@@ -589,6 +628,7 @@ export default class CompareView extends HTMLElement {
     const isCarousel = this.cmpMode === 'carousel';
     this.$root.querySelector('.cmp-search-slot').hidden = isCarousel;
     this.$root.querySelector('.cmp-dynamic').hidden = isCarousel;
+    this._setTableToolbarHidden(isCarousel);
     this.$root.querySelector('.cmp-carousel-mount').hidden = !isCarousel;
 
     if (isCarousel) {
@@ -645,16 +685,14 @@ export default class CompareView extends HTMLElement {
     const resolution = slice.getComponent('ConsensoService');
     const svcName = (id) => (id ? roster.getTemaById(id)?.nombre || id : '—');
 
+    this._lastAll = all;
+    this._lastRows = rows;
+
     const nAgree = rows.filter((r) => r.status === 'agree').length;
     const nDisagree = rows.filter((r) => r.status === 'disagree').length;
     const nPartial = rows.filter((r) => r.status === 'partial').length;
     const comparables = rows.length - rows.filter((r) => r.status === 'none').length;
     const pct = (n) => (comparables ? Math.round((n / comparables) * 100) : 0);
-
-    const decided = rows.filter((r) => resolution.hasResolution(r.opcion.id)).length;
-    const conflictCount = rows.filter((r) => r.status === 'disagree').length;
-    const resolvedConflicts = rows.filter((r) => r.status === 'disagree' && resolution.hasResolution(r.opcion.id)).length;
-    const pendientes = conflictCount - resolvedConflicts;
 
     const finalCounts = {};
     temas.forEach((t) => { finalCounts[t.id] = 0; });
@@ -663,44 +701,11 @@ export default class CompareView extends HTMLElement {
       if (f && finalCounts[f] !== undefined) finalCounts[f]++;
     });
 
-    const proposedCounts = {};
-    temas.forEach((t) => { proposedCounts[t.id] = rows.filter((r) => r.vals.some((v) => v === t.id)).length; });
-
     let html = `
       <div class="cmp-summary">
         <div class="stat-card"><div class="k">Coinciden</div><div class="v" style="color:var(--success-color)">${nAgree}</div><div class="pct">${pct(nAgree)}% de ${comparables} comparados</div></div>
         <div class="stat-card"><div class="k">Difieren</div><div class="v" style="color:var(--warning-color)">${nDisagree}</div><div class="pct">${pct(nDisagree)}% de ${comparables} comparados</div></div>
         <div class="stat-card"><div class="k">Parciales / faltan votos</div><div class="v" style="color:var(--primary-color)">${nPartial}</div><div class="pct">${pct(nPartial)}% de ${comparables} comparados</div></div>
-      </div>
-      <div class="res-bar">
-        <div class="res-info">
-          <b>Lista final</b>
-          <span class="res-chip ok">${decided} decididos</span>
-          <span class="res-chip ${pendientes ? 'warn' : 'muted'}">${pendientes ? pendientes + ' conflictos por revisar' : 'Sin conflictos pendientes'}</span>
-        </div>
-        <div class="res-progress">
-          <div class="res-progress-track"><span style="width:${conflictCount ? Math.round((resolvedConflicts / conflictCount) * 100) : 100}%"></span></div>
-          <span class="res-progress-label">${resolvedConflicts}/${conflictCount} conflictos resueltos</span>
-        </div>
-        <span class="spacer" style="flex:1"></span>
-        <button class="btn btn-sm" id="btnFillSug">Autocompletar con sugerencia</button>
-        <button class="btn btn-sm" id="btnClearRes">Vaciar decisiones</button>
-        <button class="btn btn-sm btn-primary" id="btnExportFinal">Exportar lista final</button>
-      </div>
-      <div class="cmp-filters">
-        <button class="btn btn-sm ${this.cmpFilter === 'all' ? 'btn-primary' : ''}" data-f="all">Todos (${rows.length})</button>
-        <button class="btn btn-sm ${this.cmpFilter === 'disagree' ? 'btn-primary' : ''}" data-f="disagree">Solo diferencias (${nDisagree})</button>
-        <button class="btn btn-sm ${this.cmpFilter === 'agree' ? 'btn-primary' : ''}" data-f="agree">Solo coincidencias (${nAgree})</button>
-        <button class="btn btn-sm ${this.cmpFilter === 'pending' ? 'btn-primary' : ''}" data-f="pending">Por revisar (${pendientes})</button>
-        <label class="svc-filter">Tema
-          <select id="svcFilter">
-            <option value="">Todos los temas</option>
-            ${temas.map((t) => `<option value="${t.id}" ${this.cmpService === t.id ? 'selected' : ''}>${this._html.esc(t.nombre)} (${proposedCounts[t.id]})</option>`).join('')}
-          </select>
-        </label>
-        <span class="spacer" style="flex:1"></span>
-        <button class="btn btn-sm" id="btnTemaView">Vista por tema</button>
-        <button class="btn btn-sm" id="btnExportCmp">Exportar comparación como hoja de cálculo</button>
       </div>`;
 
     let shown = rows;
@@ -744,7 +749,8 @@ export default class CompareView extends HTMLElement {
     const wrap = this.$root.querySelector('.cmp-table-wrap');
     if (wrap && prevScrollTop) wrap.scrollTop = prevScrollTop;
 
-    this._bindTableInteractions(all, rows);
+    this._bindTableInteractions();
+    this._syncTableToolbarOpcion(rows);
 
     this._finalTally.items = temas.map((t) => {
       const n = finalCounts[t.id];
@@ -762,20 +768,9 @@ export default class CompareView extends HTMLElement {
 
   _renderTemaView(all, prevScrollTop) {
     const roster = this._roster;
-    const temas = roster.getTemasParticipables();
     const temaRows = this._buildTemaRows(all);
 
-    let html = `
-      <div class="cmp-filters">
-        <label class="svc-filter">Tema
-          <select id="svcFilter">
-            <option value="">Todos los temas</option>
-            ${temas.map((t) => `<option value="${t.id}" ${this.cmpService === t.id ? 'selected' : ''}>${this._html.esc(t.nombre)}</option>`).join('')}
-          </select>
-        </label>
-        <span class="spacer" style="flex:1"></span>
-        <button class="btn btn-sm btn-primary" id="btnOpcionView">Vista por opción</button>
-      </div>`;
+    let html = ``;
 
     let shown = temaRows;
     if (this.cmpService) shown = shown.filter((tr) => tr.tema.id === this.cmpService);
@@ -814,7 +809,7 @@ export default class CompareView extends HTMLElement {
     const wrap = this.$root.querySelector('.cmp-table-wrap');
     if (wrap && prevScrollTop) wrap.scrollTop = prevScrollTop;
 
-    this._bindTemaInteractions();
+    this._syncTableToolbarTema();
   }
 
   async _renderCarouselView(all, rows) {
@@ -937,59 +932,124 @@ export default class CompareView extends HTMLElement {
     });
   }
 
-  _bindTableInteractions(all, rows) {
+  _setCmpFilter(filter) {
+    this.cmpFilter = filter;
+    this._render();
+  }
+
+  _setTableToolbarHidden(hidden) {
+    if (this.$resBar) this.$resBar.hidden = hidden;
+    if (this.$filtersBar) this.$filtersBar.hidden = hidden;
+  }
+
+  _confirmFillSuggestions() {
+    slice.events.emit('confirm:request', {
+      title: '¿Autocompletar con sugerencias?',
+      message: 'Fija como decisión final la sugerencia (consenso o mayoría) para todas las Opciones que aún no tienen una decisión tomada.',
+      confirmLabel: 'Autocompletar',
+      onConfirm: () => {
+        slice.getComponent('ConsensoService').fillAllWithSuggestion(this._lastRows || []);
+        slice.events.emit('toast:show', { message: 'Sugerencias fijadas como decisión final', type: 'success' });
+        this._render();
+      },
+    });
+  }
+
+  _confirmClearResolutions() {
+    slice.events.emit('confirm:request', {
+      title: '¿Vaciar las decisiones de la lista final?',
+      message: 'Vuelve a las sugerencias automaticas (consenso/mayoría) para todas las Opciones.',
+      confirmLabel: 'Vaciar',
+      danger: true,
+      onConfirm: () => { slice.getComponent('ConsensoService').clearAll(); this._render(); },
+    });
+  }
+
+  _syncTableToolbarOpcion(rows) {
+    const roster = this._roster;
+    const resolution = slice.getComponent('ConsensoService');
+    const temas = roster.getTemasParticipables();
+
+    const decided = rows.filter((r) => resolution.hasResolution(r.opcion.id)).length;
+    const conflictCount = rows.filter((r) => r.status === 'disagree').length;
+    const resolvedConflicts = rows.filter((r) => r.status === 'disagree' && resolution.hasResolution(r.opcion.id)).length;
+    const pendientes = conflictCount - resolvedConflicts;
+
+    this.$resInfo.innerHTML = `<b>Lista final</b>
+      <span class="res-chip ok">${decided} decididos</span>
+      <span class="res-chip ${pendientes ? 'warn' : 'muted'}">${pendientes ? pendientes + ' conflictos por revisar' : 'Sin conflictos pendientes'}</span>`;
+    this.$resProgress.innerHTML = `
+      <div class="res-progress-track"><span style="width:${conflictCount ? Math.round((resolvedConflicts / conflictCount) * 100) : 100}%"></span></div>
+      <span class="res-progress-label">${resolvedConflicts}/${conflictCount} conflictos resueltos</span>`;
+
+    const nAgree = rows.filter((r) => r.status === 'agree').length;
+    const nDisagree = rows.filter((r) => r.status === 'disagree').length;
+    this._filterBtns.all.value = `Todos (${rows.length})`;
+    this._filterBtns.disagree.value = `Solo diferencias (${nDisagree})`;
+    this._filterBtns.agree.value = `Solo coincidencias (${nAgree})`;
+    this._filterBtns.pending.value = `Por revisar (${pendientes})`;
+    for (const k of Object.keys(this._filterBtns)) {
+      this._filterBtns[k].variant = this.cmpFilter === k ? 'filled' : 'outlined';
+    }
+
+    this._populateSvcFilter(temas, rows);
+
+    this.$resBar.hidden = false;
+    this.$filtersBar.hidden = false;
+    this.$root.querySelector('#btnTemaViewSlot').hidden = false;
+    this.$root.querySelector('#btnOpcionViewSlot').hidden = true;
+    this.$root.querySelector('#btnExportCmpSlot').hidden = false;
+  }
+
+  _syncTableToolbarTema() {
+    this._populateSvcFilter(this._roster.getTemasParticipables(), null);
+    this.$resBar.hidden = true;
+    this.$filtersBar.hidden = false;
+    this.$root.querySelector('#btnTemaViewSlot').hidden = true;
+    this.$root.querySelector('#btnOpcionViewSlot').hidden = false;
+    this.$root.querySelector('#btnExportCmpSlot').hidden = true;
+  }
+
+  _populateSvcFilter(temas, rows) {
+    const counts = {};
+    if (rows) {
+      temas.forEach((t) => { counts[t.id] = 0; });
+      rows.forEach((r) => {
+        r.vals.forEach((v) => { if (v && counts[v] !== undefined) counts[v]++; });
+      });
+    }
+    const key = temas.map((t) => `${t.id}:${counts[t.id] ?? ''}`).join('|');
+    if (key === this._svcFilterKey) {
+      this.$svcFilter.value = this.cmpService || '';
+      return;
+    }
+    this._svcFilterKey = key;
+    this.$svcFilter.innerHTML = '';
+    const empty = document.createElement('option');
+    empty.value = '';
+    empty.textContent = 'Todos los temas';
+    this.$svcFilter.appendChild(empty);
+    temas.forEach((t) => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = counts[t.id] !== undefined ? `${t.nombre} (${counts[t.id]})` : t.nombre;
+      this.$svcFilter.appendChild(opt);
+    });
+    this.$svcFilter.value = this.cmpService || '';
+  }
+
+  _bindTableInteractions() {
     const resolution = slice.getComponent('ConsensoService');
 
-    this.$root.querySelectorAll('[data-f]').forEach((b) => {
-      b.onclick = () => { this.cmpFilter = b.dataset.f; this._render(); };
-    });
-    const sf = this.$root.querySelector('#svcFilter');
-    if (sf) sf.onchange = () => { this.cmpService = sf.value; this._render(); };
     const sfc = this.$root.querySelector('#svcFilterClear');
     if (sfc) sfc.onclick = () => { this.cmpService = ''; this._render(); };
-    const tv = this.$root.querySelector('#btnTemaView');
-    if (tv) tv.onclick = () => { this.cmpView = 'tema'; this._render(); };
 
-    const ec = this.$root.querySelector('#btnExportCmp');
-    if (ec) ec.onclick = () => this._exportComparisonCSV(all, rows);
-    const ef = this.$root.querySelector('#btnExportFinal');
-    if (ef) ef.onclick = () => resolution.exportFinal(rows);
-    const fs = this.$root.querySelector('#btnFillSug');
-    if (fs) fs.onclick = () => {
-      slice.events.emit('confirm:request', {
-        title: '¿Autocompletar con sugerencias?',
-        message: 'Fija como decisión final la sugerencia (consenso o mayoría) para todas las Opciones que aún no tienen una decisión tomada.',
-        confirmLabel: 'Autocompletar',
-        onConfirm: () => {
-          resolution.fillAllWithSuggestion(rows);
-          slice.events.emit('toast:show', { message: 'Sugerencias fijadas como decisión final', type: 'success' });
-          this._render();
-        },
-      });
-    };
-    const cr = this.$root.querySelector('#btnClearRes');
-    if (cr) cr.onclick = () => {
-      slice.events.emit('confirm:request', {
-        title: '¿Vaciar las decisiones de la lista final?',
-        message: 'Vuelve a las sugerencias automaticas (consenso/mayoría) para todas las Opciones.',
-        confirmLabel: 'Vaciar',
-        danger: true,
-        onConfirm: () => { resolution.clearAll(); this._render(); },
-      });
-    };
     this.$root.querySelectorAll('.final-select').forEach((sel) => {
       sel.onchange = () => {
         resolution.setResolution(sel.dataset.opcion, sel.value);
         this._render();
       };
     });
-  }
-
-  _bindTemaInteractions() {
-    const sf = this.$root.querySelector('#svcFilter');
-    if (sf) sf.onchange = () => { this.cmpService = sf.value; this._render(); };
-    const mv = this.$root.querySelector('#btnOpcionView');
-    if (mv) mv.onclick = () => { this.cmpView = 'opcion'; this._render(); };
   }
 
   _exportComparisonCSV(all, rows) {

@@ -10,17 +10,13 @@ export interface ButtonProps {
   icon?: Record<string, unknown>;
   onClick?: (...args: unknown[]) => unknown;
   onClickCallback?: (...args: unknown[]) => unknown;
+  size?: 'md' | 'sm';
   value?: string;
-  variant?: 'filled' | 'outlined' | 'ghost' | 'soft';
+  variant?: 'filled' | 'outlined' | 'ghost' | 'soft' | 'danger';
 }
 
 export interface CarouselViewProps {
   [key: string]: unknown;
-}
-
-export interface CategoriaRowProps {
-  [key: string]: unknown;
-  categoria?: Record<string, unknown>;
 }
 
 export interface ChartServiceProps {
@@ -389,7 +385,6 @@ export interface SliceComponentPropsMap {
   AppShell: AppShellProps;
   Button: ButtonProps;
   CarouselView: CarouselViewProps;
-  CategoriaRow: CategoriaRowProps;
   ChartService: ChartServiceProps;
   Checkbox: CheckboxProps;
   CompareCarousel: CompareCarouselProps;

@@ -1,7 +1,10 @@
 /* TemaRow's own box — same "dense row" treatment as PlantillaBuilderView's
    old .pb-row (thin border at rest, bold ink + shadow on hover/focus, per
    DESIGN.md's hero-vs-repeated rule). */
-slice-temarow { display: block; }
+slice-temarow {
+  display: block;
+}
+
 /* PATCHED: same bug class as the documented Modal.css fix (GOTCHAS.md §13)
    — an unconditional author-level `display` ALWAYS beats the browser's
    `[hidden] { display: none }` UA rule regardless of selector specificity,
@@ -11,50 +14,137 @@ slice-temarow { display: block; }
    PlantillaBuilderView's Tema filter) silently did nothing without
    this override. See GOTCHAS.md for the general rule — this pattern bites
    every custom element that declares `display` on its own bare tag. */
-slice-temarow[hidden] { display: none; }
+slice-temarow[hidden] {
+  display: none;
+}
+
 slice-temarow .cat-row {
-  border: 1.5px solid var(--border-color); border-radius: 10px; padding: 10px 12px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
   transition: border-color .12s, box-shadow .12s;
 }
+
 slice-temarow .cat-row:hover,
 slice-temarow .cat-row:focus-within {
   border-color: var(--font-primary-color);
   box-shadow: 2px 2px 0 var(--font-primary-color);
 }
 
-slice-temarow .cat-row__main { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-slice-temarow .cat-row__icon { flex: none; font-size: 14px; }
-slice-temarow .cat-row__order { flex: none; font-size: 11px; font-weight: 700; color: var(--font-secondary-color); min-width: 18px; text-align: center; }
-slice-temarow .cat-row__name-slot { flex: 1; min-width: 140px; }
-slice-temarow .cat-row__modo-slot { flex: none; width: 130px; }
+slice-temarow .cat-row__main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+slice-temarow .cat-row__icon {
+  flex: none;
+  font-size: 14px;
+}
+
+slice-temarow .cat-row__order {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--font-secondary-color);
+  min-width: 18px;
+  text-align: center;
+}
+
+slice-temarow .cat-row__name-slot {
+  flex: 1;
+  min-width: 140px;
+}
+
+slice-temarow .cat-row__modo-slot {
+  flex: none;
+  width: 130px;
+}
+
 slice-temarow .cat-row__toggle,
-slice-temarow .cat-row__remove { flex: none; font-size: 12px; padding: 6px 10px; white-space: nowrap; }
-slice-temarow .cat-row__remove { width: 30px; height: 30px; padding: 0; font-size: 13px; border-radius: 50%; }
+slice-temarow .cat-row__remove {
+  flex: none;
+  font-size: 12px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+slice-temarow .cat-row__remove {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 13px;
+  border-radius: 50%;
+}
+
 slice-temarow .cat-row__move-up,
 slice-temarow .cat-row__move-down {
-  flex: none; width: 28px; height: 28px; padding: 0; font-size: 11px; line-height: 1;
-  border-radius: 50%; color: var(--font-secondary-color);
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 11px;
+  line-height: 1;
+  border-radius: 50%;
+  color: var(--font-secondary-color);
 }
 
-slice-temarow .cat-row__hint { margin: 6px 0 0; font-size: 11.5px; color: var(--font-secondary-color); font-style: italic; }
+slice-temarow .cat-row__hint {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: var(--font-secondary-color);
+  font-style: italic;
+}
 
 slice-temarow .cat-row__extra {
-  display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
-  margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-color);
 }
+
 /* Same [hidden]-losing-to-author-display bug as above — the "▸ Detalles"
    toggle (_setExpanded) sets this element's .hidden directly. */
-slice-temarow .cat-row__extra[hidden] { display: none; }
+slice-temarow .cat-row__extra[hidden] {
+  display: none;
+}
+
 slice-temarow .cat-row__mini-field {
-  display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: var(--font-secondary-color);
-  font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--font-secondary-color);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
 }
+
 slice-temarow .cat-row__mini-field input {
-  width: 74px; background: var(--panel-background-color); border: 1.5px solid var(--border-color); color: var(--font-primary-color);
-  border-radius: 7px; padding: 6px 9px; font-size: 13px; font-family: var(--font-body); font-weight: 500; outline: none;
+  width: 74px;
+  background: var(--panel-background-color);
+  border: 1.5px solid var(--border-color);
+  color: var(--font-primary-color);
+  border-radius: 7px;
+  padding: 6px 9px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  outline: none;
 }
-slice-temarow .cat-row__mini-field input:focus-visible { border-color: var(--primary-color); }
-slice-temarow .cat-row__lider-slot { flex: 1; min-width: 160px; }
+
+slice-temarow .cat-row__mini-field input:focus-visible {
+  border-color: var(--primary-color);
+}
+
+slice-temarow .cat-row__lider-slot {
+  flex: 1;
+  min-width: 160px;
+}
 
 /* Compact sizing only for this dense-row context — the actual skin (border
    color/style, no focus glow, hard-shadow open menu, etc.) now lives
@@ -65,47 +155,132 @@ slice-temarow .cat-row__lider-slot { flex: 1; min-width: 160px; }
    patch, just narrower in scope than a full reskin. */
 slice-temarow slice-input .slice_input,
 slice-temarow slice-select .slice_select_container {
-  padding: 7px 10px; border-radius: 7px; border-width: 1.5px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border-width: 1.5px;
 }
-slice-temarow slice-select .slice_select { font-size: 12.5px; }
-slice-temarow slice-checkbox .slice_checkbox_container { padding: 4px; }
-slice-temarow slice-checkbox .checkbox_label { font-size: 12px; }
+
+slice-temarow slice-select .slice_select {
+  font-size: 12.5px;
+}
+
+slice-temarow slice-checkbox .slice_checkbox_container {
+  padding: 4px;
+}
+
+slice-temarow slice-checkbox .checkbox_label {
+  font-size: 12px;
+}
 
 @media (max-width: 760px) {
-  slice-temarow .cat-row__modo-slot { width: 110px; }
+  slice-temarow .cat-row__modo-slot {
+    width: 110px;
+  }
 }
 
 /* Bulk-select checkbox (shown by PlantillaBuilderView's multi-select) */
 slice-temarow .cat-row__select {
-  width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; accent-color: var(--primary-color);
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--primary-color);
 }
 
 /* Votación editor — this Tema owns its opciones (nested in the expanded area) */
-slice-temarow .cat-row__reparto-fields { display: contents; }
-slice-temarow .cat-row__reparto-fields[hidden] { display: none; }
-slice-temarow .cat-row__votacion-editor { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-slice-temarow .cat-row__votacion-editor[hidden] { display: none; }
-slice-temarow .cat-row__opc-list { display: flex; flex-direction: column; gap: 6px; }
-slice-temarow .cat-row__opc-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 10px; border-radius: 10px;
-  background: var(--panel-alt-background-color); border: 1.5px solid var(--border-color);
+slice-temarow .cat-row__reparto-fields {
+  display: contents;
 }
-slice-temarow .cat-row__opc-name { flex: 1; font-size: 13px; font-weight: 600; }
-slice-temarow .cat-row__opc-remove {
-  border: none; background: transparent; cursor: pointer; color: var(--font-secondary-color);
-  font-size: 13px; padding: 2px 6px; border-radius: 6px; line-height: 1;
-}
-slice-temarow .cat-row__opc-remove:hover { color: var(--danger-color); background: color-mix(in srgb, var(--danger-color) 12%, transparent); }
-slice-temarow .cat-row__opc-empty { font-size: 12px; color: var(--font-secondary-color); font-style: italic; }
-slice-temarow .cat-row__opc-add {
-  font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 10px;
-  border: 2px solid var(--border-color); background: var(--panel-background-color); color: var(--font-primary-color);
-}
-slice-temarow .cat-row__opc-add:focus { outline: none; border-color: var(--primary-color); }
 
-/* Add-opción row (votación/ranking): input grows, "+ Agregar" button beside it
+slice-temarow .cat-row__reparto-fields[hidden] {
+  display: none;
+}
+
+slice-temarow .cat-row__votacion-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+slice-temarow .cat-row__votacion-editor[hidden] {
+  display: none;
+}
+
+slice-temarow .cat-row__opc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+slice-temarow .cat-row__opc-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--panel-alt-background-color);
+  border: 1.5px solid var(--border-color);
+}
+
+slice-temarow .cat-row__opc-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+slice-temarow .cat-row__opc-remove {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--font-secondary-color);
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+slice-temarow .cat-row__opc-remove:hover {
+  color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 12%, transparent);
+}
+
+slice-temarow .cat-row__opc-empty {
+  font-size: 12px;
+  color: var(--font-secondary-color);
+  font-style: italic;
+}
+
+slice-temarow .cat-row__opc-add {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--border-color);
+  background: var(--panel-background-color);
+  color: var(--font-primary-color);
+}
+
+slice-temarow .cat-row__opc-add:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Add-opción row (votación/ranking): input grows, "Agregar" button beside it
    so mobile users aren't stuck relying on the virtual Enter key. */
-slice-temarow .cat-row__opc-add-row { display: flex; align-items: stretch; gap: 8px; width: 100%; }
-slice-temarow .cat-row__opc-add-row .cat-row__opc-add { flex: 1; min-width: 0; }
-slice-temarow .cat-row__opc-add-btn { flex-shrink: 0; white-space: nowrap; font-size: 12.5px; padding: 7px 14px; }
+slice-temarow .cat-row__opc-add-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+slice-temarow .cat-row__opc-add-row .cat-row__opc-add {
+  flex: 1;
+  min-width: 0;
+}
+
+slice-temarow .cat-row__opc-add-btn-slot {
+  flex-shrink: 0;
+  white-space: nowrap;
+}

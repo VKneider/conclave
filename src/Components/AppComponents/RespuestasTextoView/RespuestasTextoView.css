@@ -46,14 +46,8 @@ slice-respuestastextoview .rt-fs__panel {
 }
 slice-respuestastextoview .rt-fs__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 slice-respuestastextoview .rt-fs__title { font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0; }
-slice-respuestastextoview .rt-fs__close {
-  flex-shrink: 0; border: 2px solid var(--font-primary-color); background: var(--panel-background-color);
-  color: var(--font-primary-color); cursor: pointer; font-size: 13px; font-weight: 700;
-  padding: 8px 16px; border-radius: 999px; box-shadow: 2px 2px 0 var(--font-primary-color);
-  transition: transform .08s, box-shadow .08s;
-}
-slice-respuestastextoview .rt-fs__close:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
-slice-respuestastextoview .rt-fs__close:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--font-primary-color); }
+slice-respuestastextoview .rt-fs__close-slot { flex-shrink: 0; }
+slice-respuestastextoview .rt-fs__close-slot slice-button .slice_button { border-radius: 999px; }
 slice-respuestastextoview .rt-fs__editor-slot { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 slice-respuestastextoview .rt-fs__editor-slot slice-enhancededitor .tp-editor { flex: 1; display: flex; flex-direction: column; min-height: 0; }

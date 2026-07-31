@@ -10,7 +10,7 @@ export default class RespuestasTextoView extends HTMLElement {
     this.$modeToggle = this.querySelector('.rt-mode-toggle');
     this.$fs = this.querySelector('.rt-fs');
     this.$fsTitle = this.querySelector('.rt-fs__title');
-    this.$fsClose = this.querySelector('.rt-fs__close');
+    this.$fsCloseSlot = this.querySelector('.rt-fs__close-slot');
     this.$fsFoot = this.querySelector('.rt-fs__foot');
     this.$fsEditorSlot = this.querySelector('.rt-fs__editor-slot');
     this._cards = new Map();
@@ -18,7 +18,6 @@ export default class RespuestasTextoView extends HTMLElement {
     this._fsTemaId = null;
     this._carousel = null;
 
-    this.$fsClose.addEventListener('click', () => this._closeFs());
     this.$fs.addEventListener('click', (e) => { if (e.target === this.$fs) this._closeFs(); });
     this._onKeydown = (e) => {
       if (e.key === 'Escape' && !this.$fs.hidden) { e.preventDefault(); this._closeFs(); return; }
@@ -34,6 +33,16 @@ export default class RespuestasTextoView extends HTMLElement {
 
     this._carousel = await slice.build('CarouselView', { mode: 'single' });
     this.$wrap.insertBefore(this._carousel, this.$fs);
+
+    this.$fsClose = await slice.build('Button', {
+      sliceId: 'rtFsClose',
+      value: 'Cerrar',
+      icon: { name: 'x', size: '14' },
+      variant: 'outlined',
+      size: 'sm',
+      onClick: () => this._closeFs(),
+    });
+    this.$fsCloseSlot.appendChild(this.$fsClose);
 
     this._initModeToggle();
 

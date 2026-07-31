@@ -95,19 +95,7 @@ export default class ConfirmActionModal extends HTMLElement {
     this.$message.hidden = !message;
     this.$cancelBtn.value = cancelLabel;
     this.$confirmBtn.value = confirmLabel;
-    if (danger) {
-      this.$confirmBtn.variant = 'filled';
-      this.$confirmBtn.customColor = { background: 'var(--danger-color)', text: 'var(--danger-contrast)' };
-    } else {
-      this.$confirmBtn.variant = 'filled';
-      this.$confirmBtn.customColor = { background: '', text: '' };
-      const btn = this.$confirmBtn.querySelector('.slice_button');
-      if (btn) {
-        btn.style.backgroundColor = '';
-        btn.style.borderColor = '';
-        btn.style.color = '';
-      }
-    }
+    this.$confirmBtn.variant = danger ? 'danger' : 'filled';
 
     if (this._hasInput) {
       await this._ensureInput(inputType);
