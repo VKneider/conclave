@@ -142,10 +142,13 @@ export default class SoundService {
       if (link) { if (unlocked) this.play('ui.nav'); }
     };
     const unlocker = async () => {
-      unlocked = await this.unlock();
-      document.removeEventListener('pointerdown', unlocker);
+      try {
+        unlocked = await this.unlock();
+      } finally {
+        document.removeEventListener('pointerdown', unlocker);
+      }
     };
-    document.addEventListener('pointerdown', unlocker);
+    document.addEventListener('pointerdown', unlocker, { once: true });
     root.addEventListener('pointerdown', handler, { passive: true });
     return () => root.removeEventListener('pointerdown', handler);
   }

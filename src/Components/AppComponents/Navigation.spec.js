@@ -106,7 +106,7 @@ test.describe('2. Navegación', () => {
          await app.resetState();
          await expect(app.page.locator('.landing-view')).toBeVisible();
 
-         await app.page.locator('button.landing-cta[data-href="/mis-respuestas"]').click();
+         await app.page.locator('a.landing-cta[href="/mis-respuestas"]').click();
          await app.page.waitForTimeout(300);
          expect(app.page.url()).toContain('/mis-respuestas');
          expect(app.pageErrors).toEqual([]);
@@ -116,7 +116,7 @@ test.describe('2. Navegación', () => {
          await app.resetState();
          await expect(app.page.locator('.landing-view')).toBeVisible();
 
-         await app.page.locator('button.landing-cta[data-href="/plantilla"]').click();
+         await app.page.locator('a.landing-cta[href="/plantilla"]').click();
          await app.page.waitForTimeout(300);
          expect(app.page.url()).toContain('/plantilla');
          expect(app.pageErrors).toEqual([]);
@@ -126,7 +126,7 @@ test.describe('2. Navegación', () => {
          await app.resetState();
          await expect(app.page.locator('.landing-view')).toBeVisible();
 
-         await app.page.locator('button.la-card[data-href="/dashboard"]').click();
+         await app.page.locator('a.la-card[href="/dashboard"]').click();
          await app.page.waitForTimeout(300);
          expect(app.page.url()).toContain('/dashboard');
          expect(app.pageErrors).toEqual([]);
@@ -136,7 +136,7 @@ test.describe('2. Navegación', () => {
          await app.resetState();
          await expect(app.page.locator('.landing-view')).toBeVisible();
 
-         await app.page.locator('button.la-card[data-href="/plantilla"]').click();
+         await app.page.locator('a.la-card[href="/plantilla"]').click();
          await app.page.waitForTimeout(300);
          expect(app.page.url()).toContain('/plantilla');
          expect(app.pageErrors).toEqual([]);

@@ -143,7 +143,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
          await setupTexto(app);
 
          // Click expand button on first card
-         await app.page.locator('.rt-expand').first().click();
+         await app.page.locator('.rt-expand-slot .slice_button').first().click();
          await app.page.waitForTimeout(300);
 
          // Fullscreen overlay visible
@@ -156,7 +156,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
          await setupTexto(app);
 
          // Open
-         await app.page.locator('.rt-expand').first().click();
+         await app.page.locator('.rt-expand-slot .slice_button').first().click();
          await app.page.waitForTimeout(300);
          await expect(app.page.locator('.rt-fs')).toBeVisible();
 
@@ -174,7 +174,7 @@ test.describe('6. Llenar Respuestas — Texto libre', () => {
          const fsTemaId = await app.page.locator('slice-textocard').first().evaluate((el) => el.temaId);
 
          // Open fullscreen on first card
-         await app.page.locator('.rt-expand').first().click();
+         await app.page.locator('.rt-expand-slot .slice_button').first().click();
          await app.page.waitForTimeout(300);
 
          // Type in fullscreen editor

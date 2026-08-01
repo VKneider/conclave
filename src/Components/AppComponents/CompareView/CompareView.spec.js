@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { test, expect } from '../../../../playwright/harness/sliceFixtures.js';
 import { injectPlantilla } from '../../../../playwright/harness/seedHelpers.js';
 
@@ -141,7 +142,7 @@ test.describe('13. CompareView', () => {
       await app.navigateTo('/comparar');
       await app.page.waitForTimeout(500);
 
-      await app.page.locator('#svcFilter').selectOption('frontend');
+      await app.selectOption('#cmpSvcFilterSlot .slice_select_container', 'Frontend');
       await app.page.waitForTimeout(300);
 
       // Filtered to opciones proposed for Frontend
@@ -397,6 +398,200 @@ test.describe('13. CompareView', () => {
         expect(secondTitleText).not.toBe(firstTitleText);
       }
 
+      expect(app.pageErrors).toEqual([]);
+    });
+
+    test('13.4.4: redactar síntesis de texto libre', async ({ app }) => {
+      await seedCompareData(app);
+      await app.navigateTo('/comparar');
+      await app.page.waitForTimeout(500);
+
+      await app.page.locator('.cmp-kind-tabs button[data-tab-id="texto"]').click();
+      await app.page.waitForTimeout(300);
+
+      // Open the synthesis modal from the first tema section
+      const synthBtn = app.page.locator('.tcc-synth-open').first();
+      await expect(synthBtn).toBeVisible();
+      await synthBtn.click();
+      await app.page.waitForTimeout(400);
+
+      // Modal + sources list appear
+      const modal = app.page.locator('.tcc-synth-modal');
+      await expect(modal).toBeVisible();
+      const insertBtns = app.page.locator('.tcc-synth__insert');
+      const insertCount = await insertBtns.count();
+      expect(insertCount).toBeGreaterThan(0);
+
+      // Insert the first two sources into the editor
+      await insertBtns.nth(0).click();
+      await app.page.waitForTimeout(200);
+      if (insertCount > 1) {
+        const secondInsert = app.page.locator('.tcc-synth__insert:not([disabled])').first();
+        await secondInsert.click();
+        await app.page.waitForTimeout(200);
+      }
+
+      // Editor has content now
+      const editor = app.page.locator('.tcc-synth__editor [contenteditable]');
+      const editorText = (await editor.textContent()) || '';
+      expect(editorText.trim().length).toBeGreaterThan(0);
+
+      // Save as final answer
+      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.waitForTimeout(400);
+
+      // Persisted with esSintesis + fuentes
+      const decisionFinal = await app.getContext('decisionFinal');
+      const entry = decisionFinal.texto.sugerencias;
+      expect(entry).toBeDefined();
+      expect(entry.esSintesis).toBe(true);
+      expect(Array.isArray(entry.fuentes)).toBe(true);
+      expect(entry.fuentes.length).toBeGreaterThan(0);
+
+      // Banner shows the synthesis label
+      const synthBanner = app.page.locator('.tcc-final-banner--synth').first();
+      await expect(synthBanner).toBeVisible();
+      expect(await synthBanner.textContent()).toContain('Síntesis');
+      expect(app.pageErrors).toEqual([]);
+    });
+
+    test('13.4.5: exportar lista final incluye la síntesis como decisión final', async ({ app }) => {
+      await seedCompareData(app);
+      await app.navigateTo('/comparar');
+      await app.page.waitForTimeout(500);
+
+      // Open the synthesis modal from the first tema section
+      await app.page.locator('.cmp-kind-tabs button[data-tab-id="texto"]').click();
+      await app.page.waitForTimeout(300);
+
+      const synthBtn = app.page.locator('.tcc-synth-open').first();
+      await expect(synthBtn).toBeVisible();
+      await synthBtn.click();
+      await app.page.waitForTimeout(400);
+
+      // Insert the first two sources into the editor and save
+      const insertBtns = app.page.locator('.tcc-synth__insert');
+      const insertCount = await insertBtns.count();
+      expect(insertCount).toBeGreaterThan(0);
+      await insertBtns.nth(0).click();
+      await app.page.waitForTimeout(200);
+      if (insertCount > 1) {
+        const secondInsert = app.page.locator('.tcc-synth__insert:not([disabled])').first();
+        await secondInsert.click();
+        await app.page.waitForTimeout(200);
+      }
+      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.waitForTimeout(400);
+
+      // Switch back to the reparto table to reach the export bar
+      await app.page.locator('.cmp-kind-tabs button[data-tab-id="seleccion"]').click();
+      await app.page.waitForTimeout(300);
+
+      const downloadPromise = app.page.waitForEvent('download', { timeout: 5000 }).catch(() => null);
+      await app.page.locator('[slice-id="cmpBtnExportFinal"] .slice_button').click();
+      await app.page.waitForTimeout(500);
+
+      const download = await downloadPromise;
+      expect(download).not.toBeNull();
+      expect(download.suggestedFilename()).toContain('.conclave');
+
+      // The exported JSON must carry the synthesis entry (not a flattened string)
+      const path = await download.path();
+      const json = JSON.parse(readFileSync(path, 'utf-8'));
+      const entry = json.respuestas?.texto?.sugerencias;
+      expect(entry).toBeDefined();
+      expect(entry.esSintesis).toBe(true);
+      expect(Array.isArray(entry.fuentes)).toBe(true);
+      expect(entry.fuentes.length).toBeGreaterThan(0);
+      expect(app.pageErrors).toEqual([]);
+    });
+
+    test('13.4.6: editar una síntesis existente', async ({ app }) => {
+      await seedCompareData(app);
+      await app.navigateTo('/comparar');
+      await app.page.waitForTimeout(500);
+
+      await app.page.locator('.cmp-kind-tabs button[data-tab-id="texto"]').click();
+      await app.page.waitForTimeout(300);
+
+      // Create the synthesis first
+      await app.page.locator('.tcc-synth-open').first().click();
+      await app.page.waitForTimeout(400);
+      const insertBtns = app.page.locator('.tcc-synth__insert');
+      const insertCount = await insertBtns.count();
+      expect(insertCount).toBeGreaterThan(0);
+      await insertBtns.nth(0).click();
+      await app.page.waitForTimeout(200);
+      if (insertCount > 1) {
+        await app.page.locator('.tcc-synth__insert:not([disabled])').first().click();
+        await app.page.waitForTimeout(200);
+      }
+      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.waitForTimeout(400);
+
+      // The header button now says "Editar", re-open the modal
+      const synthBtn = app.page.locator('.tcc-synth-open').first();
+      expect(await synthBtn.textContent()).toContain('Editar');
+      await synthBtn.click();
+      await app.page.waitForTimeout(400);
+
+      // Editor prefilled with the previously inserted content
+      const editor = app.page.locator('.tcc-synth__editor [contenteditable]');
+      const editorText = (await editor.textContent()) || '';
+      expect(editorText.trim().length).toBeGreaterThan(0);
+
+      // The already-inserted sources are marked as "Insertada" (disabled)
+      const inserted = app.page.locator('.tcc-synth__insert[disabled]');
+      expect(await inserted.count()).toBeGreaterThan(0);
+      expect(await inserted.first().textContent()).toContain('Insertada');
+
+      // Insert one more source and save again
+      const remaining = app.page.locator('.tcc-synth__insert:not([disabled])').first();
+      if (await app.page.locator('.tcc-synth__insert:not([disabled])').count() > 0) {
+        await remaining.click();
+        await app.page.waitForTimeout(200);
+      }
+      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.waitForTimeout(400);
+
+      // Updated entry: still a synthesis with a non-empty fuentes set
+      const decisionFinal = await app.getContext('decisionFinal');
+      const entry = decisionFinal.texto.sugerencias;
+      expect(entry).toBeDefined();
+      expect(entry.esSintesis).toBe(true);
+      expect(entry.fuentes.length).toBeGreaterThan(0);
+      expect(app.pageErrors).toEqual([]);
+    });
+
+    test('13.4.7: quitar la síntesis como respuesta final', async ({ app }) => {
+      await seedCompareData(app);
+      await app.navigateTo('/comparar');
+      await app.page.waitForTimeout(500);
+
+      await app.page.locator('.cmp-kind-tabs button[data-tab-id="texto"]').click();
+      await app.page.waitForTimeout(300);
+
+      // Create the synthesis first
+      await app.page.locator('.tcc-synth-open').first().click();
+      await app.page.waitForTimeout(400);
+      const insertBtns = app.page.locator('.tcc-synth__insert');
+      expect(await insertBtns.count()).toBeGreaterThan(0);
+      await insertBtns.nth(0).click();
+      await app.page.waitForTimeout(200);
+      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.waitForTimeout(400);
+
+      // Banner is visible
+      await expect(app.page.locator('.tcc-final-banner--synth').first()).toBeVisible();
+
+      // Remove the final decision
+      await app.page.locator('.tcc-final-banner [data-tccact="clear-final"]').first().click();
+      await app.page.waitForTimeout(400);
+
+      // Banner gone + context cleared
+      await expect(app.page.locator('.tcc-final-banner').first()).toBeHidden();
+      const decisionFinal = await app.getContext('decisionFinal');
+      expect(decisionFinal.texto.sugerencias).toBeUndefined();
       expect(app.pageErrors).toEqual([]);
     });
 

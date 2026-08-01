@@ -1,9 +1,16 @@
 /* Section — title + cards per tema */
 slice-textcomparecards .tcc-section { min-width: 0; }
+slice-textcomparecards .tcc-section-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin: 0 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border-color);
+}
 slice-textcomparecards .tcc-section-title {
   font-family: var(--font-display); font-size: 22px; font-weight: 600;
-  margin: 0 0 16px; padding-bottom: 8px;
-  border-bottom: 2px solid var(--border-color);
+  margin: 0; padding-bottom: 0; border-bottom: 0;
+}
+slice-textcomparecards .tcc-synth-open {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 700;
 }
 
 /* Final banner */
@@ -11,9 +18,11 @@ slice-textcomparecards .tcc-final-banner {
   display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
   padding: 10px 14px; background: var(--success-color); color: var(--success-contrast);
   border-radius: var(--card-border-radius); font-size: 13px; font-weight: 700;
+  flex-wrap: wrap;
 }
 slice-textcomparecards .tcc-final-banner .linkish { background: transparent; border: 0; color: inherit; opacity: .85; cursor: pointer; font-size: 12px; font-weight: 700; }
 slice-textcomparecards .tcc-final-banner .linkish:hover { opacity: 1; }
+slice-textcomparecards .tcc-final-banner--synth { background: var(--secondary-color); color: var(--secondary-color-contrast); }
 
 /* Card grid */
 slice-textcomparecards .tcc-grid {
@@ -65,13 +74,7 @@ slice-textcomparecards .tcc-fs__card {
 }
 slice-textcomparecards .tcc-fs__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 slice-textcomparecards .tcc-fs__autor { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
-slice-textcomparecards .tcc-fs__close {
-  flex-shrink: 0; border: 2px solid var(--font-primary-color); background: var(--panel-background-color);
-  color: var(--font-primary-color); cursor: pointer; font-size: 13px; font-weight: 700;
-  padding: 8px 16px; border-radius: 999px; box-shadow: 2px 2px 0 var(--font-primary-color);
-  transition: transform .08s, box-shadow .08s;
-}
-slice-textcomparecards .tcc-fs__close:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--font-primary-color); }
+slice-textcomparecards .tcc-fs__close-slot { flex-shrink: 0; display: inline-flex; }
 slice-textcomparecards .tcc-fs__text {
   flex: 1; overflow-y: auto; margin: 0; word-break: break-word;
   font-size: 17px; line-height: 1.75; color: var(--font-primary-color);
@@ -87,4 +90,50 @@ slice-textcomparecards .tp-render li { margin-bottom: 2px; }
   slice-textcomparecards .tcc-text { font-size: 15px; }
   slice-textcomparecards .tcc-fs { padding: 12px; }
   slice-textcomparecards .tcc-fs__card { padding: 16px 18px; }
+}
+
+/* ── Síntesis modal ("Redactar respuesta final") ─────────────── */
+.tcc-synth-modal .tcc-synth__body {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; min-height: 0;
+}
+.tcc-synth-modal .tcc-synth__sources-title {
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  margin: 0 0 10px;
+}
+.tcc-synth-modal .tcc-synth__sources-list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;
+  max-height: 240px; overflow-y: auto; padding-right: 4px;
+}
+.tcc-synth-modal .tcc-synth__source {
+  background: var(--panel-background-color); border: 2px solid var(--font-primary-color);
+  border-top: 6px solid var(--tcc-color, var(--primary-color));
+  border-radius: var(--card-border-radius); padding: 14px 16px;
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px;
+}
+.tcc-synth-modal .tcc-synth__source.is-inserted { opacity: .6; }
+.tcc-synth-modal .tcc-synth__source-name { font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
+.tcc-synth-modal .tcc-synth__insert {
+  justify-self: end; display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
+}
+.tcc-synth-modal .tcc-synth__source-text {
+  grid-column: 1 / -1; font-size: 14px; line-height: 1.55; color: var(--font-secondary-color);
+  border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 2px;
+  max-height: 140px; overflow-y: auto; word-break: break-word;
+}
+.tcc-synth-modal .tcc-synth__source-text.tp-render p { margin: 0 0 6px; }
+.tcc-synth-modal .tcc-synth__source-text.tp-render p:last-child { margin: 0; }
+.tcc-synth-modal .tcc-synth__source-text.tp-render ul,
+.tcc-synth-modal .tcc-synth__source-text.tp-render ol { margin: 4px 0; padding-left: 1.5em; }
+.tcc-synth-modal .tcc-synth__editor { min-height: 0; }
+.tcc-synth-modal .tcc-synth__editor slice-enhancededitor {
+  display: block; min-height: 200px;
+}
+.tcc-synth-modal .tcc-synth__editor blockquote {
+  margin: 6px 0; padding: 6px 12px; border-left: 4px solid var(--primary-color);
+  background: var(--primary-color-shade); border-radius: 6px;
+}
+@media (max-width: 600px) {
+  .tcc-synth-modal .tcc-synth__sources-list { grid-template-columns: 1fr; }
+  .tcc-synth-modal .tcc-synth__source { grid-template-columns: 1fr; }
+  .tcc-synth-modal .tcc-synth__insert { justify-self: start; }
 }

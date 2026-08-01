@@ -103,8 +103,6 @@ export default class PlantillaBuilderView extends HTMLElement {
 
     this.$importFile.onchange = (e) => this._handleImportFile(e);
 
-    slice.events.subscribe('tema:move', this._onTemaMove);
-
     slice.controller.setComponentProps(this, props);
   }
 
@@ -114,6 +112,9 @@ export default class PlantillaBuilderView extends HTMLElement {
     this._html = slice.getComponent('HtmlService');
     this._icons = slice.getComponent('IconProvider');
     const settings = slice.getComponent('SettingsService');
+
+    this.events = slice.events.bind(this);
+    this.events.subscribe('tema:move', this._onTemaMove);
 
     const [nombreInput, lideresCheckbox, addCatInput, addOpcInput, viewHeader, shareBtn, importBtn, catClearAll, opcClearAll, catBulkDelete, opcBulkDelete, addCatBtn, addOpcBtn, atribAddBtn, atribTypeSelect] = await Promise.all([
       slice.build('Input', { sliceId: 'pbNombre', placeholder: 'Nombre de la Plantilla' }),
@@ -580,10 +581,6 @@ export default class PlantillaBuilderView extends HTMLElement {
       },
     });
     this._sortableInitialized = true;
-  }
-
-  beforeDestroy() {
-    slice.events.unsubscribe('tema:move', this._onTemaMove);
   }
 
   _showToast(message, type) {

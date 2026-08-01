@@ -22,7 +22,8 @@ export default class ProfileBubble extends HTMLElement {
     this._boundCheck = () => this._checkVisibility();
     this._checkVisibility();
     window.addEventListener('popstate', this._boundCheck);
-    slice.events.subscribe('router:change', this._boundCheck);
+    this.events = slice.events.bind(this);
+    this.events.subscribe('router:change', this._boundCheck);
   }
 
   async update() {
@@ -31,7 +32,6 @@ export default class ProfileBubble extends HTMLElement {
 
   beforeDestroy() {
     window.removeEventListener('popstate', this._boundCheck);
-    slice.events.unsubscribe('router:change', this._boundCheck);
   }
 
   _checkVisibility() {

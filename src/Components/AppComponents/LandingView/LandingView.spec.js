@@ -8,7 +8,7 @@ test.describe('2.2 Landing page', () => {
     // seedAsignacion reloads to / — the landing page is at /
     await app.page.waitForTimeout(300);
 
-    await app.page.locator('.la-card[data-href="/mis-respuestas"]').click();
+    await app.page.locator('a.la-card[href="/mis-respuestas"]').click();
     await app.page.waitForTimeout(500);
 
     const path = await app.page.evaluate(() => window.location.pathname);
@@ -20,7 +20,7 @@ test.describe('2.2 Landing page', () => {
     await seedAsignacion(app);
     await app.page.waitForTimeout(300);
 
-    await app.page.locator('.la-card[data-href="/comparar"]').click();
+    await app.page.locator('a.la-card[href="/comparar"]').click();
     await app.page.waitForTimeout(500);
 
     const path = await app.page.evaluate(() => window.location.pathname);

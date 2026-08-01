@@ -108,15 +108,42 @@ export default class ConsensoService {
     return Object.prototype.hasOwnProperty.call(this.getState().texto, temaId);
   }
 
-  // "Final" for a texto_libre tema = one author's exact proposal
-  // adopted as-is (mirrors the seleccion majority-pick UX, no merge/synthesis
-  // editor in this phase).
+  // "Final" for a texto_libre tema = either one author's exact proposal
+  // adopted as-is (setResolutionTexto) or a synthesis composed from several
+  // responses (setSintesisTexto). Both write decisionFinal.texto[temaId] —
+  // the synthesis entry carries esSintesis:true + the contributing fuentes.
   finalTextoFor(temaId) {
     return this.getState().texto[temaId] || null;
   }
 
+  hasSintesisTexto(temaId) {
+    const entry = this.getState().texto?.[temaId];
+    return !!(entry && entry.esSintesis);
+  }
+
   setResolutionTexto(temaId, autor, texto) {
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, texto: { ...prev.texto, [temaId]: { autor, texto } } }));
+  }
+
+  setSintesisTexto(temaId, texto, fuentes) {
+    const fuentesList = Array.isArray(fuentes) ? fuentes.filter((f) => typeof f === 'string' && f.trim()) : [];
+    slice.context.setState(CONTEXT, (prev) => ({
+      ...prev,
+      texto: { ...prev.texto, [temaId]: { autor: 'Síntesis del equipo', texto, esSintesis: true, fuentes: fuentesList } },
+    }));
+  }
+
+  // View-model helper: the author label to display for a texto entry.
+  // Synthesis → "Síntesis del equipo" (+ "· de A, B" when there are fuentes);
+  // simple adoption → the original autor.
+  descripcionTextoFinal(entry) {
+    if (!entry) return null;
+    if (entry.esSintesis) {
+      const base = entry.autor || 'Síntesis del equipo';
+      const f = Array.isArray(entry.fuentes) ? entry.fuentes.filter(Boolean) : [];
+      return f.length ? `${base} · de ${f.join(', ')}` : base;
+    }
+    return entry.autor || null;
   }
 
   clearResolutionTexto(temaId) {
@@ -212,7 +239,7 @@ export default class ConsensoService {
     const state = this.getState();
     const texto = {};
     Object.entries(state.texto).forEach(([temaId, entry]) => {
-      if (entry?.texto) texto[temaId] = entry.texto;
+      if (entry?.texto) texto[temaId] = entry;
     });
     const voto = { ...(state.voto || {}) };
     const ranking = { ...(state.ranking || {}) };
@@ -436,8 +463,12 @@ ${bodyHtml}
 
     var cards = textoTemas.map(function (tema) {
       var entry = texto[tema.id];
-      return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body">' + (entry && entry.texto ? '<div class="quote tp-render">' + h.sanitize(entry.texto) + '<span class="quote-autor">— ' + h.esc(entry.autor || '') + '</span></div>' : '<span class="empty">Sin texto adoptado</span>') + '</div></div>';
-    }).join('');
+      if (!(entry && entry.texto)) {
+        return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body empty">Sin texto adoptado</div></div>';
+      }
+      var autor = this.descripcionTextoFinal(entry) || '';
+      return '<div class="card"><h3>' + h.esc(tema.nombre) + '</h3><div class="card-body"><div class="quote tp-render">' + h.sanitize(entry.texto) + '<span class="quote-autor">— ' + h.esc(autor) + '</span></div></div></div>';
+    }, this).join('');
     return '<h2>Texto libre</h2><div class="cards">' + cards + '</div>';
   }
 }

@@ -116,10 +116,10 @@ export default class CompareView extends HTMLElement {
     // built once here and kept out of .cmp-dynamic, which is re-templated on
     // every interaction. Pills/buttons update their state by setter per render
     // (labels with counts, active variant); the res-info/progress chips are
-    // pure markup re-filled each render. The Tema filter stays a native
-    // <select> (options rebuilt via DOM) — it's the only per-view control and
-    // no Slice control belongs inside the innerHTML table region.
-    const [btnFillSug, btnClearRes, btnExportFinal, btnAll, btnDisagree, btnAgree, btnPending, btnTemaView, btnOpcionView, btnExportCmp] = await Promise.all([
+    // pure markup re-filled each render. The Tema filter is a registry Select
+    // (same as CompareCarousel's) whose options are re-assigned by setter per
+    // render — it never belongs inside the innerHTML table region.
+    const [btnFillSug, btnClearRes, btnExportFinal, btnAll, btnDisagree, btnAgree, btnPending, btnTemaView, btnOpcionView, btnExportCmp, svcFilterSel] = await Promise.all([
       slice.build('Button', { sliceId: 'cmpBtnFillSug', value: 'Autocompletar con sugerencia', size: 'sm', onClick: () => this._confirmFillSuggestions() }),
       slice.build('Button', { sliceId: 'cmpBtnClearRes', value: 'Vaciar decisiones', size: 'sm', variant: 'danger', onClick: () => this._confirmClearResolutions() }),
       slice.build('Button', { sliceId: 'cmpBtnExportFinal', value: 'Exportar lista final', size: 'sm', variant: 'filled', onClick: () => slice.getComponent('ConsensoService').exportFinal(this._lastRows || []) }),
@@ -130,13 +130,14 @@ export default class CompareView extends HTMLElement {
       slice.build('Button', { sliceId: 'cmpBtnTemaView', value: 'Vista por tema', size: 'sm', onClick: () => { this.cmpView = 'tema'; this._render(); } }),
       slice.build('Button', { sliceId: 'cmpBtnOpcionView', value: 'Vista por opción', size: 'sm', variant: 'filled', onClick: () => { this.cmpView = 'opcion'; this._render(); } }),
       slice.build('Button', { sliceId: 'cmpBtnExportCmp', value: 'Exportar comparación como hoja de cálculo', size: 'sm', onClick: () => this._exportComparisonCSV(this._lastAll || [], this._lastRows || []) }),
+      slice.build('Select', { sliceId: 'cmpSvcFilter', options: [{ text: 'Todos los temas', value: '' }], visibleProp: 'text' }),
     ]);
     this._filterBtns = { all: btnAll, disagree: btnDisagree, agree: btnAgree, pending: btnPending };
     this.$resBar = this.$root.querySelector('#cmpResBar');
     this.$resInfo = this.$root.querySelector('#cmpResInfo');
     this.$resProgress = this.$root.querySelector('#cmpResProgress');
     this.$filtersBar = this.$root.querySelector('#cmpFilters');
-    this.$svcFilter = this.$root.querySelector('#svcFilter');
+    this.$svcFilterSel = svcFilterSel;
     this.$root.querySelector('#btnFillSugSlot').appendChild(btnFillSug);
     this.$root.querySelector('#btnClearResSlot').appendChild(btnClearRes);
     this.$root.querySelector('#btnExportFinalSlot').appendChild(btnExportFinal);
@@ -144,8 +145,13 @@ export default class CompareView extends HTMLElement {
     this.$root.querySelector('#btnTemaViewSlot').appendChild(btnTemaView);
     this.$root.querySelector('#btnOpcionViewSlot').appendChild(btnOpcionView);
     this.$root.querySelector('#btnExportCmpSlot').appendChild(btnExportCmp);
+    this.$root.querySelector('#cmpSvcFilterSlot').appendChild(svcFilterSel);
     this._svcFilterKey = null;
-    this.$svcFilter.addEventListener('change', () => { this.cmpService = this.$svcFilter.value; this._render(); });
+    svcFilterSel.onChange = () => {
+      const v = svcFilterSel.value;
+      this.cmpService = v && typeof v === 'object' ? v.value : v;
+      this._render();
+    };
 
     // Votación comparison: pick/clear the final decision per tema (delegated on
     // the mount so it survives the innerHTML repaints of _renderVotacion).
@@ -1020,22 +1026,30 @@ export default class CompareView extends HTMLElement {
     }
     const key = temas.map((t) => `${t.id}:${counts[t.id] ?? ''}`).join('|');
     if (key === this._svcFilterKey) {
-      this.$svcFilter.value = this.cmpService || '';
+      this._syncSvcFilterValue();
       return;
     }
     this._svcFilterKey = key;
-    this.$svcFilter.innerHTML = '';
-    const empty = document.createElement('option');
-    empty.value = '';
-    empty.textContent = 'Todos los temas';
-    this.$svcFilter.appendChild(empty);
-    temas.forEach((t) => {
-      const opt = document.createElement('option');
-      opt.value = t.id;
-      opt.textContent = counts[t.id] !== undefined ? `${t.nombre} (${counts[t.id]})` : t.nombre;
-      this.$svcFilter.appendChild(opt);
-    });
-    this.$svcFilter.value = this.cmpService || '';
+    const options = [
+      { text: 'Todos los temas', value: '' },
+      ...temas.map((t) => ({ text: counts[t.id] !== undefined ? `${t.nombre} (${counts[t.id]})` : t.nombre, value: t.id })),
+    ];
+    this.$svcFilterSel.options = options;
+    this._syncSvcFilterValue();
+  }
+
+  // Applies the current cmpService to the registry Select. The Select's value
+  // setter only accepts objects present in its options, so find the matching
+  // one (or fall back to "Todos los temas").
+  _syncSvcFilterValue() {
+    const options = this.$svcFilterSel.options || [];
+    const target = this.cmpService || '';
+    const match = options.find((o) => String(o.value) === String(target)) || options[0];
+    const current = this.$svcFilterSel.value;
+    const currentVal = Array.isArray(current) ? current[0]?.value : current?.value;
+    if (String(currentVal ?? '') !== String(match?.value ?? '')) {
+      this.$svcFilterSel.value = [match];
+    }
   }
 
   _bindTableInteractions() {

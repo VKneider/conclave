@@ -9,21 +9,28 @@ export default class TextoCard extends HTMLElement {
     super();
     slice.attachTemplate(this);
     this.$title = this.querySelector('.rt-title');
-    this.$expandBtn = this.querySelector('.rt-expand');
+    this.$expandSlot = this.querySelector('.rt-expand-slot');
     this.$editorSlot = this.querySelector('.rt-editor-slot');
     this.$status = this.querySelector('.rt-status');
     this._editor = null;
     this._onsave = null;
     this._onexpand = null;
 
-    this.$expandBtn.addEventListener('click', () => { if (this._onexpand) this._onexpand(); });
-
     slice.controller.setComponentProps(this, props);
   }
 
   async init() {
     this.$title.textContent = this.nombre;
-    this.$expandBtn.dataset.expand = this.temaId;
+
+    this.$expandBtn = await slice.build('Button', {
+      sliceId: `${this.sliceId}-expand`,
+      value: 'Ampliar',
+      icon: { name: 'maximize-2', size: '14' },
+      variant: 'outlined',
+      size: 'sm',
+      onClick: () => { if (this._onexpand) this._onexpand(); },
+    });
+    this.$expandSlot.appendChild(this.$expandBtn);
 
     this._editor = await slice.build('EnhancedEditor', {
       value: this.value || '',
@@ -34,7 +41,7 @@ export default class TextoCard extends HTMLElement {
     this.$editorSlot.appendChild(this._editor);
   }
 
-  set temaId(v) { this._temaId = v; if (this.$expandBtn) this.$expandBtn.dataset.expand = v; }
+  set temaId(v) { this._temaId = v; }
   get temaId() { return this._temaId; }
 
   set nombre(v) { this._nombre = v; if (this.$title) this.$title.textContent = v; }

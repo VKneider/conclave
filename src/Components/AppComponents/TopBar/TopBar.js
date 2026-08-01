@@ -34,7 +34,9 @@ export default class TopBar extends HTMLElement {
       if (!a) return;
       e.preventDefault();
       this.$topbar.classList.remove('open');
-      slice.router.navigate(a.dataset.path).then(() => this._updateActiveTab());
+      slice.router.navigate(a.dataset.path)
+        .then(() => this._updateActiveTab())
+        .catch(() => this._updateActiveTab());
     });
 
     slice.controller.setComponentProps(this, props);
@@ -47,9 +49,14 @@ export default class TopBar extends HTMLElement {
     this.events = slice.events.bind(this);
     slice.context.watch('plantilla', this, (p) => this._renderBrandSub(p.nombre));
 
+    this._boundPopstate = () => this._updateActiveTab();
     this.events.subscribe('router:change', () => this._updateActiveTab());
-    window.addEventListener('popstate', () => this._updateActiveTab());
+    window.addEventListener('popstate', this._boundPopstate);
     this._updateActiveTab();
+  }
+
+  beforeDestroy() {
+    window.removeEventListener('popstate', this._boundPopstate);
   }
 
   _renderTabs() {

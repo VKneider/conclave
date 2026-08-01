@@ -105,17 +105,62 @@ Quedan nativos: `.cc-arrow` (‹ ›), `.cc-dot`, `cc-final-select` por fila, st
 - `TemaRow.html`: `#cat-row__opc-add-btn` (btn-primary "Agregar" de votación) → Button `variant:'filled'`, `size:'sm'`, `icon:{name:'plus',size:'14'}`, conectado al `addOpc`. *(Hecho: slot `.cat-row__opc-add-btn-slot` + Button `sliceId:'trOpcAdd'` en `init()`, `onClick: () => this._addOpc()`; el closure inline se convirtió en método `_addOpc()`.)*
 - Los micro-controles ghost de filas (`toggle`/`remove`/`move-up`/`move-down` en TemaRow/OpcionRow/CategoriaRow) quedan como están (icono+texto pequeños, muchos por lista). Si se migran, migrar TODOS a la vez para no mezclar look.
 
+### Fase 7 — Controles persistentes pendientes del audit ✅ HECHA
+
+Cierre del audit F1–F6: botones/selects nativos que quedaban en regiones estáticas del `.html` (nunca innerHTML) sin exclusión justificada. Mismo patrón de montaje (§2): slot en el `.html` + `slice.build` en `init()`.
+
+| Elemento                                      | Componente | Props                                                                                                                          |
+| --------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `TextCompareCards` `.tcc-fs__close` (✕ fullscreen) | Button     | `sliceId:'tccFsClose'`, `value:'Cerrar'`, `icon:{name:'x',size:'14'}`, `variant:'outlined'`, `size:'sm'`, `onClick` → `_closeFs()`. Foco del overlay ahora via `.slice_button` |
+| `TextoCard` `.rt-expand` (⛶ Ampliar)          | Button     | `sliceId:\`${this.sliceId}-expand\``, `value:'Ampliar'`, `icon:{name:'maximize-2',size:'14'}`, `variant:'outlined'`, `size:'sm'`, `onClick` → `_onexpand()`. `data-expand` muerto eliminado |
+| `CompareView` `#svcFilter` (select Tema de la toolbar) | Select     | `sliceId:'cmpSvcFilter'`, opciones con conteos por setter, `visibleProp:'text'`, `onChange` → `cmpService`. Como Fase 5 (`_svcFilterKey` + `_syncSvcFilterValue` para no resetear la selección) |
+
+> Notas de implementación: los 3 eran controles estáticos en regiones build-once — la regla §2 aplica igual que en F4/F5. El `#svcFilter` era el único nativo de la toolbar persistente de CompareView; su justificación anterior ("vive dentro de la tabla innerHTML") quedó obsoleta tras F4. Actualizadas las specs (`CompareView.spec.js` 13.1.5 usa `app.selectOption`; `RespuestasTextoView.spec.js` usa `.rt-expand-slot .slice_button`).
+
+### Fase 8 — Mejores prácticas de la skill Slice (leaks, subscriptions) ✅ HECHA
+
+Audit de leaks/subscriptions/mutations. Migración de suscripciones manuales a `slice.events.bind(this)` (auto-cleanup en destroy) y cierre de listeners globales:
+
+| Hallazgo                                                                                  | Fix                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SoundService.attachSFX` — `unlocker` no se auto-removía si `unlock()` nunca resuelve     | `{ once: true }` + `try/finally` con `removeEventListener` — limpieza garantizada en cualquier caso. Handler global sigue en `root` (singleton de por vida, intencional) |
+| `ConfirmActionModal.js:10` — `subscribe('confirm:request')` sin cleanup                   | `this.events = slice.events.bind(this)` en `init()` → auto-cleanup                                                                                                 |
+| `ProfileBubble.js:25` — subscribe manual `router:change`                                  | `bind(this)` en `init()`; el `popstate` sigue manual en `beforeDestroy` (window listener, no auto-limpiado)                                                        |
+| `PlantillaBuilderView.js:106` — `subscribe('tema:move')` en constructor + unsubscribe manual en `beforeDestroy` | Movido a `init()` con `bind(this)`; `beforeDestroy` vacío eliminado                                                                                            |
+| `TopBar.js:37` — `navigate().then()` floating promise sin `.catch`                        | `.catch(() => this._updateActiveTab())`                                                                                                                             |
+| `TopBar.js:51` — `window.addEventListener('popstate', ...)` anónimo sin cleanup           | Handler con nombre + `beforeDestroy` con `removeEventListener`                                                                                                      |
+| 3× `navigator.clipboard.writeText()` — audit marcó "sin .catch"                           | **No aplica** — ya usan `.then(onOk, onErr)` (rejection cubierto). Sin cambio.                                                                                      |
+| Route/MultiRoute props mutation                                                           | **No aplica** — shims del framework (no código de la app); mutar `props` es su contrato interno.                                                                   |
+| Lazy modals sin toggle                                                                    | **No aplica** — `_modalPromise` ya es el patrón documentado (AGENTS.md).                                                                                            |
+| `PlantillaBuilderView._syncQueues` promise-queue manual                                   | **No aplica** — serializa `build()` async de filas; intencional y correcto.                                                                                         |
+
+> Verificación: lint 0 errores (12 warnings pre-existentes sin cambios); build OK (799.2 KB); PlantillaBuilderView 40/40, SliceEvents 13/13, ExportRespuestasModal + SharePlantillaModal 14/14.
+
+### Fase 9 — LandingView: CTAs/cards como `Link` (anchor real + URL preview) ✅ HECHA
+
+Las cards/CTAs del landing eran `<button data-href>` con `slice.router.navigate` en delegación `onclick`. Un `<button>` **no** muestra la URL destino al hacer hover (eso solo lo hacen los `<a href>` nativos). Migrados al componente de registro `Link` (el mismo que usa `Navbar`): renderiza un `<a href>` real → el navegador previsualiza la URL en la status bar al hover, y el click navega por `slice.router.navigate` sin recarga.
+
+| Cambio | Detalle |
+| --- | --- |
+| `Link.js` enriquecido | Nuevas props `icon`, `iconSize`, `iconColor`, `sub`. Renderiza `<span class="slice-link-icon">` + `<span class="slice-link-title">` + `<span class="slice-link-sub">` cuando hay `sub`; texto plano (`textContent`) si no. Sigue construyéndose con DOM APIs (sin innerHTML) — solo el SVG de IconProvider entra por `insertAdjacentHTML`. |
+| `LandingView.html` | Slots persistentes `[data-slot]`: `cta-responder`, `cta-editar`, `la-responder/comparar/dashboard/plantilla`, `uc-asignacion/votacion/ranking/lluvia`. Los iconos de howto se llenan una vez con `data-icon`. |
+| `LandingView.js` | `init()` → `_fillIcons()` + `_buildLinks()` (Promise.all de `slice.build('Link', ...)` appendeado a slots). `_render()` ya **no** toca `$root.innerHTML` — solo actualiza `plantillaName`/`plantillaBadges`. |
+| `LandingView.css` | Cards ahora son `<a>`: `text-decoration:none; color:inherit`. Selectores de hijos `.la-icon/.la-label/.la-sub` → `.slice-link-icon/.slice-link-title/.slice-link-sub` (igual para `.usecase-icon`, `h3`, `p`). `.landing-cta` gana `inline-flex` + `gap`. |
+| Specs | `data-href` eliminado (ya no existe el atributo): `LandingView.spec.js` y `Navigation.spec.js` usan `a.la-card[href="/..."]` / `a.landing-cta[href="/..."]`. |
+
+> Notas: `Link` se construye solo vía `slice.build` (constructor recibe props → `render()`; `slice.build` llama `init()` de nuevo, pero `addEventListener` deduplica → sin doble navegación). No hay handler global de `[data-route]` que interfiera. Verificado: lint 0 errores; LandingView + Navigation 20/20 pass; build OK.
+
 ## 4. Lo que NO se migra (y por qué)
 
 | Elemento                                                                                                                                                                                                                               | Razón                                                                                                                                              |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LandingView` (CTAs, usecase cards)                                                                                                                                                                                                    | Marketing/estático; regiones innerHTML puro + delegación `data-href` (COMPONENT-PATTERNS §UI patterns).                                            |
+| `LandingView` howto steps / hero estático                                                                                                                                                                        | Secciones display puras (markup sanitizado + iconos injectados una vez). Los **controles interactivos** (CTAs, la-cards, usecase-cards) sí se migraron — Fase 9. |
 | Flechas/pills/micro-botones en listas re-renderizadas (`MisRespuestasView` ‹›/pills/lider-toggle; `RespuestasRankingView` ▲▼; `CompareCarousel` flechas/dots; `TextCompareCards` `tcc-pick`/`tcc-read`; `CompareView` star/clear/pick) | Controles por-item dentro de regiones innerHTML puro con delegación de eventos; convertirlos exige reconciliar cada fila. Documentado como válido. |
 | `<input type="file">` (PlantillaBuilderView, ResumenFinalView, UserMenu)                                                                                                                                                               | No hay componente de registro equivalente.                                                                                                         |
 | `<textarea>` (CompareNotesModal, CompareView import por URL)                                                                                                                                                                           | Ídem.                                                                                                                                              |
 | `TopBar` hamburger, `UserMenu` avatar trigger                                                                                                                                                                                          | Triggers con forma propia (3 líneas / círculo-avatar), no son sticker buttons.                                                                     |
 | `TopBar` `.tabs` nav                                                                                                                                                                                                                   | Chrome de rutas con estilo propio; el `Navbar` del registro no encaja 1:1. Opcional a futuro.                                                      |
-| Selects por-fila de tablas (`final-select`, `cc-final-select`, `svcFilter`)                                                                                                                                                            | Viven dentro de la tabla innerHTML; un Select de registro por fila requiere reconciliar la tabla.                                                  |
+| Selects por-fila de tablas (`final-select`, `cc-final-select`)                                                                                                                                                             | Viven dentro de la tabla innerHTML; un Select de registro por fila requiere reconciliar la tabla. |
 | Cards/markup de display (stat-cards, tablas, badges, presets)                                                                                                                                                                          | Markup puro — innerHTML sanitizado es la herramienta correcta.                                                                                     |
 
 ## 5. Regla de decisión (para añadir a `docs/COMPONENT-PATTERNS.md`)

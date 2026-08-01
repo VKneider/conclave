@@ -7,7 +7,8 @@ export default class ConfirmActionModal extends HTMLElement {
   }
 
   init() {
-    slice.events.subscribe('confirm:request', (payload) => this._open(payload));
+    this.events = slice.events.bind(this);
+    this.events.subscribe('confirm:request', (payload) => this._open(payload));
   }
 
   async _ensureModal() {

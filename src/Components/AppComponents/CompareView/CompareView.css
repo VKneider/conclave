@@ -41,8 +41,9 @@ slice-compareview .cmp-tb-btn[hidden] { display: none; }
    consistent whichever view is active. */
 slice-compareview .cmp-search-slot { max-width: 220px; margin-bottom: 14px; }
 slice-compareview .svc-filter { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--font-secondary-color); font-weight: 700; }
-slice-compareview .svc-filter select { background: var(--panel-background-color); border: 2px solid var(--border-color); color: var(--font-primary-color); border-radius: 8px; padding: 5px 8px; font-size: 12px; font-weight: 600; outline: none; cursor: pointer; }
-slice-compareview .svc-filter select:focus-visible { border-color: var(--primary-color); }
+slice-compareview #cmpSvcFilterSlot slice-select { min-width: 170px; }
+slice-compareview #cmpSvcFilterSlot slice-select .slice_select_container { padding: 4px 8px; }
+slice-compareview #cmpSvcFilterSlot slice-select .slice_select { font-size: 12px; }
 slice-compareview .svc-filter-note { font-size: 13px; color: var(--font-secondary-color); margin: 0 0 12px; padding: 10px 14px; background: var(--secondary-background-color); border: 2px solid var(--border-color); border-radius: 10px; }
 slice-compareview .svc-filter-note .linkish { background: transparent; border: 0; color: var(--primary-color); cursor: pointer; font-size: 12px; font-weight: 700; padding: 0 0 0 6px; }
 slice-compareview .cmp-table td.cell-match { background: color-mix(in srgb, var(--primary-color) 16%, transparent); font-weight: 700; }

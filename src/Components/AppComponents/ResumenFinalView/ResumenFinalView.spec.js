@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { test, expect, waitForSliceReady } from '../../../../playwright/harness/sliceFixtures.js';
 import { seedAsignacion } from '../../../../playwright/harness/seedHelpers.js';
 import LZString from 'lz-string';
@@ -65,7 +66,11 @@ async function injectPlantilla(app, plantilla, extraContexts = {}) {
    await app.page.reload();
    await waitForSliceReady(app.page);
    await app.page.waitForTimeout(500);
-   await app.navigateTo('/resumen');
+   for (let i = 0; i < 3; i++) {
+      await app.navigateTo('/resumen');
+      await app.page.waitForTimeout(300);
+      if (await app.page.locator('.resumen-view').isVisible()) break;
+   }
    await expect(app.page.locator('.resumen-view')).toBeVisible({ timeout: 5000 });
 }
 
@@ -178,7 +183,7 @@ test.describe('14. Resumen Final', () => {
        expect(app.pageErrors).toEqual([]);
     });
 
-   test('14.1.7: ver sección vacía cuando no hay decisiones', async ({ app }) => {
+    test('14.1.7: ver sección vacía cuando no hay decisiones', async ({ app }) => {
       const decisionFinal = {
          seleccion: {}, texto: {}, voto: {}, ranking: {},
       };
@@ -187,6 +192,83 @@ test.describe('14. Resumen Final', () => {
       // Reparto section shows empty state
       await expect(app.page.locator('.rf-section__title').filter({ hasText: 'Asignaciones' })).toBeVisible();
       await expect(app.page.locator('.rf-empty').first()).toContainText('No hay decisiones finales');
+      expect(app.pageErrors).toEqual([]);
+   });
+
+   test('14.1.8: el HTML descargado incluye la síntesis como respuesta final', async ({ app }) => {
+      const decisionFinal = {
+         texto: { 't1': { autor: 'Síntesis del equipo', texto: 'Combinamos testing y documentación.', esSintesis: true, fuentes: ['Ana', 'Beto'] } },
+         seleccion: {}, voto: {}, ranking: {},
+      };
+      await injectPlantilla(app, TEXTO_PLANTILLA, { 'conclave-decision-final-v1': decisionFinal });
+
+      await app.page.locator('.resumen-view slice-dropdown').waitFor({ state: 'attached', timeout: 5000 });
+      await app.page.waitForTimeout(500);
+      await app.page.locator('.resumen-view slice-dropdown .slice_dropdown').click();
+      await app.page.waitForTimeout(300);
+
+      const downloadPromise = app.page.waitForEvent('download', { timeout: 5000 }).catch(() => null);
+      await app.page.locator('.resumen-view .slice_dropbox a').filter({ hasText: 'Descargar HTML' }).click();
+      await app.page.waitForTimeout(500);
+
+      const download = await downloadPromise;
+      expect(download).not.toBeNull();
+      expect(download.suggestedFilename()).toBe('resumen_final.html');
+
+      const path = await download.path();
+      const html = readFileSync(path, 'utf-8');
+      // The synthesis text + label must appear (not a single adopted person's response)
+      expect(html).toContain('Combinamos testing y documentación.');
+      expect(html).toContain('Síntesis del equipo · de Ana, Beto');
+      expect(html).not.toContain('Sin texto adoptado');
+      expect(app.pageErrors).toEqual([]);
+   });
+
+   test('14.1.9: el backup JSON incluye la síntesis con esSintesis y fuentes', async ({ app }) => {
+      const decisionFinal = {
+         texto: { 't1': { autor: 'Síntesis del equipo', texto: 'Combinamos testing y documentación.', esSintesis: true, fuentes: ['Ana', 'Beto'] } },
+         seleccion: {}, voto: {}, ranking: {},
+      };
+      await injectPlantilla(app, TEXTO_PLANTILLA, { 'conclave-decision-final-v1': decisionFinal });
+
+      await app.page.locator('.resumen-view slice-dropdown').waitFor({ state: 'attached', timeout: 5000 });
+      await app.page.waitForTimeout(500);
+      await app.page.locator('.resumen-view slice-dropdown .slice_dropdown').click();
+      await app.page.waitForTimeout(300);
+
+      const downloadPromise = app.page.waitForEvent('download', { timeout: 5000 }).catch(() => null);
+      await app.page.locator('.resumen-view .slice_dropbox a').filter({ hasText: 'Exportar backup completo' }).click();
+      await app.page.waitForTimeout(500);
+
+      const download = await downloadPromise;
+      expect(download).not.toBeNull();
+
+      const path = await download.path();
+      const json = JSON.parse(readFileSync(path, 'utf-8'));
+      const entry = json.decisionFinal?.texto?.t1;
+      expect(entry).toBeDefined();
+      expect(entry.esSintesis).toBe(true);
+      expect(entry.fuentes).toEqual(['Ana', 'Beto']);
+      expect(entry.texto).toContain('Combinamos testing');
+      expect(app.pageErrors).toEqual([]);
+   });
+
+   test('14.1.10: la vista de resumen muestra la síntesis como respuesta final', async ({ app }) => {
+      const decisionFinal = {
+         texto: { 't1': { autor: 'Síntesis del equipo', texto: 'Combinamos testing y documentación.', esSintesis: true, fuentes: ['Ana', 'Beto'] } },
+         seleccion: {}, voto: {}, ranking: {},
+      };
+      await injectPlantilla(app, TEXTO_PLANTILLA, { 'conclave-decision-final-v1': decisionFinal });
+
+      await expect(app.page.locator('.rf-section__title').filter({ hasText: 'Texto libre' })).toBeVisible();
+      await expect(app.page.locator('.rf-card-list')).toBeVisible();
+      // La cita muestra el texto de la síntesis (no una adopción individual)
+      await expect(app.page.locator('.rf-quote')).toContainText('Combinamos testing y documentación.');
+      // El autor compuesto incluye el label de síntesis + fuentes
+      await expect(app.page.locator('.rf-quote__autor')).toContainText('Síntesis del equipo');
+      await expect(app.page.locator('.rf-quote__autor')).toContainText('Ana, Beto');
+      // No debe aparecer como "Sin texto adoptado"
+      await expect(app.page.locator('.rf-empty').filter({ hasText: 'Sin texto adoptado' })).toHaveCount(0);
       expect(app.pageErrors).toEqual([]);
    });
 
@@ -243,6 +325,44 @@ test.describe('14. Resumen Final', () => {
 
          await expect(app.page.locator('.resumen-view')).toBeVisible({ timeout: 5000 });
          await expect(app.page.locator('.rf-table tbody tr')).toHaveCount(3);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('14.2.2: importar consenso con síntesis desde enlace con hash', async ({ app }) => {
+         await injectPlantilla(app, TEXTO_PLANTILLA);
+
+         const payload = {
+            respuestas: {
+               seleccion: {},
+               texto: {
+                  't1': {
+                     autor: 'Síntesis del equipo',
+                     texto: 'Combinamos testing y documentación para la decisión final.',
+                     esSintesis: true,
+                     fuentes: ['Ana', 'Beto'],
+                  },
+               },
+               voto: {}, ranking: {},
+            },
+            autor: 'TestUser',
+            email: '',
+         };
+         const hash = makeConsensoHash(payload);
+
+         await app.page.goto('/' + hash);
+         await app.page.reload();
+         await waitForSliceReady(app.page);
+         await app.page.waitForTimeout(500);
+
+         await app.confirmDialog();
+         await app.page.waitForTimeout(500);
+
+         // The imported síntesis survives the short-key hash roundtrip and renders
+         await expect(app.page.locator('.resumen-view')).toBeVisible({ timeout: 5000 });
+         await expect(app.page.locator('.rf-section__title').filter({ hasText: 'Texto libre' })).toBeVisible();
+         await expect(app.page.locator('.rf-quote')).toContainText('Combinamos testing y documentación');
+         await expect(app.page.locator('.rf-quote__autor')).toContainText('Síntesis del equipo');
+         await expect(app.page.locator('.rf-quote__autor')).toContainText('Ana, Beto');
          expect(app.pageErrors).toEqual([]);
       });
 

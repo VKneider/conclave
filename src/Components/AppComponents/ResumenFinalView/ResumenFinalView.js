@@ -330,7 +330,8 @@ export default class ResumenFinalView extends HTMLElement {
 
     const cards = textoTemas.map((tema) => {
       const entry = texto[tema.id];
-      return '<div class="rf-card"><div class="rf-card__title">' + this._html.esc(tema.nombre) + '</div>' + (entry?.texto ? '<div class="rf-card__body"><div class="rf-quote tp-render">' + this._html.sanitize(entry.texto) + '<span class="rf-quote__autor">\u2014 ' + this._html.esc(entry.autor || '') + '</span></div></div>' : '<div class="rf-card__body rf-empty">Sin texto adoptado</div>') + '</div>';
+      const autor = entry ? this._consenso.descripcionTextoFinal(entry) : null;
+      return '<div class="rf-card"><div class="rf-card__title">' + this._html.esc(tema.nombre) + '</div>' + (entry?.texto ? '<div class="rf-card__body"><div class="rf-quote tp-render">' + this._html.sanitize(entry.texto) + '<span class="rf-quote__autor">\u2014 ' + this._html.esc(autor || '') + '</span></div></div>' : '<div class="rf-card__body rf-empty">Sin texto adoptado</div>') + '</div>';
     }).join('');
 
     return '<div class="rf-section"><h3 class="rf-section__title">Texto libre</h3><div class="rf-card-list">' + cards + '</div></div>';
