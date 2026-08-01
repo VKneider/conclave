@@ -16,6 +16,14 @@ de la respuesta exacta de una sola persona.
 > **Ampliación posterior:** tests de export (13.4.5, 14.1.8, 14.1.9) + fix de
 > `exportFinal` para preservar la entrada completa de `texto` (esSintesis/fuentes)
 > en el JSON "Exportar lista final".
+>
+> **Cobertura completa (commit `0e93822`):** editar (13.4.6) y quitar (13.4.7) la
+> síntesis, vista de resumen renderizada (14.1.10) e import por hash `#consenso=`
+> (14.2.2). Fix de flake e2e: `injectPlantilla` (ResumenFinalView.spec.js) reintenta
+> la navegación a `/resumen` tras el reload — el `popstate` podía perderse antes de
+> que el router registrara su listener. Docs de referencia actualizados: DATA.md
+> (§`decisionFinal.texto` entries), FEATURES.md (§TextCompareCards), ARCHITECTURE.md
+> (fila ConsensoService + tabla de contextos).
 
 ---
 
@@ -115,5 +123,5 @@ la respuesta elegida compuesta.
 | `src/Components/DataDisplay/TextCompareCards/TextCompareCards.js` | botón + modal de síntesis + banner |
 | `src/Components/DataDisplay/TextCompareCards/TextCompareCards.css` | estilos `.tcc-synth-*` |
 | `src/Components/AppComponents/ResumenFinalView/ResumenFinalView.js` | `_renderTexto` muestra síntesis |
-| `src/Components/AppComponents/CompareView/CompareView.spec.js` | casos e2e 13.4.4 (redactar) y 13.4.5 (export lista final) |
-| `src/Components/AppComponents/ResumenFinalView/ResumenFinalView.spec.js` | casos e2e 14.1.8 (HTML export) y 14.1.9 (backup JSON) |
+| `src/Components/AppComponents/CompareView/CompareView.spec.js` | casos e2e 13.4.4–13.4.7 (redactar, export lista final, editar, quitar) |
+| `src/Components/AppComponents/ResumenFinalView/ResumenFinalView.spec.js` | casos e2e 14.1.8 (HTML export), 14.1.9 (backup JSON), 14.1.10 (vista renderizada), 14.2.2 (import por hash) |

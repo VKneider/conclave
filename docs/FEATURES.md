@@ -165,6 +165,23 @@ File: `src/Components/DataDisplay/TextCompareCards/TextCompareCards.js`
 
 The spec's "tercera vista": for a comparison to be useful for open-ended proposals (not just team assignment), everyone's free-text answer for one Categoría at a time is shown as a large, readable card — not a table cell. Navigation is by **Categoría** (prev/next, or none if there's only one), and within a Categoría every source's proposal renders as its own big card side by side, so "ver todas las ideas de los demás" (see everyone's ideas at once) actually holds. Each card has a "Marcar como elegida" button; the chosen one gets a visible "Elegida" tag and a success-colored border, driven by `ConsensoService.setResolutionTexto()`/`finalTextoFor()`.
 
+### Respuesta final: adoptado simple vs. síntesis
+
+A `texto_libre` Tema can end with **either** of two kinds of final answer (they coexist — see DATA.md §`decisionFinal.texto` entries):
+
+1. **Adoptado simple** — "Marcar como elegida" on a card adopts that person's exact proposal (`{ autor, texto }`, `esSintesis: false`).
+2. **Síntesis** — the "Redactar respuesta final" button (top-right of each Tema section) opens a lazy-built modal (`_ensureModal` + `_modalPromise`, the `CompareNotesModal` pattern; see GOTCHAS §10) with a list of every source's proposal for that Tema plus an `EnhancedEditor`. The leader clicks "Insertar" on one or more sources to compose a combined answer (the button flips to disabled "Insertada" per source), edits freely, and saves via "Guardar como respuesta final" → `setSintesisTexto(temaId, html, fuentes)`.
+
+   The synthesized entry is stored as `{ autor: 'Síntesis del equipo', texto, esSintesis: true, fuentes: [...] }` in the same `decisionFinal.texto[temaId]`. Re-opening the modal later (button label becomes "Editar respuesta final") pre-fills the editor with the saved HTML and re-marks the already-inserted sources; "Quitar" on the banner clears the final (`clearResolutionTexto`). The banner shows "**Final**: Síntesis del equipo · de A, B" with the `--synth` variant class (`.tcc-final-banner--synth`).
+
+### Where the síntesis flows through
+
+- **CompareView "Exportar lista final"** (`ConsensoService.exportFinal`) writes the whole entry (not a flattened string) into the exported JSON's `respuestas.texto[temaId]`.
+- **ResumenFinalView** renders the synthesized answer via `descripcionTextoFinal(entry)` — the resumen card, the "Descargar HTML"/"Imprimir" exports (`_buildTexto`), and the "backup" JSON export all carry `esSintesis` + `fuentes` unchanged.
+- **Share link** (`#consenso=`) — `importState` → `_normalizeRespuestas` keeps the entry whole; unknown keys pass through `CompressionService.unpackFromURI`, so a synthesized final survives the short-key hash roundtrip.
+
+E2E coverage lives in `CompareView.spec.js` (13.4.4–13.4.7: crear/exportar/editar/quitar) and `ResumenFinalView.spec.js` (14.1.8–14.1.10, 14.2.2: HTML, backup JSON, resumen render, import por hash).
+
 ## Export/Share Modals
 
 ### ExportRespuestasModal

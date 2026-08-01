@@ -99,6 +99,34 @@ decision made in Comparar. `respuestasImportadas` holds other people's
 Respuestas as comparison sources; `RespuestasImportService._normalizeRespuestas`
 filters all four modos against the current Plantilla on import/boot.
 
+### `decisionFinal.texto[temaId]` entries — adoptado vs. síntesis
+
+Unlike the other three modos, a `texto_libre` final is **not** a scalar id/string —
+it's an object. Two mutually exclusive kinds (both set by `ConsensoService`):
+
+```js
+// 1) Adoptado — one person's exact proposal becomes the answer:
+texto[temaId] = { autor: 'Ana', texto: '<p>…proposal…</p>' }
+
+// 2) Síntesis — a composed answer built in CompareView's "Redactar respuesta final"
+//    modal (TextCompareCards) from several sources, marked with esSintesis:true
+//    + the fuentes (autores) it was composed from:
+texto[temaId] = {
+  autor: 'Síntesis del equipo',
+  texto: '<p>…combined…</p>',
+  esSintesis: true,
+  fuentes: ['Ana', 'Beto'],
+}
+```
+
+Retrocompatible — old `{ autor, texto }` entries have no `esSintesis` and keep
+working everywhere; no migration needed. Distinguish with
+`ConsensoService.hasSintesisTexto(temaId)`; the display label is built by
+`descripcionTextoFinal(entry)` (→ "Síntesis del equipo" + " · de A, B" when
+`fuentes` present). `_normalizeRespuestas` (used by the `#consenso=` share-link
+import and `exportFinal` file import) preserves the whole entry object, so
+`esSintesis`/`fuentes` survive the short-key hash roundtrip.
+
 ## The two exportable JSON types
 
 Extensions are defined in `src/Components/Core/AppConfig/AppConfig.js`:
