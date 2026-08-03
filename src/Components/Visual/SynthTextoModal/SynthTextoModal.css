@@ -1,0 +1,46 @@
+/* ── Síntesis modal ("Redactar respuesta final") ─────────────── */
+.stm-modal .stm__body {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; min-height: 0;
+}
+.stm-modal .stm__sources-title {
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  margin: 0 0 10px;
+}
+.stm-modal .stm__sources-list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;
+  max-height: 240px; overflow-y: auto; padding-right: 4px;
+}
+.stm-modal .stm__source {
+  background: var(--panel-background-color); border: 2px solid var(--font-primary-color);
+  border-top: 6px solid var(--stm-color, var(--primary-color));
+  border-radius: var(--card-border-radius); padding: 14px 16px;
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px;
+}
+.stm-modal .stm__source.is-inserted { opacity: .6; }
+.stm-modal .stm-swatch { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--font-primary-color); flex: none; }
+.stm-modal .stm__source-name { font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
+.stm-modal .stm__insert {
+  justify-self: end; display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
+}
+.stm-modal .stm__source-text {
+  grid-column: 1 / -1; font-size: 14px; line-height: 1.55; color: var(--font-secondary-color);
+  border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 2px;
+  max-height: 140px; overflow-y: auto; word-break: break-word;
+}
+.stm-modal .stm__source-text.tp-render p { margin: 0 0 6px; }
+.stm-modal .stm__source-text.tp-render p:last-child { margin: 0; }
+.stm-modal .stm__source-text.tp-render ul,
+.stm-modal .stm__source-text.tp-render ol { margin: 4px 0; padding-left: 1.5em; }
+.stm-modal .stm__editor { min-height: 0; }
+.stm-modal .stm__editor slice-enhancededitor {
+  display: block; min-height: 200px;
+}
+.stm-modal .stm__editor blockquote {
+  margin: 6px 0; padding: 6px 12px; border-left: 4px solid var(--primary-color);
+  background: var(--primary-color-shade); border-radius: 6px;
+}
+@media (max-width: 600px) {
+  .stm-modal .stm__sources-list { grid-template-columns: 1fr; }
+  .stm-modal .stm__source { grid-template-columns: 1fr; }
+  .stm-modal .stm__insert { justify-self: start; }
+}

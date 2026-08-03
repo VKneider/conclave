@@ -88,6 +88,10 @@ la respuesta elegida compuesta.
 - Banner del tema: para síntesis muestra "✓ Final: Síntesis del equipo · (fuentes)" + botones
   "Editar" / "Quitar". La adopción simple ("Elegida: Ana") queda igual; el `is-final` de una
   card se marca solo por adopción literal (la síntesis no coincide con ninguna card).
+- **Refactor posterior:** el modal se extrajo a su propio componente Visual
+  **`SynthTextoModal`** (UI pura con callbacks `onSave`/`onClear`; `TextCompareCards` solo
+  arma `show({...})` y aplica la decisión al ConsensoService). CSS renombrado
+  `.tcc-synth-*` → `.stm-*`, movido a `SynthTextoModal.css`.
 
 ## Etapa 3 — Resumen + export
 
@@ -120,8 +124,10 @@ la respuesta elegida compuesta.
 |---|---|
 | `docs/PLAN-SINTESIS-TEXTO.md` | este plan |
 | `src/Components/Domain/ConsensoService/ConsensoService.js` | `setSintesisTexto`, `hasSintesisTexto`, `descripcionTextoFinal`, `_buildTexto`, `exportFinal` (preserva entrada completa) |
-| `src/Components/DataDisplay/TextCompareCards/TextCompareCards.js` | botón + modal de síntesis + banner |
-| `src/Components/DataDisplay/TextCompareCards/TextCompareCards.css` | estilos `.tcc-synth-*` |
+| `src/Components/Visual/SynthTextoModal/*` | **nuevo** componente (JS + HTML + CSS `.stm-*`): modal de síntesis extraído, UI pura con `show({ temaId, temaNombre, sources, final, onSave, onClear })` |
+| `src/Components/components.js` | registro `"SynthTextoModal": "Visual"` |
+| `src/Components/DataDisplay/TextCompareCards/TextCompareCards.js` | botón + banner + `_openSynth` delega en `SynthTextoModal` (callbacks → ConsensoService); modal y campos residuales eliminados |
+| `src/Components/DataDisplay/TextCompareCards/TextCompareCards.css` | estilos `.tcc-synth-*` eliminados (movidos a `SynthTextoModal.css`) |
 | `src/Components/AppComponents/ResumenFinalView/ResumenFinalView.js` | `_renderTexto` muestra síntesis |
-| `src/Components/AppComponents/CompareView/CompareView.spec.js` | casos e2e 13.4.4–13.4.7 (redactar, export lista final, editar, quitar) |
+| `src/Components/AppComponents/CompareView/CompareView.spec.js` | casos e2e 13.4.4–13.4.7 (redactar, export lista final, editar, quitar) con selectores `.stm-*` |
 | `src/Components/AppComponents/ResumenFinalView/ResumenFinalView.spec.js` | casos e2e 14.1.8 (HTML export), 14.1.9 (backup JSON), 14.1.10 (vista renderizada), 14.2.2 (import por hash) |

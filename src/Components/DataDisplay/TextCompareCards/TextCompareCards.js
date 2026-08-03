@@ -13,9 +13,7 @@ export default class TextCompareCards extends HTMLElement {
     this.$fsCloseSlot = this.querySelector('.tcc-fs__close-slot');
     this._sources = [];
     this._carousel = null;
-    this._modalPromise = null;
-    this._synthTemaId = null;
-    this._synthFuentes = new Set();
+    this._synthModal = null;
 
     this.$fs.addEventListener('click', (e) => { if (e.target === this.$fs) this._closeFs(); });
     this._onKeydown = this._onKeydown.bind(this);
@@ -39,6 +37,10 @@ export default class TextCompareCards extends HTMLElement {
     });
     this.$fsCloseSlot.appendChild(this.$fsClose);
 
+    // Síntesis modal — own component (lazy Modal inside, pattern CompareNotesModal).
+    this._synthModal = await slice.build('SynthTextoModal', { sliceId: `${this.sliceId}-synth` });
+    this.appendChild(this._synthModal);
+
     document.addEventListener('keydown', this._onKeydown);
     slice.context.watch('decisionFinal', this, () => this._render());
     slice.context.watch('plantilla', this, () => this._render());
@@ -48,11 +50,9 @@ export default class TextCompareCards extends HTMLElement {
   beforeDestroy() {
     document.removeEventListener('keydown', this._onKeydown);
     document.body.style.overflow = '';
-    if (this.$synthModal) {
-      if (this.$synthModal.open) this.$synthModal.open = false;
-      slice.controller.destroyComponent(this.$synthModal);
-      this.$synthModal = null;
-      this._modalPromise = null;
+    if (this._synthModal) {
+      slice.controller.destroyComponent(this._synthModal);
+      this._synthModal = null;
     }
   }
 
@@ -83,153 +83,29 @@ export default class TextCompareCards extends HTMLElement {
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
 
-  // ── Síntesis: modal "Redactar respuesta final" ────────────────
-  // Lazy-built once (pattern CompareNotesModal: _ensureModal + _modalPromise),
-  // mounted on document.body. The EnhancedEditor is a real Slice component, so
-  // it is never placed inside innerHTML regions — it lives in a body slot; the
-  // sources list is plain HTML re-rendered on open (no nested Slice controls).
+  // ── Síntesis: delega en el componente SynthTextoModal ────────
+  // El modal es UI pura (recibe fuentes + final actual y avisa por callbacks);
+  // aquí solo se arma la config de apertura y se aplican las decisiones al
+  // ConsensoService al guardar/borrar.
 
-  async _openSynth(temaId) {
-    await this._ensureModal();
-    this._synthTemaId = temaId;
-    this._synthFuentes = new Set();
+  _openSynth(temaId) {
+    if (!this._synthModal) return;
     const final = this._consenso().finalTextoFor(temaId);
-    this._synthEditor.value = final?.texto || '';
-    if (final?.esSintesis && Array.isArray(final.fuentes)) {
-      final.fuentes.forEach((f) => this._synthFuentes.add(f));
-    }
     const tema = this._plantilla().getTemaById(temaId);
-    this.$synthModal.title = tema ? `Redactar respuesta final · ${tema.nombre}` : 'Redactar respuesta final';
-    this._renderSynthSources();
-    this.$synthModal.open = true;
-    requestAnimationFrame(() => this._synthEditor?.focus());
-  }
-
-  async _ensureModal() {
-    if (!this._modalPromise) this._modalPromise = this._buildModal();
-    await this._modalPromise;
-  }
-
-  async _buildModal() {
-    this.$synthModal = await slice.build('Modal', {
-      sliceId: `${this.sliceId}-synth-dialog`,
-      title: 'Redactar respuesta final',
-      dismissable: true,
-      draggable: true,
-      width: 'min(92vw, 960px)',
-      maxWidth: '960px',
+    this._synthModal.show({
+      temaId,
+      temaNombre: tema?.nombre,
+      sources: this._sources,
+      final,
+      onSave: (id, texto, fuentes) => {
+        this._consenso().setSintesisTexto(id, texto, fuentes);
+        this._render();
+      },
+      onClear: (id) => {
+        this._consenso().clearResolutionTexto(id);
+        this._render();
+      },
     });
-    this.$synthModal.classList.add('tcc-synth-modal');
-    document.body.appendChild(this.$synthModal);
-
-    this.$synthBody = document.createElement('div');
-    this.$synthBody.className = 'tcc-synth__body';
-    this.$synthModal.appendBody(this.$synthBody);
-
-    this.$synthSources = document.createElement('div');
-    this.$synthSources.className = 'tcc-synth__sources';
-    this.$synthBody.appendChild(this.$synthSources);
-
-    this.$synthEditorSlot = document.createElement('div');
-    this.$synthEditorSlot.className = 'tcc-synth__editor';
-    this.$synthBody.appendChild(this.$synthEditorSlot);
-
-    this._synthEditor = await slice.build('EnhancedEditor', {
-      sliceId: `${this.sliceId}-synth-editor`,
-      placeholder: 'Combiná las respuestas y escribí el texto final del equipo…',
-    });
-    this.$synthEditorSlot.appendChild(this._synthEditor);
-
-    this.$synthQuitarBtn = await slice.build('Button', {
-      sliceId: `${this.sliceId}-synth-quitar`,
-      value: 'Quitar',
-      icon: { name: 'trash', size: '14' },
-      variant: 'ghost',
-      onClick: () => this._clearSynth(),
-    });
-    this.$synthModal.appendFooter(this.$synthQuitarBtn);
-
-    this.$synthCloseBtn = await slice.build('Button', {
-      sliceId: `${this.sliceId}-synth-close`,
-      value: 'Cerrar',
-      variant: 'outlined',
-      onClick: () => { this.$synthModal.open = false; },
-    });
-    this.$synthModal.appendFooter(this.$synthCloseBtn);
-
-    this.$synthSaveBtn = await slice.build('Button', {
-      sliceId: `${this.sliceId}-synth-save`,
-      value: 'Guardar como respuesta final',
-      icon: { name: 'check', size: '14' },
-      variant: 'filled',
-      onClick: () => this._saveSynth(),
-    });
-    this.$synthModal.appendFooter(this.$synthSaveBtn);
-  }
-
-  _sourcesForTema(temaId) {
-    return this._sources.filter((s) => (s.texto?.[temaId] || '').trim());
-  }
-
-  _renderSynthSources() {
-    if (!this.$synthSources) return;
-    const esc = (s) => this._html.esc(s);
-    const temaId = this._synthTemaId;
-    const sources = this._sourcesForTema(temaId);
-    const icons = slice.getComponent('IconProvider');
-
-    if (!sources.length) {
-      this.$synthSources.innerHTML = this._html.sanitize('<div class="empty-state">No hay respuestas de otras personas para combinar todavía.</div>');
-      return;
-    }
-
-    this.$synthSources.innerHTML = this._html.sanitize(`
-      <h4 class="tcc-synth__sources-title">Respuestas para combinar</h4>
-      <div class="tcc-synth__sources-list">
-        ${sources.map((s) => {
-          const label = s.autorLabel || s.autor;
-          const inserted = this._synthFuentes.has(s.autor);
-          return `<div class="tcc-synth__source${inserted ? ' is-inserted' : ''}" style="--tcc-color:${s.color}">
-            <span class="tcc-swatch" style="background:${s.color}"></span>
-            <span class="tcc-synth__source-name">${esc(label)}</span>
-            <button class="btn btn-sm tcc-synth__insert" type="button" data-synth-insert="${esc(s.autor)}" ${inserted ? 'disabled' : ''}>${inserted ? `${icons.svg('check', 13)} Insertada` : `Insertar ${icons.svg('plus', 13)}`}</button>
-            <div class="tcc-synth__source-text tp-render">${this._html.sanitize(s.texto[temaId])}</div>
-          </div>`;
-        }).join('')}
-      </div>`);
-
-    this.$synthSources.querySelectorAll('[data-synth-insert]').forEach((btn) => {
-      btn.onclick = () => this._insertFuente(btn.dataset.synthInsert);
-    });
-  }
-
-  _insertFuente(autor) {
-    const src = this._sources.find((s) => s.autor === autor);
-    const texto = src?.texto?.[this._synthTemaId];
-    if (!texto || !this._synthEditor) return;
-    this._synthFuentes.add(autor);
-    const esc = (s) => this._html.esc(s);
-    const block = `<p><strong>${esc(src.autorLabel || src.autor)}</strong></p><blockquote>${texto}</blockquote>`;
-    this._synthEditor.value = this._synthEditor.value ? `${this._synthEditor.value}${block}` : block;
-    this._renderSynthSources();
-  }
-
-  _saveSynth() {
-    const texto = this._synthEditor?.value || '';
-    const plain = texto.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    if (!plain) {
-      slice.events.emit('toast:show', { message: 'Escribí un texto antes de guardar la respuesta final.', type: 'warning' });
-      return;
-    }
-    this._consenso().setSintesisTexto(this._synthTemaId, texto, [...this._synthFuentes]);
-    this.$synthModal.open = false;
-    this._render();
-  }
-
-  _clearSynth() {
-    this._consenso().clearResolutionTexto(this._synthTemaId);
-    this.$synthModal.open = false;
-    this._render();
   }
 
   set sources(arr) {

@@ -170,9 +170,15 @@ The spec's "tercera vista": for a comparison to be useful for open-ended proposa
 A `texto_libre` Tema can end with **either** of two kinds of final answer (they coexist — see DATA.md §`decisionFinal.texto` entries):
 
 1. **Adoptado simple** — "Marcar como elegida" on a card adopts that person's exact proposal (`{ autor, texto }`, `esSintesis: false`).
-2. **Síntesis** — the "Redactar respuesta final" button (top-right of each Tema section) opens a lazy-built modal (`_ensureModal` + `_modalPromise`, the `CompareNotesModal` pattern; see GOTCHAS §10) with a list of every source's proposal for that Tema plus an `EnhancedEditor`. The leader clicks "Insertar" on one or more sources to compose a combined answer (the button flips to disabled "Insertada" per source), edits freely, and saves via "Guardar como respuesta final" → `setSintesisTexto(temaId, html, fuentes)`.
+2. **Síntesis** — the "Redactar respuesta final" button (top-right of each Tema section) opens the `SynthTextoModal` component (see its own section below) with a list of every source's proposal for that Tema plus an `EnhancedEditor`. The leader clicks "Insertar" on one or more sources to compose a combined answer (the button flips to disabled "Insertada" per source), edits freely, and saves via "Guardar como respuesta final" → `setSintesisTexto(temaId, html, fuentes)`.
 
    The synthesized entry is stored as `{ autor: 'Síntesis del equipo', texto, esSintesis: true, fuentes: [...] }` in the same `decisionFinal.texto[temaId]`. Re-opening the modal later (button label becomes "Editar respuesta final") pre-fills the editor with the saved HTML and re-marks the already-inserted sources; "Quitar" on the banner clears the final (`clearResolutionTexto`). The banner shows "**Final**: Síntesis del equipo · de A, B" with the `--synth` variant class (`.tcc-final-banner--synth`).
+
+### SynthTextoModal — "Redactar respuesta final"
+
+File: `src/Components/Visual/SynthTextoModal/SynthTextoModal.js`
+
+The síntesis modal extracted into its own Visual component (pattern `CompareNotesModal`: lazy-built once via `_ensureModal` + `_modalPromise`, mounted on `document.body`). Pure UI — it has **no domain knowledge**: `TextCompareCards` builds it once in `init()` and opens it with `show({ temaId, temaNombre, sources, final, onSave, onClear })`. It renders the sources list (HTML plano re-renderizado al abrir), the `EnhancedEditor` (real Slice component, mounted in a body slot — never inside `innerHTML`), and the Quitar/Cerrar/Guardar footer. On save/clear it fires the callbacks, and `TextCompareCards` applies them to `ConsensoService.setSintesisTexto` / `clearResolutionTexto` and re-renders.
 
 ### Where the síntesis flows through
 

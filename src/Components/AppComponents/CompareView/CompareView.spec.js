@@ -416,9 +416,9 @@ test.describe('13. CompareView', () => {
       await app.page.waitForTimeout(400);
 
       // Modal + sources list appear
-      const modal = app.page.locator('.tcc-synth-modal');
+      const modal = app.page.locator('.stm-modal');
       await expect(modal).toBeVisible();
-      const insertBtns = app.page.locator('.tcc-synth__insert');
+      const insertBtns = app.page.locator('.stm__insert');
       const insertCount = await insertBtns.count();
       expect(insertCount).toBeGreaterThan(0);
 
@@ -426,18 +426,18 @@ test.describe('13. CompareView', () => {
       await insertBtns.nth(0).click();
       await app.page.waitForTimeout(200);
       if (insertCount > 1) {
-        const secondInsert = app.page.locator('.tcc-synth__insert:not([disabled])').first();
+        const secondInsert = app.page.locator('.stm__insert:not([disabled])').first();
         await secondInsert.click();
         await app.page.waitForTimeout(200);
       }
 
       // Editor has content now
-      const editor = app.page.locator('.tcc-synth__editor [contenteditable]');
+      const editor = app.page.locator('.stm__editor [contenteditable]');
       const editorText = (await editor.textContent()) || '';
       expect(editorText.trim().length).toBeGreaterThan(0);
 
       // Save as final answer
-      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.locator('.stm-modal .slice_button').filter({ hasText: 'Guardar' }).click();
       await app.page.waitForTimeout(400);
 
       // Persisted with esSintesis + fuentes
@@ -470,17 +470,17 @@ test.describe('13. CompareView', () => {
       await app.page.waitForTimeout(400);
 
       // Insert the first two sources into the editor and save
-      const insertBtns = app.page.locator('.tcc-synth__insert');
+      const insertBtns = app.page.locator('.stm__insert');
       const insertCount = await insertBtns.count();
       expect(insertCount).toBeGreaterThan(0);
       await insertBtns.nth(0).click();
       await app.page.waitForTimeout(200);
       if (insertCount > 1) {
-        const secondInsert = app.page.locator('.tcc-synth__insert:not([disabled])').first();
+        const secondInsert = app.page.locator('.stm__insert:not([disabled])').first();
         await secondInsert.click();
         await app.page.waitForTimeout(200);
       }
-      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.locator('.stm-modal .slice_button').filter({ hasText: 'Guardar' }).click();
       await app.page.waitForTimeout(400);
 
       // Switch back to the reparto table to reach the export bar
@@ -517,16 +517,16 @@ test.describe('13. CompareView', () => {
       // Create the synthesis first
       await app.page.locator('.tcc-synth-open').first().click();
       await app.page.waitForTimeout(400);
-      const insertBtns = app.page.locator('.tcc-synth__insert');
+      const insertBtns = app.page.locator('.stm__insert');
       const insertCount = await insertBtns.count();
       expect(insertCount).toBeGreaterThan(0);
       await insertBtns.nth(0).click();
       await app.page.waitForTimeout(200);
       if (insertCount > 1) {
-        await app.page.locator('.tcc-synth__insert:not([disabled])').first().click();
+        await app.page.locator('.stm__insert:not([disabled])').first().click();
         await app.page.waitForTimeout(200);
       }
-      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.locator('.stm-modal .slice_button').filter({ hasText: 'Guardar' }).click();
       await app.page.waitForTimeout(400);
 
       // The header button now says "Editar", re-open the modal
@@ -536,22 +536,22 @@ test.describe('13. CompareView', () => {
       await app.page.waitForTimeout(400);
 
       // Editor prefilled with the previously inserted content
-      const editor = app.page.locator('.tcc-synth__editor [contenteditable]');
+      const editor = app.page.locator('.stm__editor [contenteditable]');
       const editorText = (await editor.textContent()) || '';
       expect(editorText.trim().length).toBeGreaterThan(0);
 
       // The already-inserted sources are marked as "Insertada" (disabled)
-      const inserted = app.page.locator('.tcc-synth__insert[disabled]');
+      const inserted = app.page.locator('.stm__insert[disabled]');
       expect(await inserted.count()).toBeGreaterThan(0);
       expect(await inserted.first().textContent()).toContain('Insertada');
 
       // Insert one more source and save again
-      const remaining = app.page.locator('.tcc-synth__insert:not([disabled])').first();
-      if (await app.page.locator('.tcc-synth__insert:not([disabled])').count() > 0) {
+      const remaining = app.page.locator('.stm__insert:not([disabled])').first();
+      if (await app.page.locator('.stm__insert:not([disabled])').count() > 0) {
         await remaining.click();
         await app.page.waitForTimeout(200);
       }
-      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.locator('.stm-modal .slice_button').filter({ hasText: 'Guardar' }).click();
       await app.page.waitForTimeout(400);
 
       // Updated entry: still a synthesis with a non-empty fuentes set
@@ -574,11 +574,11 @@ test.describe('13. CompareView', () => {
       // Create the synthesis first
       await app.page.locator('.tcc-synth-open').first().click();
       await app.page.waitForTimeout(400);
-      const insertBtns = app.page.locator('.tcc-synth__insert');
+      const insertBtns = app.page.locator('.stm__insert');
       expect(await insertBtns.count()).toBeGreaterThan(0);
       await insertBtns.nth(0).click();
       await app.page.waitForTimeout(200);
-      await app.page.locator('.tcc-synth-modal .slice_button').filter({ hasText: 'Guardar' }).click();
+      await app.page.locator('.stm-modal .slice_button').filter({ hasText: 'Guardar' }).click();
       await app.page.waitForTimeout(400);
 
       // Banner is visible

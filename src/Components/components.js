@@ -62,6 +62,7 @@ const components = {
   "SharePlantillaModal": "Visual",
   "StatusBadge": "Visual",
   "Switch": "Visual",
+  "SynthTextoModal": "Visual",
   "Tabs": "Visual",
   "TemaRow": "Visual",
   "TextoCard": "Visual",
