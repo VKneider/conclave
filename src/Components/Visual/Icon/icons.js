@@ -1,4 +1,4 @@
-import { createElement, Check, CheckCheck, CheckCircle, X, XCircle, Plus, Minus, Menu, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Pencil, Trash2, Link, Upload, Download, RotateCcw, Target, Vote, Trophy, FileText, Clipboard, Lock, User, Search, Star, Crown, PartyPopper, Lightbulb, Puzzle, Zap, Globe, Heart, Sun, Moon, Palette, Eye, EyeOff, Users, RefreshCcw, Maximize2, Circle, Share2, Mail, Camera, AlertTriangle, Info, Smartphone, Pen, Ruler, Shuffle, Settings, LogOut, Home, ExternalLink, GripVertical, FileDown, FileUp, HelpCircle, BookOpen, Hash, UserRound, Hand, GalleryVerticalEnd, SquareChartGantt, ListFilter, QrCode, List, Filter, SlidersHorizontal, Sparkles, Rabbit, Tally5, Square, CheckSquare, TriangleAlert, Undo2, BarChart3, FolderOpen, HardDrive, Volume2 } from 'lucide';
+import { createElement, Check, CheckCheck, CheckCircle, X, XCircle, Plus, Minus, Menu, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Pencil, Trash2, Link, Upload, Download, RotateCcw, Target, Vote, Trophy, FileText, Clipboard, Clock, MessagesSquare, Lock, User, Search, Star, Crown, PartyPopper, Lightbulb, Puzzle, Zap, Globe, Heart, Sun, Moon, Palette, Eye, EyeOff, Users, RefreshCcw, Maximize2, Circle, Share2, Mail, Camera, AlertTriangle, Info, Smartphone, Pen, Ruler, Shuffle, Settings, LogOut, Home, ExternalLink, GripVertical, FileDown, FileUp, HelpCircle, BookOpen, Hash, UserRound, Hand, GalleryVerticalEnd, SquareChartGantt, ListFilter, QrCode, List, Filter, SlidersHorizontal, Sparkles, Rabbit, Tally5, Square, CheckSquare, TriangleAlert, Undo2, BarChart3, FolderOpen, HardDrive, Volume2 } from 'lucide';
 
 const ICON_MAP = {
   check: Check,
@@ -28,6 +28,8 @@ const ICON_MAP = {
   trophy: Trophy,
   'file-text': FileText,
   clipboard: Clipboard,
+  clock: Clock,
+  'messages-square': MessagesSquare,
   lock: Lock,
   user: User,
   search: Search,

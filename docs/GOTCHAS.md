@@ -288,3 +288,31 @@ export default class MyService { ... }
 **Diagnostic:** if `pnpm run build` fails with `Terser failed for slice-bundle.*.js: "Export" statement may only appear at the top level`, inspect every Service source file in the failed bundle for `export` keywords at module scope (outside the class). `export default` for the class itself is fine — the bundler hoists it. Named `export` (`export const`, `export function`, `export class`) is the problem.
 
 **Fix:** Remove the `export` keyword from the named declaration. If the constant/function needs to be accessible from outside the Service file, expose it as a **static method or property on the exported class** instead — that stays inside the class body where Terser accepts it.
+
+### 38. Playwright video recording scroll fling vs. `requestAnimationFrame` smooth scrolling
+
+When recording automated product showcases or video demos with Playwright (`record-showcase.mjs`), standard `page.mouse.wheel()` or Chromium CDP `Input.synthesizeScrollGesture` invokes browser momentum/fling scrolling physics. In video capture (especially VP8/VP9 webm at 25–30fps), this produces erratic jumps, jerky scroll deceleration, or layout overshooting.
+
+**Fix: Implement a `requestAnimationFrame` ease-in-out quadratic scroll helper inside the page context:**
+
+```javascript
+await page.evaluate(({ deltaY, duration }) => {
+  return new Promise((resolve) => {
+    const start = performance.now();
+    const startY = window.scrollY;
+    function step(now) {
+      const elapsed = now - start;
+      const progress = Math.min(1, elapsed / duration);
+      const ease = progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+      window.scrollTo(0, startY + deltaY * ease);
+      if (progress < 1) requestAnimationFrame(step);
+      else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}, { deltaY, duration });
+```
+
+This guarantees deterministic, frame-accurate, buttery-smooth scrolling animations for video capture without inertia artifacts or layout clipping.

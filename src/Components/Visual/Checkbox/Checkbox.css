@@ -38,7 +38,9 @@ slice-checkbox .slice_checkbox {
 }
 
 slice-checkbox .checkbox_label {
-  margin: 5px 5px 5px 5px;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 5px;
   cursor: pointer;
   font-family: var(--font-body, var(--font-family));
   color: var(--font-primary-color);
@@ -47,6 +49,8 @@ slice-checkbox .checkbox_label {
 }
 
 slice-checkbox .checkmark {
+  display: inline-block;
+  vertical-align: middle;
   position: relative;
   top: 0;
   left: 0;

@@ -16,42 +16,82 @@
   </div>
 
   <div class="landing-actions">
+    <div class="la-slot" data-slot="la-plantilla"></div>
     <div class="la-slot" data-slot="la-responder"></div>
     <div class="la-slot" data-slot="la-comparar"></div>
     <div class="la-slot" data-slot="la-dashboard"></div>
-    <div class="la-slot" data-slot="la-plantilla"></div>
   </div>
 
-  <section class="landing-howto">
-    <h2 class="landing-section-title">Cómo funciona</h2>
-    <div class="howto-steps">
-      <div class="howto-step">
-        <span class="howto-num">1</span><span class="howto-icon" data-icon="ruler"></span>
-        <h3>Arma tu Plantilla</h3>
-        <p>Suma Temas y elige el modo de cada uno — el líder arma el setup una vez. Puedes empezar desde un ejemplo.</p>
-      </div>
-      <span class="howto-arrow">→</span>
-      <div class="howto-step">
-        <span class="howto-num">2</span><span class="howto-icon" data-icon="pen"></span>
-        <h3>Cada quien responde</h3>
-        <p>A su manera, en su propio dispositivo, sin coordinar en tiempo real. Exportas tu respuesta como archivo.</p>
-      </div>
-      <span class="howto-arrow">→</span>
-      <div class="howto-step">
-        <span class="howto-num">3</span><span class="howto-icon" data-icon="shuffle"></span>
-        <h3>Comparen y decidan</h3>
-        <p>Importen las respuestas de todos y vean coincidencias, mayorías e ideas — y fijen la decisión final.</p>
-      </div>
-    </div>
-  </section>
+  <section class="landing-story" aria-label="La propuesta de valor de Conclave">
+    <h2 class="landing-section-title">Decisiones sin reuniones eternas</h2>
+    <p class="story-lede">Conclave no suma una hora más de reunión: la reemplaza. Define las preguntas una vez, cada quien responde por su cuenta, y lo decidido — con su minuta — queda en un solo lugar.</p>
 
-  <section class="landing-usecases">
-    <h2 class="landing-section-title">Un modo para cada decisión</h2>
-    <div class="usecases-grid">
-      <div class="usecase-slot" data-slot="uc-asignacion"></div>
-      <div class="usecase-slot" data-slot="uc-votacion"></div>
-      <div class="usecase-slot" data-slot="uc-ranking"></div>
-      <div class="usecase-slot" data-slot="uc-lluvia"></div>
+    <div class="story-split">
+      <div class="story-panel is-before">
+        <div class="story-panel__label">Así suele ser</div>
+        <div class="story-stat"><span class="story-stat__ico" data-icon="clock"></span> 2 horas de reunión</div>
+        <div class="story-stat"><span class="story-stat__ico" data-icon="messages-square"></span> opiniones sin orden</div>
+        <div class="story-stat story-stat--blame"><span class="story-stat__ico" data-icon="x"></span> 0 decisiones cerradas</div>
+      </div>
+
+      <span class="story-tape" aria-hidden="true"></span>
+
+      <div class="story-panel is-after">
+        <div class="story-panel__label">Con Conclave</div>
+        <ul class="story-after">
+          <li><span data-icon="check"></span> La decisión se cierra en una tarde</li>
+          <li><span data-icon="check"></span> Cada quien responde cuando puede</li>
+          <li><span data-icon="check"></span> Queda todo escrito, minuta incluida, en un solo lugar</li>
+        </ul>
+      </div>
     </div>
+
+    <ol class="story-cycle">
+      <li class="story-scene story-scene--1">
+        <span class="story-scene__num">1</span>
+        <a class="story-scene__link" href="/plantilla">
+          <span class="story-scene__icon" data-icon="ruler"></span>
+          <h3>Arma la Plantilla</h3>
+          <p>Define los temas y su modo — votación, ranking, asignación o lluvia de ideas — una sola vez.</p>
+        </a>
+      </li>
+      <li class="story-scene story-scene--2">
+        <span class="story-scene__num">2</span>
+        <span class="story-arrow" data-icon="arrow-right" aria-hidden="true"></span>
+        <a class="story-scene__link" href="/mis-respuestas">
+          <span class="story-scene__icon" data-icon="pen"></span>
+          <h3>Cada quien responde</h3>
+          <p>Por su cuenta, a su ritmo, sin coordinar horarios de nadie.</p>
+        </a>
+      </li>
+      <li class="story-scene story-scene--3">
+        <span class="story-scene__num">3</span>
+        <span class="story-arrow" data-icon="arrow-right" aria-hidden="true"></span>
+        <a class="story-scene__link" href="/comparar">
+          <span class="story-scene__icon" data-icon="shuffle"></span>
+          <h3>Reúnen y comparan</h3>
+          <p>Cada uno importa sus respuestas y las ven lado a lado, en un solo lugar.</p>
+        </a>
+      </li>
+      <li class="story-scene story-scene--4">
+        <span class="story-scene__num">4</span>
+        <span class="story-arrow" data-icon="arrow-right" aria-hidden="true"></span>
+        <a class="story-scene__link" href="/resumen">
+          <span class="story-scene__icon" data-icon="file-text"></span>
+          <h3>Deciden, y queda la minuta</h3>
+          <p>Se fija la decisión final y Conclave deja escrito lo acordado, para verlo después.</p>
+        </a>
+      </li>
+    </ol>
+
+    <div class="story-minuta">
+      <span class="story-minuta__icon" data-icon="party-popper"></span>
+      <div class="story-minuta__body">
+        <h3>La minuta nace sola.</h3>
+        <p>Al cerrar la decisión queda el resumen de lo acordado — asignaciones, votos, rankings y textos adoptados — para abrirla más tarde, exportarla o compartirla con quien la necesite.</p>
+      </div>
+    </div>
+
+    <p class="story-closing">Un solo lugar para decidir.</p>
   </section>
 </div>

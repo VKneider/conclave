@@ -1,11 +1,11 @@
-slice-landingview .landing-view { display: flex; flex-direction: column; align-items: center; padding: 48px 20px 80px; }
+slice-landingview .landing-view { display: flex; flex-direction: column; align-items: center; padding: 36px 20px 80px; }
 
 /* ── Hero ────────────────────────────────────────── */
 
 slice-landingview .landing-hero { text-align: center; max-width: 520px; }
 
 slice-landingview .landing-brandmark {
-  width: 72px; height: 72px; margin: 0 auto 20px;
+  width: 72px; height: 72px; margin: 0 auto 16px;
   border-radius: 18px; border: 3px solid var(--font-primary-color);
   background: var(--primary-color);
   background-image: url('/images/favicon.svg');
@@ -30,9 +30,9 @@ slice-landingview .landing-title { font-family: var(--font-display); font-size: 
 slice-landingview .landing-org { font-size: 18px; font-weight: 600; color: var(--primary-color); margin: 0 0 6px; }
 slice-landingview .landing-sub { font-size: 16px; color: var(--font-secondary-color); margin: 0 0 6px; }
 
-slice-landingview .landing-desc { font-size: 15px; color: var(--font-secondary-color); line-height: 1.55; margin: 12px 0 28px; }
+slice-landingview .landing-desc { font-size: 15px; color: var(--font-secondary-color); line-height: 1.55; margin: 12px 0 16px; }
 
-slice-landingview .landing-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+slice-landingview .landing-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
 slice-landingview .landing-cta { font-size: 15px; padding: 12px 26px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
 slice-landingview .landing-cta .slice-link-icon { display: inline-flex; }
 
@@ -40,12 +40,14 @@ slice-landingview .landing-cta .slice-link-icon { display: inline-flex; }
 
 slice-landingview .landing-plantilla {
   display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
-  margin-top: 40px; padding: 12px 18px; max-width: 720px;
+  margin-top: 20px; padding: 12px 18px; max-width: 720px;
   background: var(--panel-background-color); border: 2px solid var(--font-primary-color);
   border-radius: 999px; box-shadow: var(--box-shadow-primary);
 }
 slice-landingview .lp-name { font-family: var(--font-display); font-weight: 600; font-size: 15px; }
-slice-landingview .lp-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+/* Badges form a 2-column grid so 3-4 tema types stay centered as a block on
+   any screen; 1-2 badges simply fill the first row, still centered. */
+slice-landingview .lp-badges { display: grid; grid-template-columns: repeat(2, max-content); gap: 8px; justify-content: center; }
 slice-landingview .lp-badge {
   font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px;
   background: var(--secondary-background-color); border: 1.5px solid var(--border-color);
@@ -56,13 +58,17 @@ slice-landingview .lp-empty { font-size: 13px; color: var(--font-secondary-color
 /* ── Quick actions ───────────────────────────────── */
 
 slice-landingview .landing-actions {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px; margin-top: 36px; width: 100%; max-width: 650px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px; margin-top: 22px; width: 100%; max-width: 720px;
 }
+
+slice-landingview .la-slot { display: flex; min-width: 0; }
+slice-landingview .la-slot > slice-link { flex: 1; display: flex; }
+slice-landingview .la-slot > slice-link > a.la-card { flex: 1; width: 100%; }
 
 slice-landingview .la-card {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 22px 14px 18px;
+  padding: 20px 14px 14px;
   background: var(--panel-background-color);
   border: 2px solid var(--font-primary-color);
   border-radius: var(--card-border-radius);
@@ -83,106 +89,198 @@ slice-landingview .la-card:active {
   box-shadow: 1px 1px 0 var(--font-primary-color);
 }
 
-slice-landingview .la-card .slice-link-icon { font-size: 28px; line-height: 1; margin-bottom: 2px; display: inline-flex; }
+slice-landingview .la-card .slice-link-icon { font-size: 30px; line-height: 1; margin-bottom: 2px; display: inline-flex; }
+slice-landingview .la-card .slice-link-icon svg { width: 30px; height: 30px; }
 
-slice-landingview .la-card .slice-link-title { font-size: 14px; font-weight: 700; display: block; }
+slice-landingview .la-card .slice-link-title { font-size: 15px; font-weight: 700; display: block; }
 
-slice-landingview .la-card .slice-link-sub { font-size: 11px; font-weight: 500; color: var(--font-secondary-color); display: block; }
+slice-landingview .la-card .slice-link-sub { font-size: 12px; font-weight: 500; color: var(--font-secondary-color); display: block; }
 
-/* ── Section titles, shared by "Cómo funciona" and "Casos de uso" ── */
+/* ── Section titles, used by the storytelling ── */
 
 slice-landingview .landing-section-title {
   font-family: var(--font-display); font-size: 24px; font-weight: 600;
   text-align: center; margin: 0 0 28px;
 }
 
-slice-landingview .landing-howto,
-slice-landingview .landing-usecases {
-  width: 100%; max-width: 900px; margin-top: 64px;
+/* ── Storytelling: "Decisiones sin reuniones eternas" ──────────
+   Flat sticker collages: solid fills, ink outlines, hard offset
+   shadows, washi-tape joints, a few degrees of rotation. No
+   gradients (DESIGN.md). Sits right after the hero. */
+
+slice-landingview .landing-story { width: 100%; max-width: 900px; margin-top: 128px; }
+slice-landingview .story-lede {
+  text-align: center; max-width: 62ch; margin: -10px auto 32px;
+  color: var(--font-secondary-color); font-size: 15px; line-height: 1.6;
 }
 
-/* ── "Cómo funciona" — 3-step flow ──────────────────── */
+/* ── Before / after split, joined by a piece of washi tape ── */
+slice-landingview .story-split { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
 
-slice-landingview .howto-steps {
-  display: flex; align-items: flex-start; justify-content: center; gap: 18px; flex-wrap: wrap;
-}
+slice-landingview .story-panel { position: relative; border-radius: var(--card-border-radius); padding: 26px 22px; }
 
-slice-landingview .howto-step {
-  flex: 1; min-width: 200px; max-width: 240px; text-align: center;
+slice-landingview .story-panel.is-before {
   background: var(--panel-background-color);
+  border: 2px dashed var(--font-secondary-color);
+  transform: rotate(-1deg);
+  box-shadow: 4px 4px 0 var(--border-color);
+}
+slice-landingview .story-panel.is-after {
+  background: var(--success-color); color: var(--success-contrast);
+  border: 2.5px solid var(--font-primary-color);
+  transform: rotate(1deg);
+  box-shadow: 4px 4px 0 var(--font-primary-color);
+}
+slice-landingview .story-panel__label {
+  font-family: var(--font-display); font-weight: 600; font-size: 13px;
+  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 16px;
+}
+slice-landingview .story-panel.is-before .story-panel__label { color: var(--danger-color); }
+slice-landingview .story-panel.is-after .story-panel__label { color: var(--success-contrast); }
+
+slice-landingview .story-stat {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 600; color: var(--font-primary-color);
+  margin-bottom: 12px;
+}
+slice-landingview .story-stat__ico { display: inline-flex; color: var(--font-secondary-color); }
+slice-landingview .story-stat--blame .story-stat__ico { color: var(--danger-color); }
+slice-landingview .story-stat--blame { text-decoration: line-through; text-decoration-color: var(--danger-color); }
+
+slice-landingview .story-after { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+slice-landingview .story-after li { display: flex; align-items: flex-start; gap: 9px; font-size: 14px; font-weight: 600; line-height: 1.4; }
+
+slice-landingview .story-tape {
+  width: 30px; align-self: stretch; min-height: 60px;
+  background: var(--warning-color);
   border: 2px solid var(--font-primary-color);
-  border-radius: var(--card-border-radius);
-  padding: 24px 18px 20px;
-  box-shadow: var(--box-shadow-primary);
-  position: relative;
+  transform: rotate(-4deg);
+  clip-path: polygon(0 4%, 100% 0, 96% 16%, 4% 12%, 0 30%, 100% 26%, 98% 46%, 2% 44%, 0 64%, 100% 58%, 96% 78%, 4% 74%, 0 92%, 100% 86%, 96% 100%, 4% 96%);
 }
 
-slice-landingview .howto-num {
-  position: absolute; top: -14px; left: 50%; transform: translateX(-50%) rotate(-4deg);
-  width: 30px; height: 30px; border-radius: 9px;
-  background: var(--primary-color); color: var(--primary-color-contrast);
+/* ── The 4-scene cycle ── */
+slice-landingview .story-cycle {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+  list-style: none; margin: 40px 0 0; padding: 0;
+}
+
+slice-landingview .story-scene {
+  --sc: var(--primary-color); --sc-con: var(--primary-color-contrast);
+  position: relative; background: var(--panel-background-color);
+  border: 2px solid var(--font-primary-color); border-radius: var(--card-border-radius);
+  box-shadow: var(--box-shadow-primary); padding: 22px 16px 16px; text-align: center;
+  cursor: pointer; transition: transform .08s ease, box-shadow .08s ease;
+}
+slice-landingview .story-scene__link { display: block; color: inherit; text-decoration: none; }
+slice-landingview .story-scene:hover { transform: translate(-1px, -1px) rotate(0deg); box-shadow: 5px 5px 0 var(--font-primary-color); }
+slice-landingview .story-scene:active { transform: translate(1px, 1px) rotate(0deg); box-shadow: 2px 2px 0 var(--font-primary-color); }
+slice-landingview .story-scene--2 { --sc: var(--secondary-color); --sc-con: var(--secondary-color-contrast); }
+slice-landingview .story-scene--3 { --sc: var(--warning-color); --sc-con: var(--warning-color-contrast); }
+slice-landingview .story-scene--4 { --sc: var(--success-color); --sc-con: var(--success-color-contrast); }
+slice-landingview .story-scene:nth-child(odd) { transform: rotate(-1deg); }
+slice-landingview .story-scene:nth-child(even) { transform: rotate(1deg); }
+
+slice-landingview .story-scene__num {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%) rotate(-4deg);
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--sc); color: var(--sc-con);
   border: 2px solid var(--font-primary-color);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 15px; font-weight: 700;
   box-shadow: 2px 2px 0 var(--font-primary-color);
 }
-
-slice-landingview .howto-icon { display: block; font-size: 30px; margin: 10px 0 10px; }
-
-slice-landingview .howto-step h3 { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin: 0 0 8px; }
-slice-landingview .howto-step p { font-size: 12.5px; line-height: 1.5; color: var(--font-secondary-color); margin: 0; }
-
-slice-landingview .howto-arrow {
-  font-size: 22px; color: var(--font-secondary-color); font-weight: 700;
-  align-self: center; margin-top: 34px;
-}
-
-@media (max-width: 760px) {
-  slice-landingview .howto-arrow { display: none; }
-}
-
-/* ── "Casos de uso" — the hero exception: bold outline, larger type, one
-   of three per screen. Each gets a distinct accent (coral/turquoise/green)
-   for rhythm, same trick as .stat-grid's cycling top bars. ── */
-
-slice-landingview .usecases-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;
-}
-
-slice-landingview .usecase-card {
-  display: block; width: 100%; text-align: left; cursor: pointer; font-family: inherit;
-  text-decoration: none; color: inherit;
-  background: var(--panel-background-color);
-  border: 2.5px solid var(--font-primary-color);
-  border-top: 7px solid var(--usecase-color, var(--primary-color));
-  border-radius: var(--card-border-radius);
-  padding: 24px 22px;
-  box-shadow: var(--box-shadow-primary);
-  transition: transform .1s ease, box-shadow .1s ease;
-}
-slice-landingview .usecase-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 var(--font-primary-color);
-}
-slice-landingview .usecase-card:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--font-primary-color); }
-
-slice-landingview .usecase-card--primary { --usecase-color: var(--primary-color); }
-slice-landingview .usecase-card--secondary { --usecase-color: var(--secondary-color); }
-slice-landingview .usecase-card--warning { --usecase-color: var(--warning-color); }
-slice-landingview .usecase-card--success { --usecase-color: var(--success-color); }
-
-slice-landingview .usecase-card .slice-link-icon {
+slice-landingview .story-scene__icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 52px; height: 52px; border-radius: 14px; font-size: 26px;
-  background: var(--secondary-background-color); border: 2px solid var(--font-primary-color);
-  transform: rotate(-5deg); margin-bottom: 14px;
+  width: 46px; height: 46px; border-radius: 13px;
+  background: var(--panel-alt-background-color); border: 2px solid var(--font-primary-color);
+  color: var(--sc); transform: rotate(-5deg); margin-bottom: 12px;
+}
+slice-landingview .story-scene h3 { font-family: var(--font-display); font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+slice-landingview .story-scene p { font-size: 12.5px; line-height: 1.5; color: var(--font-secondary-color); margin: 0; }
+
+/* Ink-dot arrow between scenes (desktop only, where the row is complete).
+   A real lucide SVG inside a span (filled by _fillIcons) instead of a unicode
+   glyph, which some fonts render as blank. */
+@media (min-width: 861px) {
+  slice-landingview .story-arrow {
+    position: absolute; left: -16px; top: 50%;
+    transform: translateY(-50%) rotate(8deg);
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--font-primary-color); color: var(--font-primary-color-contrast);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2; box-shadow: 2px 2px 0 var(--sc);
+    pointer-events: none;
+  }
+  slice-landingview .story-arrow svg { width: 15px; height: 15px; }
 }
 
-slice-landingview .usecase-card .slice-link-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; display: block; margin: 0 0 8px; }
-slice-landingview .usecase-card .slice-link-sub { font-size: 13.5px; line-height: 1.55; color: var(--font-secondary-color); display: block; margin: 0; }
+/* ── The "minuta" sticky-note callout ── */
+slice-landingview .story-minuta {
+  position: relative; margin-top: 40px;
+  display: flex; gap: 16px; align-items: flex-start; text-align: left;
+  background: var(--panel-alt-background-color);
+  border: 2.5px solid var(--font-primary-color); border-radius: var(--card-border-radius);
+  box-shadow: var(--box-shadow-primary); padding: 22px 24px 20px;
+}
+slice-landingview .story-minuta::before {
+  content: ""; position: absolute; top: -12px; left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 130px; height: 22px;
+  background: var(--secondary-color); border: 2px solid var(--font-primary-color);
+}
+slice-landingview .story-minuta__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+  background: var(--success-color); color: var(--success-contrast);
+  border: 2px solid var(--font-primary-color); transform: rotate(5deg);
+}
+slice-landingview .story-minuta h3 { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin: 0 0 6px; }
+slice-landingview .story-minuta p { font-size: 13.5px; line-height: 1.6; color: var(--font-secondary-color); margin: 0; }
+
+slice-landingview .story-closing {
+  font-family: var(--font-display); font-size: 26px; font-weight: 600;
+  text-align: center; margin: 44px 0 0;
+  text-decoration: underline; text-decoration-style: wavy;
+  text-decoration-color: var(--secondary-color); text-decoration-thickness: 2px;
+  text-underline-offset: 6px; transform: rotate(-1deg);
+}
+
+@media (max-width: 860px) {
+  slice-landingview .story-cycle { grid-template-columns: repeat(2, 1fr); }
+  slice-landingview .story-tape { width: 30px; min-height: 44px; }
+  slice-landingview .story-arrow { display: none; }
+}
 
 @media (max-width: 760px) {
   slice-landingview .landing-section-title { font-size: 20px; }
-  slice-landingview .landing-howto,
-  slice-landingview .landing-usecases { margin-top: 48px; }
+  slice-landingview .landing-story { margin-top: 48px; }
+}
+
+@media (max-width: 560px) {
+  slice-landingview .story-split { grid-template-columns: 1fr; gap: 14px; }
+  slice-landingview .story-tape {
+    width: auto; height: 30px; align-self: center; min-height: 0;
+    justify-self: stretch; transform: rotate(1deg);
+  }
+  slice-landingview .story-cycle { grid-template-columns: 1fr; }
+  slice-landingview .story-minuta { flex-direction: column; }
+}
+
+/* ── Dark mode: the solid "Con Conclave" green fill reads as neon on the
+   charcoal canvas. Swap it for a muted success-tinted surface so the sticker
+   stays calm while the checks and label keep their green accent. ── */
+html[data-slice-theme='Dark'] slice-landingview .story-panel.is-after,
+html[data-slice-theme='dark'] slice-landingview .story-panel.is-after {
+  background: color-mix(in srgb, var(--success-color) 18%, var(--panel-background-color));
+  color: var(--font-primary-color);
+  box-shadow: 4px 4px 0 var(--border-color);
+}
+html[data-slice-theme='Dark'] slice-landingview .story-panel.is-after .story-panel__label,
+html[data-slice-theme='dark'] slice-landingview .story-panel.is-after .story-panel__label { color: var(--success-color); }
+html[data-slice-theme='Dark'] slice-landingview .story-after [data-icon],
+html[data-slice-theme='dark'] slice-landingview .story-after [data-icon] { color: var(--success-color); }
+html[data-slice-theme='Dark'] slice-landingview .story-minuta__icon,
+html[data-slice-theme='dark'] slice-landingview .story-minuta__icon {
+  background: color-mix(in srgb, var(--success-color) 18%, var(--panel-alt-background-color));
+  color: var(--success-color);
 }

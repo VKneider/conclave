@@ -14,6 +14,7 @@ export default class LandingView extends HTMLElement {
     this._icons = slice.getComponent('IconProvider');
     this._fillIcons();
     await this._buildLinks();
+    this._bindSceneLinks();
     this._render();
     slice.context.watch('respuestas', this, () => this._render());
     slice.context.watch('plantilla', this, () => this._render());
@@ -23,8 +24,8 @@ export default class LandingView extends HTMLElement {
     this._render();
   }
 
-  // The howto steps render their icons via IconProvider — SVG markup is static,
-  // so it lives in the template once, filled here on mount (never re-created).
+  // The template's icons render via IconProvider — SVG markup is static, so it
+  // lives in the template once, filled here on mount (never re-created).
   _fillIcons() {
     const ic = (name, size, c) => this._icons.svg(name, size, c);
     this.$root.querySelectorAll('[data-icon]').forEach((el) => {
@@ -48,22 +49,30 @@ export default class LandingView extends HTMLElement {
       });
 
     const links = [
-      { slot: 'cta-responder', c: build('/mis-respuestas', 'pen', '', 'Responder', '', 'btn btn-primary landing-cta') },
-      { slot: 'cta-editar', c: build('/plantilla', 'ruler', '', 'Editar plantilla', '', 'btn btn-ghost landing-cta') },
+      { slot: 'cta-responder', c: build('/mis-respuestas', 'pen', 'var(--primary-color-contrast)', 'Responder', '', 'btn btn-primary landing-cta') },
+      { slot: 'cta-editar', c: build('/plantilla', 'ruler', 'var(--font-secondary-color)', 'Editar plantilla', '', 'btn btn-ghost landing-cta') },
+      { slot: 'la-plantilla', c: build('/plantilla', 'ruler', 'var(--warning-color)', 'Plantilla', 'Arma el setup', 'la-card') },
       { slot: 'la-responder', c: build('/mis-respuestas', 'pen', 'var(--success-color)', 'Responder', 'Tu propuesta', 'la-card') },
       { slot: 'la-comparar', c: build('/comparar', 'shuffle', 'var(--secondary-color)', 'Comparar', 'Y decidir juntos', 'la-card') },
       { slot: 'la-dashboard', c: build('/dashboard', 'bar-chart', 'var(--primary-color)', 'Dashboard', 'Resumen', 'la-card') },
-      { slot: 'la-plantilla', c: build('/plantilla', 'ruler', 'var(--warning-color)', 'Plantilla', 'Arma el setup', 'la-card') },
-      { slot: 'uc-asignacion', c: build('/plantilla', 'target', 'var(--primary-color)', 'Asignación', 'Reparte un grupo de personas entre equipos con cupos mín/máx. Comparen las listas y decidan la versión final.', 'usecase-card usecase-card--primary') },
-      { slot: 'uc-votacion', c: build('/plantilla', 'vote', 'var(--secondary-color)', 'Votación', 'Una pregunta con varias opciones; cada quien elige una y gana la mayoría. Ideal para "¿qué fecha?" o un Sí/No.', 'usecase-card usecase-card--secondary') },
-      { slot: 'uc-ranking', c: build('/plantilla', 'trophy', 'var(--warning-color)', 'Ranking', 'Ordena un conjunto de opciones por prioridad. Se agregan los órdenes de todos para un ranking de consenso.', 'usecase-card usecase-card--warning') },
-      { slot: 'uc-lluvia', c: build('/plantilla', 'lightbulb', 'var(--success-color)', 'Lluvia de ideas', 'Preguntas abiertas; cada persona escribe su propuesta. Compárenlas lado a lado en cards grandes.', 'usecase-card usecase-card--success') },
     ];
 
     return Promise.all(links.map(({ slot, c }) => c.then((node) => {
       const target = this.$root.querySelector(`[data-slot="${slot}"]`);
       if (node instanceof Node && target) target.appendChild(node);
     })));
+  }
+
+  // The storytelling scene cards are static template anchors (never re-rendered),
+  // so plain listeners are safe here — SPA-navigate on click like a real link.
+  _bindSceneLinks() {
+    this.$root.querySelectorAll('a.story-scene__link').forEach((anchor) => {
+      anchor.addEventListener('click', (event) => {
+        event.preventDefault();
+        const path = anchor.getAttribute('href');
+        if (path) slice.router.navigate(path);
+      });
+    });
   }
 
   _render() {
