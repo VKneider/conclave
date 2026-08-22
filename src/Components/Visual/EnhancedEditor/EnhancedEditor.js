@@ -1,7 +1,11 @@
 // Lightweight HTML editor using contenteditable.
 // Toolbar: bold, italic, bullet list, ordered list.
 // Keyboard shortcuts: Ctrl+B, Ctrl+I, Ctrl+Shift+7, Ctrl+Shift+8.
-// Usage: slice.build('EnhancedEditor', { value, placeholder, oninput, onblur })
+// Usage: slice.build('EnhancedEditor', { value, placeholder, oninput, onblur, maxLength })
+//
+// `maxLength` cuenta TEXTO PLANO (textContent), no el HTML resultante — un
+// consumidor que además necesite acotar el tamaño real del HTML (p. ej. porque
+// viaja en una URL) tiene que medirlo por su cuenta.
 import { TEXTO_MAX_LENGTH } from '../../../AppConfig.js';
 
 export default class EnhancedEditor extends HTMLElement {
@@ -43,9 +47,10 @@ export default class EnhancedEditor extends HTMLElement {
       this._syncEmptyState();
       if (this._updating) return;
       const text = this.$mount.textContent.replace(/\u00a0/g, ' ').trim();
-      if (text.length > TEXTO_MAX_LENGTH) {
+      const max = this.maxLength;
+      if (text.length > max) {
         this._updating = true;
-        this.$mount.textContent = text.slice(0, TEXTO_MAX_LENGTH);
+        this.$mount.textContent = text.slice(0, max);
         const sel = window.getSelection();
         const range = document.createRange();
         range.selectNodeContents(this.$mount);
@@ -134,6 +139,21 @@ export default class EnhancedEditor extends HTMLElement {
       this._refreshToolbarState();
       this._updating = false;
     }
+  }
+
+  // Tope de TEXTO PLANO. Sin prop, el default histórico (TEXTO_MAX_LENGTH),
+  // así que los consumidores que ya existían no cambian de comportamiento.
+  get maxLength() { return this._maxLength || TEXTO_MAX_LENGTH; }
+  set maxLength(v) {
+    const n = Number(v);
+    this._maxLength = Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+  }
+
+  // Largo del texto plano actual — lo que `maxLength` acota. Los consumidores
+  // que muestran un contador lo leen de acá en vez de reimplementar el conteo.
+  get textLength() {
+    if (!this.$mount) return 0;
+    return this.$mount.textContent.replace(/\u00a0/g, ' ').trim().length;
   }
 
   get placeholder() { return this._placeholder; }

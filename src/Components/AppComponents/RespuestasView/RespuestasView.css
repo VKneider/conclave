@@ -45,6 +45,30 @@ slice-respuestasview .av-notice { display: flex; align-items: center; gap: 10px;
 slice-respuestasview .av-notice[hidden] { display: none; }
 slice-respuestasview .av-notice__icon { font-size: 18px; flex-shrink: 0; }
 
+/* Mensaje de bienvenida de la Plantilla — plegado por defecto, así que en
+   reposo ocupa una sola línea y no le compite a la tarea de responder. El
+   acento primario lo distingue de .av-notice, que es informativo del sistema:
+   esto lo escribió una persona. */
+slice-respuestasview .av-bienvenida { margin: 0 0 18px; border-radius: 12px; background: var(--panel-background-color); border: 2px solid var(--primary-color); overflow: hidden; }
+slice-respuestasview .av-bienvenida[hidden] { display: none; }
+/* La cabecera lleva DOS botones hermanos (desplegar / ocultar) — no anidados,
+   que sería HTML inválido y dejaría el ✕ sin poder recibir el clic. */
+slice-respuestasview .av-bienvenida__head { display: flex; align-items: stretch; }
+slice-respuestasview .av-bienvenida__toggle { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 12px 16px; background: transparent; border: none; cursor: pointer; text-align: left; font-family: var(--font-body); color: var(--font-primary-color); }
+slice-respuestasview .av-bienvenida__dismiss { flex-shrink: 0; padding: 0 14px; background: transparent; border: none; cursor: pointer; font-size: 15px; line-height: 1; color: var(--font-secondary-color); }
+slice-respuestasview .av-bienvenida__dismiss:hover { color: var(--font-primary-color); }
+slice-respuestasview .av-bienvenida__icon { display: inline-flex; flex-shrink: 0; }
+slice-respuestasview .av-bienvenida__title { font-family: var(--font-display); font-size: 14px; font-weight: 700; flex: 1; min-width: 0; }
+slice-respuestasview .av-bienvenida__action { flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--primary-color); text-transform: uppercase; letter-spacing: .04em; }
+slice-respuestasview .av-bienvenida__body { padding: 0 16px 14px; font-size: 14px; line-height: 1.6; overflow-wrap: break-word; }
+slice-respuestasview .av-bienvenida__body[hidden] { display: none; }
+slice-respuestasview .av-bienvenida__body > *:first-child { margin-top: 0; }
+slice-respuestasview .av-bienvenida__body > *:last-child { margin-bottom: 0; }
+slice-respuestasview .av-bienvenida__body p { margin: 0 0 10px; }
+slice-respuestasview .av-bienvenida__body ul,
+slice-respuestasview .av-bienvenida__body ol { margin: 0 0 10px; padding-left: 22px; }
+slice-respuestasview .av-bienvenida__body li { margin-bottom: 4px; }
+
 /* Inline next-step prompt inside content slots */
 slice-respuestasview .av-slot-prompt { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 20px 0 0; padding: 16px 20px; border-radius: 14px; background: var(--panel-background-color); border: 2.5px solid var(--success-color); box-shadow: 4px 4px 0 var(--success-color); }
 slice-respuestasview .av-slot-prompt[hidden] { display: none; }

@@ -55,7 +55,13 @@ File: `src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js
 Replaces the old CSV/JSON textarea generator (`HelpView`) entirely — this is the only place Categorías and Opciones are created/edited/deleted. No bulk text parsing exists anymore.
 
 ### Detalles
-Plantilla-level settings that used to live in the retired `SettingsView`: just "Nombre de la Plantilla" now (`PlantillaService.getNombre()`/`setNombre()` — shown in `TopBar`'s subtitle and the landing hero). The "responsables" toggle moved into the Categorías section below (it only applies to modo Selección); the sexo/edad toggles live in Opciones.
+Plantilla-level settings that used to live in the retired `SettingsView`. The "responsables" toggle moved into the Categorías section below (it only applies to modo Selección); the sexo/edad toggles live in Opciones. Two fields live here:
+
+1. **Nombre de la Plantilla** (`PlantillaService.getNombre()`/`setNombre()`) — shown in `TopBar`'s subtitle and the landing hero.
+2. **Mensaje de bienvenida** (`getBienvenida()`/`setBienvenida()`) — an `EnhancedEditor` (bold/italic/lists), optional. It's what whoever imports the Plantilla sees before answering: `BienvenidaModal` on import, then the collapsible banner in `RespuestasView`. Saved debounced while typing + forced on blur, same contract as `TextoCard`.
+
+   - `#bienvenidaCount` counts **plain text** vs `BIENVENIDA_MAX_LENGTH` — that's what the editor enforces. The HTML that actually travels in a share link is bigger; the guard for that is `canShareByLink()`, which warns at share time.
+   - **Vista previa** (`#bienvenidaPreviewSlot`) opens the real `BienvenidaModal` with `navigateOnStart: false` and an overridden title. It deliberately reuses that component rather than rendering its own copy: a parallel preview drifts from the real thing and, worse, would lie about sanitising (showing styles or links that get stripped on import). It forces a save first, since saving is debounced.
 
 ### Categorías list
 - Rows are `CategoriaRow` — real build-once Visual components, reused by stable `sliceId` (see GOTCHAS.md's list-rendering rules), not re-templated HTML strings. Fields: nombre, `modo` select (`seleccion` / `texto_libre`), and — only when `modo === 'seleccion'` — mín/máx/capacidad fields, an optional "responsable fijo" field, and a "participable" checkbox. Switching `modo` shows/hides those fields without rebuilding the row.
@@ -83,6 +89,17 @@ The data model deliberately allows a single Plantilla to have both modo Selecci�
 File: `src/Components/AppComponents/RespuestasView/RespuestasView.js`
 
 Composes five sub-views — `MisRespuestasView` (carousel), `PorTemaView` (drag-and-drop board), `RespuestasVotacionView` (votación pick-one), `RespuestasRankingView` (ranking order), `RespuestasTextoView` (free-text answers) — all built unconditionally, behind a **two-level tab hierarchy** (same shape as `CompareView`'s kind/mode tabs, see its own FEATURES.md section). PRIMARY kind tabs "🎯 Asignación" / "🗳️ Votación" / "🏆 Ranking" / "📝 Texto libre" (only shown when the Plantilla has more than one available kind), and SECONDARY mode tabs "Carrusel" / "Por tema" nested inside Asignación (peer alternatives for the same assignment task). A "📤 Compartir respuestas" button (`slice.build('Button', ...)` → `ExportRespuestasModal`) sits in the header alongside the title.
+
+**Banner del mensaje de bienvenida** (`.av-bienvenida`, arriba de todo): muestra el `plantilla.bienvenida` de quien compartió la Plantilla, plegado por defecto y desplegable. No es un aviso del sistema sino el mensaje de una persona, de ahí el acento primario y el título "Mensaje de {autor}". Sanea con `HtmlService.sanitizeRichText()` (lista blanca estrecha), nunca con `sanitize()`.
+
+Se esconde en dos casos, y conviene no confundirlos:
+
+| Condición | Por qué |
+|---|---|
+| `plantilla.importada === false` | Es tu propio mensaje, escrito para otros. Se edita en el builder, no se relee acá. |
+| `settings.bienvenidaOculta` coincide con la huella del mensaje | Lo ocultaste con el ✕. Es preferencia de ESE dispositivo, y va por huella del mensaje: otra Plantilla con otro mensaje vuelve a mostrarse. |
+
+Detalle de marcado: la cabecera lleva **dos botones hermanos** (desplegar / ocultar), no anidados — un `<button>` dentro de otro es HTML inválido y deja el ✕ sin poder recibir el clic.
 
 Next-section indicator: when the current kind tab is fully answered, a success-bordered banner appears with a button to jump to the next unfinished kind tab. When all sections are complete, shows "¡Todas las secciones están completas! 🎉" with a disabled button. Uses the `Button` component (with `onClick` set dynamically and `.disabled` toggled via `$button.disabled` — see GOTCHAS §30 about clearing `onClick`).
 
@@ -204,15 +221,34 @@ Opened from `UserMenu`'s "📤 Compartir respuestas" button, `RespuestasView`'s 
 
 ### SharePlantillaModal
 
-File: `src/Components/Providers/SharePlantillaModal/SharePlantillaModal.js`
+File: `src/Components/Visual/SharePlantillaModal/SharePlantillaModal.js`
 
 Same pattern for Plantilla sharing:
 
-1. **⬇ Descargar plantilla** — builds the Plantilla envelope (`{ nombre, autor, email, atributos, temas, opciones }`) and calls `ExportService.downloadPlantilla()`. The downloaded file has extension `.plantilla`.
+1. **⬇ Descargar plantilla** — builds the Plantilla envelope (`{ nombre, autor, email, bienvenida, atributos, temas, opciones }`) and calls `ExportService.downloadPlantilla()`. The downloaded file has extension `.plantilla`.
 2. **🔗 Copiar enlace** — calls `PlantillaService.copyShareLink()` (generates compressed URL with `packForURI`, copies to clipboard). The packed data includes `autor` + `email` from `SettingsService` so the recipient knows who created it.
 3. **✉️ Enviar por correo** — opens `mailto:` with the link and the sharer's name, `to` left empty.
 
 Opened from `PlantillaBuilderView`'s "📤 Compartir plantilla" button.
+
+### BienvenidaModal
+
+File: `src/Components/Visual/BienvenidaModal/BienvenidaModal.js`
+
+Shows the Plantilla's `bienvenida` to whoever imports it. Lazy-built singleton like its siblings (`sliceId: 'bienvenidaModal'`, dialog `bienvenidaDialog`). `show()` self-guards: with an empty message it returns without even building the modal, so callers don't have to check first.
+
+Opened from three import paths:
+
+| Where | When | CTA |
+|---|---|---|
+| `AppShell._tryImportPlantilla()` — confirm branch | in the dialog's `onConfirm`, well after `init()` | "Empezar a responder" → `/mis-respuestas` |
+| `AppShell._tryImportPlantilla()` — impact=0 branch | deferred via `_pendingBienvenida`, opened at the **end** of `init()` | idem |
+| `PlantillaBuilderView._handleImportFile()` | after a successful file import | `show({ navigateOnStart: false })` → "Entendido", stays put |
+
+Two things that are load-bearing:
+
+- **It must not open during `AppShell.init()`.** Its CTA navigates, and `_tryImportFromHash()` runs before `TopBar`/`MultiRoute` exist — opening it there re-creates the duplicate-AppShell race of GOTCHAS §35. Hence the `_pendingBienvenida` flag. Spec `11.2.3` covers this path.
+- **`navigateOnStart: false` when imported from the builder.** There the user is *editing*, not answering; a CTA to `/mis-respuestas` would eject them from the view they were working in.
 
 ### Creator identity in shared links
 

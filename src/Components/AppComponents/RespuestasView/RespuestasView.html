@@ -3,6 +3,17 @@
     <div class="viewheader-slot"></div>
     <div class="av-header__actions" data-el="exportSlot"></div>
   </div>
+  <div class="av-bienvenida" data-el="bienvenida" hidden>
+    <div class="av-bienvenida__head">
+      <button class="av-bienvenida__toggle" type="button" data-el="bienvenidaToggle" aria-expanded="false">
+        <span class="av-bienvenida__icon" data-el="bienvenidaIcon"></span>
+        <span class="av-bienvenida__title" data-el="bienvenidaTitle"></span>
+        <span class="av-bienvenida__action" data-el="bienvenidaAction">Ver</span>
+      </button>
+      <button class="av-bienvenida__dismiss" type="button" data-el="bienvenidaDismiss" title="Ocultar este mensaje" aria-label="Ocultar este mensaje">✕</button>
+    </div>
+    <div class="av-bienvenida__body" data-el="bienvenidaBody" hidden></div>
+  </div>
   <div class="av-progress" data-el="progress" hidden>
     <div class="av-progress__track"><span data-el="progressBar"></span></div>
     <span class="av-progress__label" data-el="progressLabel"></span>

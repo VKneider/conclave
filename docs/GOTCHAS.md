@@ -316,3 +316,27 @@ await page.evaluate(({ deltaY, duration }) => {
 ```
 
 This guarantees deterministic, frame-accurate, buttery-smooth scrolling animations for video capture without inertia artifacts or layout clipping.
+
+### 39. El harness `/__test` tiene que arrancar `Providers`, o los componentes montados reciben servicios `undefined` — y fallan en silencio
+
+`TestHarness.init()` sólo publicaba `window.__sliceTestRoot`, sin construir `Providers`. Todo Visual de este repo asume que los singletons ya existen (`docs/COMPONENT-PATTERNS.md` §Core services: "always available via `slice.getComponent`"), así que un componente montado con el fixture `mount` recibía `undefined` de `slice.getComponent('HtmlService')` y reventaba en cuanto lo usaba.
+
+Lo peligroso no es el fallo, es **cómo se ve**: el error ocurre dentro de un método `async` (`show()`) al que el spec no le hace `await` — el `page.evaluate` lanza la promesa y sigue. Resultado: cero `pageErrors`, cero errores en consola, y el spec sólo reporta que su `waitForSelector` nunca encontró el elemento. Los 10 specs de `SynthTextoModal` llevaban así un tiempo, pareciendo un problema del modal cuando el modal está bien.
+
+**Fix: `await slice.build('Providers', { singleton: true })` al principio de `TestHarness.init()`**, igual que hace `AppShell`. Si un spec montado empieza a fallar con "el selector nunca aparece" y no hay ningún error visible, sospecha de un servicio no arrancado antes que del componente.
+
+### 40. `waitForSliceReady()` esperaba al framework, no a la app — y por eso la suite era intermitente
+
+`waitForSliceReady` hacía sólo `waitForFunction(() => !!window.slice?.router)`. Eso confirma que **el framework** arrancó, pero `AppShell.init()` sigue en vuelo bastante después: construye `Providers`, el `TopBar` y el `MultiRoute`, y recién entonces monta la vista.
+
+Los helpers que recargan (`resetState`, `injectPlantilla`) volvían en ese hueco, esperaban 200 ms fijos y el test navegaba de inmediato — justo a mitad del `init()`, que es la carrera del §35: el Router no encuentra el `AppShell` todavía registrado, construye un segundo, y los hijos con `sliceId` fijo mueren con `A component with the same slice id attribute is already registered: avViewHeader`. Slice se traga ese error, así que la vista simplemente no montaba.
+
+Como depende de tiempos, **el conjunto de tests que fallaba cambiaba en cada corrida** (típicamente 5–8, en `RespuestasView`, `ResetView`, `CompareView`, `PlantillaBuilderView`), y todos pasaban en aislamiento — el patrón clásico que se confunde con "tests flaky que hay que reintentar".
+
+**Fix: `waitForSliceReady` ahora espera además a que el `MultiRoute` tenga una vista real montada** (`:scope > *:not(slice-loading)`; `slice-loading` es lo que muestra mientras resuelve), con un atajo para `/__test`, que no usa `AppShell`. Con eso la suite pasa entera.
+
+**Corolario para specs nuevos:** un test que afirma que algo NO está visible pasa igual de bien si la vista entera no montó. Cuando escribas ese tipo de aserción, afirma primero que la vista está montada (`await expect(page.locator('slice-<vista>')).toBeVisible()`), o el test te dará un verde que no significa nada.
+
+### 41. `icons.js` devuelve `''` en silencio para un nombre de icono inexistente
+
+`svg(name)` hace `const iconNode = ICON_MAP[name]; if (!iconNode) return '';`. No avisa por consola ni lanza: un botón con `icon: { name: 'trash' }` simplemente sale sin icono, y nadie se entera (el nombre real es `trash-2`, que era el caso en `SynthTextoModal`). Al añadir un icono, **verifica la clave contra `ICON_MAP` en `src/Components/Visual/Icon/icons.js`** — y recuerda que agregar uno nuevo obliga a tocar el `import` de `lucide` de la línea 1, con el cuidado del §36.

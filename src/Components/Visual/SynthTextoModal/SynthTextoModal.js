@@ -89,7 +89,10 @@ export default class SynthTextoModal extends HTMLElement {
     this.$quitarBtn = await slice.build('Button', {
       sliceId: `${this.sliceId}-synth-quitar`,
       value: 'Quitar',
-      icon: { name: 'trash', size: '14' },
+      // 'trash' no existe en el mapa de iconos — svg() devuelve '' sin avisar,
+      // así que el botón se quedaba sin icono en silencio. El nombre real es
+      // 'trash-2', el mismo que usa el resto de la app para borrar.
+      icon: { name: 'trash-2', size: '14' },
       variant: 'ghost',
       onClick: () => this._clearSynth(),
     });

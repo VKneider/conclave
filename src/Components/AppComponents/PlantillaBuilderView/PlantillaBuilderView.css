@@ -11,6 +11,21 @@ slice-plantillabuilderview .pb-section-head {
 }
 
 slice-plantillabuilderview .pb-name-slot { max-width: 420px; }
+
+/* Mensaje de bienvenida — mismo panel embebido que .pb-atributos, para que
+   los dos campos "extra" de la Plantilla se lean como la misma familia. */
+slice-plantillabuilderview .pb-bienvenida {
+  margin: 14px 0 0; padding: 12px 14px; border-radius: 12px;
+  background: var(--panel-alt-background-color); border: 1.5px solid var(--border-color);
+}
+slice-plantillabuilderview .pb-bienvenida__head { font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+slice-plantillabuilderview .pb-bienvenida__hint { font-weight: 500; color: var(--font-secondary-color); }
+slice-plantillabuilderview .pb-bienvenida__meta {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 8px; font-size: 11.5px; color: var(--font-secondary-color);
+}
+slice-plantillabuilderview .pb-bienvenida__count.is-full { color: var(--warning-color); font-weight: 700; }
+slice-plantillabuilderview .pb-bienvenida__actions { margin-left: auto; }
 slice-plantillabuilderview .pb-lideres-slot { margin-top: 4px; }
 slice-plantillabuilderview .pb-modo-hint {
   margin: 0 0 14px; font-size: 11.5px; color: var(--font-secondary-color); font-style: italic;

@@ -6,6 +6,17 @@ export const EXT_RESPUESTAS = '.respuestas';
 export const EXT_CONSENSO = '.conclave';
 export const EXT_BACKUP = '.conclave-backup';
 export const TEXTO_MAX_LENGTH = 10000;
+// El mensaje de bienvenida viaja dentro del enlace compartible, que tiene un
+// tope duro de SHARE_URL_MAX_LENGTH. Se mide sobre el TEXTO plano (no sobre el
+// HTML del editor), así que el límite real en el enlace es algo mayor — por eso
+// es bastante más bajo que TEXTO_MAX_LENGTH.
+export const BIENVENIDA_MAX_LENGTH = 1200;
+// Tope sobre el HTML ya sanitizado, aplicado al IMPORTAR. El de arriba sólo
+// lo hace cumplir el editor, o sea el autor en su propio dispositivo; un
+// archivo o un enlace fabricado a mano no pasa por ahí. Holgado respecto de
+// BIENVENIDA_MAX_LENGTH porque las etiquetas ocupan: no busca ser exacto,
+// busca que nada desmedido llegue a localStorage.
+export const BIENVENIDA_HTML_MAX_LENGTH = BIENVENIDA_MAX_LENGTH * 4;
 export const SHARE_URL_MAX_LENGTH = 3800;
 export const ACCEPT_ALL = `application/json,.json,${EXT_PLANTILLA},${EXT_RESPUESTAS},${EXT_CONSENSO}`;
 export const DEFAULT_TEMA_MODO = 'texto_libre';

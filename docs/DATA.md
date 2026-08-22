@@ -8,8 +8,8 @@ atributos, voto/ranking). See `REDESIGN.md` for the phased history and
 
 | Key | Owner | Content |
 |---|---|---|
-| `conclave-settings-v3` | `SettingsService` | `{ autor, email, lideres, lideresEnabled }` |
-| `conclave-plantilla-v1` | `PlantillaService` | `{ nombre, atributos, temas, opciones }` |
+| `conclave-settings-v3` | `SettingsService` | `{ autor, email, lideres, lideresEnabled, soundEnabled, bienvenidaOculta }` |
+| `conclave-plantilla-v1` | `PlantillaService` | `{ nombre, bienvenida, importada, atributos, temas, opciones, creadoPor, creadoEmail }` |
 | `conclave-respuestas-v1` | `RespuestasService` | `{ seleccion, texto, voto, ranking }` |
 | `conclave-decision-final-v1` | `ConsensoService` | `{ seleccion, texto, voto, ranking }` |
 | `conclave-respuestas-importadas-v1` | `RespuestasImportService` | `[{ autor, respuestas: { seleccion, texto, voto, ranking } }]` |
@@ -22,11 +22,68 @@ fallback only).
 ```js
 {
   nombre: 'Retiro 2026',
+  bienvenida: '<p>Hola equipo…</p>',  // mensaje opcional para quien la importa
+  importada: true,                    // ← hecho LOCAL: no viaja al compartir
   atributos: [ /* Atributo[] — custom per-Opción fields */ ],
   temas: [ /* Tema[] */ ],
   opciones: [ /* Opcion[] */ ],
+  creadoPor: 'Ana', creadoEmail: 'ana@…',  // identidad de quien la compartió
 }
 ```
+
+### `importada` — propia vs. de otra persona
+
+Es la **única** propiedad del contexto `plantilla` que NO viaja al compartir:
+describe esta copia en este dispositivo, no la Plantilla. `loadFromData()` la
+pone en `false` (adoptar datos no implica que sean ajenos — un preset también
+pasa por ahí) y cada camino de import llama a `marcarComoImportada()` justo
+después. Sí va en el `.conclave-backup`, que es el estado del dispositivo.
+
+Su único consumidor hoy es el banner de bienvenida (ver abajo). **No se deduce
+de `creadoPor`**: compartir por enlace no obliga a poner el nombre, así que ese
+campo puede llegar vacío en una Plantilla perfectamente ajena — deducirlo de ahí
+escondería el mensaje justo a quien tenía que leerlo.
+
+### `bienvenida` — el mensaje de bienvenida
+
+HTML enriquecido (negrita, cursiva, listas) que el autor escribe una vez en
+PlantillaBuilderView → *Detalles*, y que ve quien importa la Plantilla para
+responder: en `BienvenidaModal` al momento de importar, y después en el banner
+plegable de `RespuestasView`. Viaja en las tres vías de compartir (enlace
+comprimido con la clave corta `bv`, archivo `.plantilla`, y `.conclave-backup`).
+
+Tres reglas que no son obvias:
+
+- **Se sanea con `HtmlService.sanitizeRichText()`, no con `sanitize()`.** Lo
+  escribió otra persona; el perfil ancho de `sanitize()` dejaría pasar
+  `<img>`/`<a href>`, y un `<img src="https://tracker/…">` en una Plantilla
+  compartida filtra la IP de quien la abre sin mostrar nada.
+- **Todo pasa por `PlantillaService._sanitizeBienvenida()`**, que además
+  **corta por longitud** (`BIENVENIDA_HTML_MAX_LENGTH`). `BIENVENIDA_MAX_LENGTH`
+  sólo lo aplica el editor, o sea el autor en su dispositivo: un archivo o un
+  hash fabricado a mano no pasa por ahí, y esto se persiste en localStorage
+  (pasarse de cuota rompe la persistencia de todo el contexto, no sólo el campo).
+- **El tope real de compartir por enlace no es el del mensaje.** Los 3800
+  caracteres de `SHARE_URL_MAX_LENGTH` los consume la Plantilla entera. El
+  contador del builder cuenta texto plano; quien avisa de verdad es
+  `canShareByLink()` al momento de compartir.
+
+#### Dónde se ve, y las dos condiciones que lo esconden
+
+`BienvenidaModal` al importar (enlace o archivo) y el banner plegable de
+`RespuestasView` para releerlo. El banner se esconde si:
+
+1. **La Plantilla es propia** (`importada === false`) — el mensaje lo escribió
+   quien está mirando, dirigido a otros; devolvérselo en la vista de responder
+   es ruido. Lo sigue viendo y editando en el builder.
+2. **Se ocultó a mano** (✕) — preferencia de ESE dispositivo, guardada en
+   `settings.bienvenidaOculta` como la **huella del mensaje ocultado**, no como
+   un booleano: cuando llega otra Plantilla con otro mensaje la huella deja de
+   coincidir y vuelve a mostrarse. Con un booleano, ocultar una vez silenciaría
+   todos los mensajes futuros para siempre.
+
+Es una preferencia del dispositivo y no de la Plantilla a propósito: si viajara
+dentro de la Plantilla, quien la comparte decidiría por todo el grupo.
 
 ### Tema (ex "Categoría"/"Equipo")
 A decision axis. Its **`modo`** decides how it's answered:
@@ -127,24 +184,33 @@ working everywhere; no migration needed. Distinguish with
 import and `exportFinal` file import) preserves the whole entry object, so
 `esSintesis`/`fuentes` survive the short-key hash roundtrip.
 
-## The two exportable JSON types
+## The exportable JSON types
 
-Extensions are defined in `src/Components/Core/AppConfig/AppConfig.js`:
+Extensions are defined in `src/AppConfig.js`:
 
 | Type | `tipo` | Extension |
 |---|---|---|
 | Plantilla | `'plantilla'` | `.plantilla` |
 | Respuestas | `'respuestas'` / `'respuestas-final'` | `.respuestas` |
+| Consenso | `'consenso'` | `.conclave` |
+| Backup | `'backup'` | `.conclave-backup` |
 
 Imports also accept legacy `.json` files (backward compatible).
 
 - **Plantilla** (`tipo: 'plantilla'`): the shared setup — `{ nombre, autor,
-  email, atributos, temas, opciones }`. `autor` and `email` come from
+  email, bienvenida, atributos, temas, opciones }`. `autor` and `email` come from
   `SettingsService` (the creator's identity at share/export time). Built by
   `ExportService.downloadPlantilla`, imported via `PlantillaService.prepareImport`
-  → `loadFromData(temas, opciones, nombre, atributos)` (validates shape +
-  `isSafeId`, computes orphan impact, confirm-gated). When importing via URL
-  hash, `AppShell._tryImportPlantilla()` displays the creator info in the dialog.
+  → `loadFromData(temas, opciones, nombre, atributos, creadoPor, creadoEmail,
+  bienvenida)` (validates shape + `isSafeId`, sanitizes `bienvenida`, computes
+  orphan impact, confirm-gated). Omitting an optional trailing argument **keeps**
+  the current value; passing `''` clears it. When importing via URL hash,
+  `AppShell._tryImportPlantilla()` displays the creator info in the dialog.
+- **Backup** (`tipo: 'backup'`): everything at once — the Plantilla (including
+  `bienvenida`), the user's own respuestas, the imported ones, `decisionFinal`
+  and the notes. Written by `ExportService.downloadBackup`, restored from
+  `ResumenFinalView`. It is the only import path that does **not** go through
+  `prepareImport`; it relies on `loadFromData` sanitizing `bienvenida` itself.
 - **Respuestas** (`tipo: 'respuestas'` / `'respuestas-final'`): one person's
   answers — `{ respuestas: { seleccion, texto, voto, ranking } }`. Also carries
   `autor` and `email` from `SettingsService`. Exported per person or as the
@@ -168,9 +234,15 @@ Removing a votacion/ranking Tema **cascades** to its owned Opciones.
 - **Migration** runs once per session in `PlantillaService._ensure()` →
   `_migrate()`, **before** the empty/invalid reseed check (GOTCHAS §24), for
   returning users: `categorias→temas`, `modo seleccion→reparto`, add
-  `temaId:null`, adopt `DEFAULT_ATRIBUTOS`. IDs never change, so respuestas/
-  decisionFinal/settings need no migration. voto/ranking default in getters
-  (GOTCHAS §20), no migration needed there.
+  `temaId:null`, adopt `DEFAULT_ATRIBUTOS`, default `bienvenida`/`creadoPor`/
+  `creadoEmail` to `''`. IDs never change, so respuestas/decisionFinal/settings
+  need no migration. voto/ranking default in getters (GOTCHAS §20), no
+  migration needed there.
+  - `bienvenida` defaults to **empty, never to the seed preset's message**.
+    A returning user has their own Plantilla; seeding it with a preset's
+    welcome text would put words in their mouth in something they share.
+    New users do get the preset's message (it ships in `SEED_STATE`), which is
+    what makes the field discoverable at all.
 
 ## Seed
 

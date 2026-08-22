@@ -35,6 +35,7 @@ const components = {
   "IconProvider": "Providers",
   "Providers": "Providers",
   "ToastProvider": "Providers",
+  "BienvenidaModal": "Visual",
   "Button": "Visual",
   "CarouselView": "Visual",
   "Checkbox": "Visual",

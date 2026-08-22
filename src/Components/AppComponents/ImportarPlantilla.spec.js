@@ -22,8 +22,12 @@ function makeFile(data) {
 
 function packForURI(data) {
   const FULL_TO_SHORT = {
+    // Espejo a mano de CompressionService.FULL_TO_SHORT — mantenerlo en sync:
+    // una clave que falte acá igual "funciona" (unpackFromURI deja pasar las
+    // no mapeadas), así que una desincronización no rompe el test, lo vuelve
+    // ciego a fallos reales de compresión.
     tipo: 't', nombre: 'n', email: 'e',
-    temas: 'ts', opciones: 'os', atributos: 'at',
+    temas: 'ts', opciones: 'os', atributos: 'at', bienvenida: 'bv',
     respuestas: 'rs', autor: 'a',
     seleccion: 'sl', texto: 'tx', voto: 'vt', ranking: 'rk',
     modo: 'm', orden: 'o', participable: 'p', meta: 'mt', temaId: 'ti',

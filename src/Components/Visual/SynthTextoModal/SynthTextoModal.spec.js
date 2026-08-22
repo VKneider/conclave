@@ -151,8 +151,12 @@ test.describe('SynthTextoModal', () => {
     await page.locator('.stm-modal .slice_button').filter({ hasText: 'Quitar' }).click();
     await page.waitForTimeout(200);
 
+    // El harness guarda la lista de ARGUMENTOS de cada llamada, así que una
+    // sola llamada con un argumento es [[temaId]] — mismo desempaquetado que
+    // usa el test de "Guardar" más arriba.
     const cleared = await page.evaluate(() => window.__stm.clears);
-    expect(cleared).toEqual([TEMA_ID]);
+    expect(cleared.length).toBe(1);
+    expect(cleared[0]).toEqual([TEMA_ID]);
     await expect(page.locator('.stm-modal')).not.toBeVisible();
     expect(c.pageErrors()).toEqual([]);
   });

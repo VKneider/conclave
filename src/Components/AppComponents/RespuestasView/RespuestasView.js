@@ -35,6 +35,13 @@ export default class RespuestasView extends HTMLElement {
     this.$votacionSlot = this.querySelector('[data-slot="votacion"]');
     this.$rankingSlot = this.querySelector('[data-slot="ranking"]');
     this.$textoSlot = this.querySelector('[data-slot="texto"]');
+    this.$bienvenida = this.querySelector('[data-el="bienvenida"]');
+    this.$bienvenidaToggle = this.querySelector('[data-el="bienvenidaToggle"]');
+    this.$bienvenidaIcon = this.querySelector('[data-el="bienvenidaIcon"]');
+    this.$bienvenidaTitle = this.querySelector('[data-el="bienvenidaTitle"]');
+    this.$bienvenidaAction = this.querySelector('[data-el="bienvenidaAction"]');
+    this.$bienvenidaDismiss = this.querySelector('[data-el="bienvenidaDismiss"]');
+    this.$bienvenidaBody = this.querySelector('[data-el="bienvenidaBody"]');
     this.$progress = this.querySelector('[data-el="progress"]');
     this.$progressBar = this.querySelector('[data-el="progressBar"]');
     this.$progressLabel = this.querySelector('[data-el="progressLabel"]');
@@ -48,7 +55,11 @@ export default class RespuestasView extends HTMLElement {
     this._kindAvail = { seleccion: false, votacion: false, ranking: false, texto: false };
     this._kindComplete = { seleccion: false, votacion: false, ranking: false, texto: false };
     this._slotPromptEl = null;
+    this._bienvenidaOpen = false;
     this._coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+
+    this.$bienvenidaToggle.addEventListener('click', () => this._toggleBienvenida());
+    this.$bienvenidaDismiss.addEventListener('click', () => this._ocultarBienvenida());
 
     slice.controller.setComponentProps(this, props);
   }
@@ -56,6 +67,8 @@ export default class RespuestasView extends HTMLElement {
   async init() {
     this._plantilla = slice.getComponent('PlantillaService');
     this._icons = slice.getComponent('IconProvider');
+    this._html = slice.getComponent('HtmlService');
+    this._settings = slice.getComponent('SettingsService');
     this.querySelector('[data-el="kindNoticeIcon"]').innerHTML = this._icons.svg('info', 16);
 
     this._viewHeader = await slice.build('ViewHeader', { sliceId: 'avViewHeader', title: 'Mis respuestas' });
@@ -265,7 +278,63 @@ export default class RespuestasView extends HTMLElement {
     slice.controller.destroyByContainer(this.$emptySlot);
   }
 
+  // ── Mensaje de bienvenida de la Plantilla ───────────────────
+  // Quien importa la Plantilla ya lo vio en BienvenidaModal; el banner es
+  // para releerlo. Arranca plegado (el mensaje no compite con la tarea) y no
+  // pierde el estado de apertura entre repintados, que son frecuentes acá.
+  //
+  // Dos condiciones lo esconden, y son distintas a propósito:
+  //   • Plantilla propia (no importada) — es tu propio mensaje, dirigido a
+  //     otros; devolvértelo acá es ruido. Lo editas en el builder, no acá.
+  //   • Ocultado a mano — preferencia de ESTE dispositivo, atada a la huella
+  //     del mensaje: si después llega otra Plantilla con otro mensaje, se
+  //     vuelve a mostrar (ver SettingsService.isBienvenidaOculta).
+  _renderBienvenida() {
+    const mensaje = this._plantilla.getBienvenida();
+    const visible = mensaje.trim()
+      && this._plantilla.esImportada()
+      && !this._settings.isBienvenidaOculta(mensaje);
+    if (!visible) {
+      this.$bienvenida.hidden = true;
+      this.$bienvenidaBody.innerHTML = '';
+      return;
+    }
+
+    const autor = this._plantilla.getCreadoPor();
+    this.$bienvenida.hidden = false;
+    this.$bienvenidaIcon.innerHTML = this._icons.svg('hand', 16, 'var(--primary-color)');
+    this.$bienvenidaTitle.textContent = autor ? `Mensaje de ${autor}` : 'Mensaje de la Plantilla';
+    // Región de HTML puro sin componentes Slice adentro: innerHTML con
+    // saneado es el mecanismo correcto (COMPONENT-PATTERNS). Va por
+    // sanitizeRichText y no por sanitize: el mensaje lo escribió otra
+    // persona, y el perfil ancho dejaría pasar <img>/<a href>.
+    this.$bienvenidaBody.innerHTML = this._html.sanitizeRichText(mensaje);
+    this._applyBienvenidaOpen();
+  }
+
+  _toggleBienvenida() {
+    this._bienvenidaOpen = !this._bienvenidaOpen;
+    this._applyBienvenidaOpen();
+  }
+
+  // Ocultar es reversible en la práctica: llega otra Plantilla con otro
+  // mensaje y vuelve a aparecer. El toast lo dice para que no parezca que
+  // algo se rompió ni que el mensaje se perdió.
+  _ocultarBienvenida() {
+    this._settings.ocultarBienvenida(this._plantilla.getBienvenida());
+    this._bienvenidaOpen = false;
+    this._renderBienvenida();
+    slice.events.emit('toast:show', { message: 'Mensaje ocultado', type: 'info' });
+  }
+
+  _applyBienvenidaOpen() {
+    this.$bienvenidaBody.hidden = !this._bienvenidaOpen;
+    this.$bienvenidaToggle.setAttribute('aria-expanded', this._bienvenidaOpen ? 'true' : 'false');
+    this.$bienvenidaAction.textContent = this._bienvenidaOpen ? 'Ocultar' : 'Ver';
+  }
+
   _render() {
+    this._renderBienvenida();
     const hasReparto = this._plantilla.getTemasParticipables().length > 0 && this._plantilla.getOpcionesPool().length > 0;
     const hasVotacion = this._plantilla.getTemasVotacion().length > 0;
     const hasRanking = this._plantilla.getTemasRanking().length > 0;

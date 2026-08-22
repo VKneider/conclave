@@ -1,4 +1,4 @@
-import { ACCEPT_ALL } from '../../../AppConfig.js';
+import { ACCEPT_ALL, BIENVENIDA_MAX_LENGTH, DEBOUNCE_SAVE_MS } from '../../../AppConfig.js';
 import { PRESETS } from '../../../public/data/presets.js';
 
 const ATRIB_TYPE_OPTIONS = [
@@ -29,6 +29,9 @@ export default class PlantillaBuilderView extends HTMLElement {
     slice.attachTemplate(this);
     this.$root = this.querySelector('.plantilla-builder-view');
     this.$nombreSlot = this.querySelector('#plantillaNombreSlot');
+    this.$bienvenidaSlot = this.querySelector('#bienvenidaSlot');
+    this.$bienvenidaCount = this.querySelector('#bienvenidaCount');
+    this.$bienvenidaPreviewSlot = this.querySelector('#bienvenidaPreviewSlot');
     this.$lideresSlot = this.querySelector('#lideresToggleSlot');
     this.$presetGrid = this.querySelector('#presetGrid');
     this.$atribList = this.querySelector('#atribList');
@@ -169,6 +172,32 @@ export default class PlantillaBuilderView extends HTMLElement {
     nombreInput.value = this._plantilla.getNombre();
     nombreInput.addEventListener('change', () => this._plantilla.setNombre(nombreInput.value.trim()));
 
+    // Mensaje de bienvenida. Mismo contrato que TextoCard: guardado con
+    // debounce mientras se escribe + guardado inmediato al salir del campo.
+    // El contador es de TEXTO PLANO, que es lo que acota `maxLength`; el peso
+    // real en el enlace es mayor (las etiquetas HTML cuentan) y lo avisa
+    // PlantillaService.canShareByLink() al momento de compartir.
+    this.$bienvenidaEditor = await slice.build('EnhancedEditor', {
+      sliceId: 'pbBienvenida',
+      value: this._plantilla.getBienvenida(),
+      placeholder: 'Ej.: Hola equipo — respondan antes del viernes. Cualquier duda, escríbanme.',
+      maxLength: BIENVENIDA_MAX_LENGTH,
+      oninput: () => { this._updateBienvenidaCount(); this._debouncedSaveBienvenida(); },
+      onblur: () => this._saveBienvenida(),
+    });
+    if (this.$bienvenidaEditor instanceof Node) this.$bienvenidaSlot.appendChild(this.$bienvenidaEditor);
+
+    this.$bienvenidaPreviewBtn = await slice.build('Button', {
+      sliceId: 'pbBienvenidaPreview',
+      value: 'Vista previa',
+      icon: { name: 'eye', size: '14' },
+      variant: 'outlined',
+      onClick: () => this._previewBienvenida(),
+    });
+    if (this.$bienvenidaPreviewBtn instanceof Node) this.$bienvenidaPreviewSlot.appendChild(this.$bienvenidaPreviewBtn);
+
+    this._updateBienvenidaCount();
+
     lideresCheckbox.checked = settings.isLideresEnabled();
     lideresCheckbox.addEventListener('change', () => settings.setLideresEnabled(lideresCheckbox.checked));
 
@@ -189,6 +218,7 @@ export default class PlantillaBuilderView extends HTMLElement {
       if (this.$nombreInput && document.activeElement !== this.$nombreInput) {
         this.$nombreInput.value = this._plantilla.getNombre();
       }
+      this._syncBienvenidaFromState();
       this._renderTemas(); this._renderOpciones(); this._renderAtributos();
     });
     slice.context.watch('settings', this, (s) => {
@@ -204,9 +234,70 @@ export default class PlantillaBuilderView extends HTMLElement {
     if (this.$nombreInput && document.activeElement !== this.$nombreInput) {
       this.$nombreInput.value = this._plantilla.getNombre();
     }
+    this._syncBienvenidaFromState();
     this._renderTemas();
     this._renderOpciones();
     this._renderAtributos();
+  }
+
+  beforeDestroy() {
+    clearTimeout(this._bienvenidaTimer);
+  }
+
+  // ── Mensaje de bienvenida ───────────────────────────────────
+
+  _debouncedSaveBienvenida() {
+    clearTimeout(this._bienvenidaTimer);
+    this._bienvenidaTimer = setTimeout(() => this._saveBienvenida(), DEBOUNCE_SAVE_MS);
+  }
+
+  _saveBienvenida() {
+    if (!this.$bienvenidaEditor) return;
+    clearTimeout(this._bienvenidaTimer);
+    const value = this.$bienvenidaEditor.value;
+    // Sin cambios reales → no tocar el contexto: cada setState dispara el
+    // watcher, que repinta temas y opciones. Un blur sin edición no debe
+    // costar un repintado completo de la vista.
+    if (value === this._plantilla.getBienvenida()) return;
+    this._plantilla.setBienvenida(value);
+  }
+
+  // Refresco desde afuera (import de archivo, preset, otra pestaña). Nunca
+  // pisa lo que se está escribiendo: el foco vive en el contenteditable de
+  // adentro del editor, así que se pregunta por `contains`, no por identidad.
+  _syncBienvenidaFromState() {
+    if (!this.$bienvenidaEditor) return;
+    if (this.$bienvenidaEditor.contains(document.activeElement)) return;
+    const stored = this._plantilla.getBienvenida();
+    if (this.$bienvenidaEditor.value !== stored) this.$bienvenidaEditor.value = stored;
+    this._updateBienvenidaCount();
+  }
+
+  // Muestra el mensaje tal como lo verá quien importe la Plantilla, reusando
+  // el mismo BienvenidaModal en vez de dibujar una copia acá: un preview con
+  // su propio renderizado se desincroniza del real en cuanto uno de los dos
+  // cambia, y encima mentiría sobre el saneado (enseñaría estilos o enlaces
+  // que después se caen).
+  //
+  // Fuerza el guardado antes de abrir, porque el guardado va con debounce: si
+  // no, la vista previa mostraría el texto de hace 400 ms.
+  _previewBienvenida() {
+    this._saveBienvenida();
+    if (!this._plantilla.hasBienvenida()) {
+      this._showToast('Escribe primero un mensaje de bienvenida.', 'info');
+      return;
+    }
+    slice.getComponent('bienvenidaModal').show({
+      navigateOnStart: false,
+      titulo: 'Vista previa del mensaje',
+    }).catch(() => {});
+  }
+
+  _updateBienvenidaCount() {
+    if (!this.$bienvenidaCount || !this.$bienvenidaEditor) return;
+    const used = this.$bienvenidaEditor.textLength;
+    this.$bienvenidaCount.textContent = used ? `${used} / ${BIENVENIDA_MAX_LENGTH}` : '';
+    this.$bienvenidaCount.classList.toggle('is-full', used >= BIENVENIDA_MAX_LENGTH);
   }
 
   // Registry Input has no onChange prop — its native <input> still fires
@@ -324,7 +415,7 @@ export default class PlantillaBuilderView extends HTMLElement {
       return;
     }
     const apply = () => {
-      this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, '', '');
+      this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, '', '', prepared.bienvenida);
       slice.events.emit('toast:show', { message: `Plantilla «${preset.nombre}» cargada`, type: 'success' });
     };
     const nTemas = this._plantilla.getTemas().length;
@@ -516,10 +607,11 @@ export default class PlantillaBuilderView extends HTMLElement {
     if (this._syncQueues[queueKey] === current) delete this._syncQueues[queueKey];
   }
 
-  // Same JSON-shape/id validation + impact-count confirm as CompareView's
-  // Plantilla import (PlantillaService.prepareImport is the shared source of
-  // truth) — offered here too since building a Plantilla from scratch is
-  // exactly when you'd want to start from someone else's shared file.
+  // Única entrada de import de Plantilla por archivo de la app (CompareView
+  // sólo importa Respuestas y consenso, a pesar de lo que decían los docs).
+  // Valida forma e ids y confirma contra el conteo de impacto vía
+  // PlantillaService.prepareImport — armar una Plantilla desde cero es
+  // justo cuando quieres partir del archivo que te compartieron.
   _handleImportFile(e) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -542,8 +634,18 @@ export default class PlantillaBuilderView extends HTMLElement {
       }
       const proceed = () => {
         try {
-          this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, data.autor || '', data.email || '');
+          this._plantilla.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, data.autor || '', data.email || '', prepared.bienvenida);
+          this._plantilla.marcarComoImportada();
           this._showToast('Plantilla importada', 'success');
+          // Importar acá es el mismo hecho que importar desde un enlace: si la
+          // Plantilla trae mensaje de bienvenida, se muestra igual — pero sin
+          // el CTA que navega, porque se está editando, no respondiendo.
+          // show() es async y este callback no lo es: sin .catch(), un fallo
+          // al construir el modal quedaría como unhandledrejection, que los
+          // specs detectan como error de página.
+          if (this._plantilla.hasBienvenida()) {
+            slice.getComponent('bienvenidaModal').show({ navigateOnStart: false }).catch(() => {});
+          }
         } catch (err) {
           this._showToast(err.message, 'error');
         }

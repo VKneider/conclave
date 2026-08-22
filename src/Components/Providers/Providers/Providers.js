@@ -21,7 +21,7 @@
 //   settings              { autor, lideres, lideresEnabled }
 //                         Created by  SettingsService         Watched by  AppShell,
 //                         DashboardView, PorTemaView, UserMenu, TopBar
-//   plantilla              { nombre, temas, opciones }
+//   plantilla              { nombre, bienvenida, temas, opciones }
 //                         Created by  PlantillaService         Watched by  AppShell,
 //                         DashboardView, MisRespuestasView, PorTemaView, RespuestasView,
 //                         RespuestasTextoView, CompareView, CompareCarousel, TextCompareCards,
@@ -128,10 +128,12 @@ export default class Providers {
     this.$exportRespuestasModal = await slice.build('ExportRespuestasModal', { sliceId: 'exportRespuestasModal' });
     this.$sharePlantillaModal = await slice.build('SharePlantillaModal', { sliceId: 'sharePlantillaModal' });
     this.$shareConsensoModal = await slice.build('ShareConsensoModal', { sliceId: 'shareConsensoModal' });
+    this.$bienvenidaModal = await slice.build('BienvenidaModal', { sliceId: 'bienvenidaModal' });
     document.body.appendChild(this.$confirmModal);
     document.body.appendChild(this.$exportRespuestasModal);
     document.body.appendChild(this.$sharePlantillaModal);
     document.body.appendChild(this.$shareConsensoModal);
+    document.body.appendChild(this.$bienvenidaModal);
 
     this._ready = true;
     return this;

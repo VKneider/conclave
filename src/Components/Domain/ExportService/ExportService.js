@@ -41,6 +41,11 @@ export default class ExportService {
         atributos: plantilla.atributos,
         temas: plantilla.temas,
         opciones: plantilla.opciones,
+        bienvenida: plantilla.bienvenida || '',
+        // Hecho local de esta copia (ver PlantillaService.esImportada). Va en el
+        // backup, que es el estado del dispositivo, pero NUNCA en el payload de
+        // compartir ni en el .plantilla.
+        importada: plantilla.importada === true,
         creadoPor: plantilla.creadoPor || '',
         creadoEmail: plantilla.creadoEmail || '',
       },
@@ -59,6 +64,7 @@ export default class ExportService {
       nombre,
       autor: plantilla?.autor || '',
       email: plantilla?.email || '',
+      bienvenida: plantilla?.bienvenida || '',
       atributos: plantilla?.atributos || [],
       temas: plantilla?.temas || [],
       opciones: plantilla?.opciones || [],

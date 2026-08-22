@@ -16,7 +16,25 @@ const DEFAULT_THEME = 'LIGHT';
  * @param {import('@playwright/test').Page} page
  */
 export async function waitForSliceReady(page) {
+   // `window.slice.router` sólo dice que el FRAMEWORK arrancó, no la app.
    await page.waitForFunction(() => !!window.slice?.router);
+
+   // AppShell.init() sigue en vuelo un rato más: construye Providers, TopBar y
+   // el MultiRoute, y recién ahí monta la vista. Volver antes de eso hacía que
+   // el test navegara a mitad del init, que es justo la carrera de GOTCHAS §35
+   // (el Router no encuentra el AppShell todavía registrado, crea un segundo, y
+   // los hijos con sliceId fijo revientan con "same slice id already
+   // registered"). Como depende de tiempos, fallaba de forma intermitente y con
+   // un conjunto distinto de tests en cada corrida.
+   //
+   // Se espera a que el MultiRoute tenga una vista REAL montada: `slice-loading`
+   // no cuenta, porque es lo que muestra mientras todavía está resolviendo.
+   await page.waitForFunction(() => {
+      // La ruta /__test no usa AppShell: le basta con su raíz de montaje.
+      if (document.querySelector('[data-test-root]')) return true;
+      const mr = document.querySelector('slice-multi-route');
+      return !!mr && !!mr.querySelector(':scope > *:not(slice-loading)');
+   });
 }
 
 // ── Existing: mount a single component in the /__test harness ────────

@@ -12,6 +12,7 @@ export default class AppShell extends HTMLElement {
     super();
     slice.attachTemplate(this);
     this.$content = this.querySelector('.app-shell__content');
+    this._pendingBienvenida = false;
     slice.controller.setComponentProps(this, props);
   }
 
@@ -41,6 +42,16 @@ export default class AppShell extends HTMLElement {
 
     const bubble = await slice.build('ProfileBubble', { sliceId: 'appProfileBubble' });
     document.body.appendChild(bubble);
+
+    // El mensaje de bienvenida se muestra recién acá, con el shell ya armado.
+    // _tryImportFromHash() corre al principio de init(), antes de que existan
+    // TopBar/MultiRoute, y el botón del modal navega — abrirlo ahí repetiría
+    // la carrera de GOTCHAS §35. La rama con confirmación no pasa por esta
+    // bandera: resuelve después de init() y lo abre por su cuenta.
+    if (this._pendingBienvenida) {
+      this._pendingBienvenida = false;
+      await slice.getComponent('bienvenidaModal').show();
+    }
   }
   // Checks for #plantilla=<lz-compressed> or #respuestas=<lz-compressed>
   // in the URL hash. If found, decompresses, validates, and prompts the
@@ -89,9 +100,13 @@ export default class AppShell extends HTMLElement {
 
     const proceed = async () => {
       try {
-        roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, autor, email);
+        roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, autor, email, prepared.bienvenida);
+        roster.marcarComoImportada();
         slice.events.emit('toast:show', { message: 'Plantilla importada desde el enlace', type: 'success' });
         await slice.router.navigate('/mis-respuestas');
+        // Este callback lo dispara el botón del diálogo de confirmación, o
+        // sea mucho después de init(): abrir el modal acá es seguro.
+        await slice.getComponent('bienvenidaModal').show();
       } catch (err) {
         slice.events.emit('toast:show', { message: err.message, type: 'error' });
       }
@@ -110,9 +125,13 @@ export default class AppShell extends HTMLElement {
         onConfirm: proceed,
       });
     } else {
-      roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, autor, email);
+      roster.loadFromData(prepared.temas, prepared.opciones, prepared.nombre, prepared.atributos, autor, email, prepared.bienvenida);
+      roster.marcarComoImportada();
       slice.events.emit('toast:show', { message: 'Plantilla importada desde el enlace', type: 'success' });
       await slice.router.navigate('/mis-respuestas');
+      // Sin diálogo de por medio, esto sigue dentro de init(): se deja
+      // agendado y lo abre el final de init(), ya con el shell montado.
+      this._pendingBienvenida = roster.hasBienvenida();
     }
   }
 

@@ -1,4 +1,4 @@
-import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH, COLOR_PALETTE, ID_MAX_LENGTH, DEFAULT_PLANTILLA_PRESET } from '../../../AppConfig.js';
+import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH, COLOR_PALETTE, ID_MAX_LENGTH, DEFAULT_PLANTILLA_PRESET, BIENVENIDA_HTML_MAX_LENGTH } from '../../../AppConfig.js';
 import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../public/data/seedData.js';
 import { PRESETS } from '../../../public/data/presets.js';
 const CONTEXT = 'plantilla';
@@ -11,11 +11,13 @@ const _resolveSeed = () => {
       atributos: preset.plantilla.atributos,
       temas: preset.plantilla.temas,
       opciones: preset.plantilla.opciones,
+      bienvenida: preset.plantilla.bienvenida || '',
+      importada: false,
       creadoPor: '',
       creadoEmail: '',
     };
   }
-  return { nombre: 'Mi Plantilla', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES, creadoPor: '', creadoEmail: '' };
+  return { nombre: 'Mi Plantilla', atributos: DEFAULT_ATRIBUTOS, temas: SEED_TEMAS, opciones: SEED_OPCIONES, bienvenida: '', importada: false, creadoPor: '', creadoEmail: '' };
 };
 const SEED_STATE = _resolveSeed();
 
@@ -88,11 +90,18 @@ export default class PlantillaService {
 
     if (state.creadoPor === undefined) { changed = true; }
     if (state.creadoEmail === undefined) { changed = true; }
+    // Mensaje de bienvenida (opcional): las plantillas anteriores no lo tienen.
+    // Ausente === '' — nunca se siembra con el texto del preset, porque eso le
+    // pondría un mensaje ajeno a la plantilla que el usuario ya venía editando.
+    if (state.bienvenida === undefined) { changed = true; }
+    // `importada` por defecto false: una Plantilla que ya estaba en el
+    // dispositivo antes de esta migración es, a efectos prácticos, propia.
+    if (state.importada === undefined) { changed = true; }
 
     if (changed) {
       slice.context.setState(CONTEXT, (prev) => {
         const { categorias, ...rest } = prev;
-        return { ...rest, temas, opciones, atributos, creadoPor: prev.creadoPor || '', creadoEmail: prev.creadoEmail || '' };
+        return { ...rest, temas, opciones, atributos, bienvenida: prev.bienvenida || '', importada: prev.importada === true, creadoPor: prev.creadoPor || '', creadoEmail: prev.creadoEmail || '' };
       });
     }
   }
@@ -109,6 +118,46 @@ export default class PlantillaService {
     slice.context.setState(CONTEXT, (prev) => ({ ...prev, nombre: nombre || '' }));
   }
 
+  // ── Mensaje de bienvenida ───────────────────────────────────
+  // HTML enriquecido (EnhancedEditor: negrita/cursiva/listas) que el autor de
+  // la Plantilla escribe una vez y que ve quien la importa para responder.
+  // Es parte de la Plantilla, no una preferencia del dispositivo: viaja en el
+  // enlace, en el archivo .plantilla y en el backup.
+  //
+  // OJO: se guarda como HTML y NUNCA se inyecta sin pasar por
+  // HtmlService.sanitize() — llega de la plantilla de otra persona.
+  getBienvenida() { return this.getState().bienvenida || ''; }
+  hasBienvenida() { return this.getBienvenida().trim() !== ''; }
+
+  // ¿Esta Plantilla llegó de otra persona, o la armó quien está usando la app?
+  //
+  // Es un hecho LOCAL de esta copia, no una propiedad de la Plantilla: por eso
+  // no viaja en el payload de compartir ni en el archivo .plantilla. Lo marca
+  // cada camino de import después de adoptar los datos.
+  //
+  // Deliberadamente NO se deduce de `creadoPor`: quien comparte puede no haber
+  // puesto nunca su nombre (copiar el enlace no lo exige), y entonces el campo
+  // llega vacío. Deducirlo de ahí escondería el mensaje justo a quien tenía
+  // que leerlo, que es el único fallo que vacía de sentido a la feature.
+  esImportada() { return this.getState().importada === true; }
+
+  marcarComoImportada() {
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, importada: true }));
+  }
+  // Pasa por el mismo saneado que un import: el editor es contenteditable, y
+  // pegar desde Word o desde una página web trae <span style>, <img data:…>
+  // y demás, que si no quedarían guardados y viajarían en el enlace tal cual.
+  // Corta en seco si el resultado saneado no cambió. Importa porque el saneado
+  // puede devolver algo distinto de lo que mandó el llamador (pegar contenido
+  // con estilos), y entonces un guard "¿es igual a lo guardado?" del lado del
+  // llamador nunca coincide: sin esto, cada tecleo dispararía un setState, y
+  // cada setState repinta la lista entera de temas y opciones vía el watcher.
+  setBienvenida(html) {
+    const clean = this._sanitizeBienvenida(html);
+    if (clean === this.getBienvenida()) return;
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, bienvenida: clean }));
+  }
+
   _buildSharePayload() {
     const settings = slice.getComponent('SettingsService');
     return {
@@ -116,6 +165,7 @@ export default class PlantillaService {
       nombre: this.getNombre() || 'Plantilla sin nombre',
       autor: settings.getState().autor || '',
       email: settings.getEmail(),
+      bienvenida: this.getBienvenida(),
       atributos: this.getAtributos(),
       temas: this.getTemas(),
       opciones: this.getOpciones(),
@@ -370,8 +420,28 @@ export default class PlantillaService {
       opciones: data.opciones,
       nombre: data.nombre,
       atributos: Array.isArray(data.atributos) ? data.atributos : [],
+      // El mensaje de bienvenida es HTML escrito por otra persona: se limpia
+      // acá, en el mismo límite de confianza que valida los ids, para que el
+      // estado guardado ya esté sano. Las vistas igual lo vuelven a pasar por
+      // sanitize() antes de asignarlo a innerHTML (defensa en profundidad).
+      bienvenida: this._sanitizeBienvenida(data.bienvenida),
       impact: this._impactOfReplacing(data.temas, data.opciones),
     };
+  }
+
+  // Único punto por el que el mensaje entra al contexto, venga de donde venga
+  // (import por enlace, archivo, backup, o el editor del propio builder).
+  //
+  // El corte por longitud es la mitad que importa acá: BIENVENIDA_MAX_LENGTH
+  // sólo lo aplica EnhancedEditor, o sea el autor en su dispositivo. Un
+  // archivo .plantilla o un hash fabricado a mano puede traer megabytes, y
+  // esto se persiste en localStorage — pasarse de cuota rompe TODA la
+  // persistencia del contexto, no sólo este campo. El tope se mide sobre el
+  // HTML (que es lo que ocupa) y por eso es múltiplo del tope de texto plano.
+  _sanitizeBienvenida(html) {
+    if (typeof html !== 'string' || !html.trim()) return '';
+    const clean = slice.getComponent('HtmlService').sanitizeRichText(html);
+    return clean.length > BIENVENIDA_HTML_MAX_LENGTH ? clean.slice(0, BIENVENIDA_HTML_MAX_LENGTH) : clean;
   }
 
   _impactOfReplacing(newTemas, newOpciones) {
@@ -403,7 +473,7 @@ export default class PlantillaService {
   // normally go through prepareImport() first so this never happens on the
   // import path, but the guard stays here too since this is the actual
   // trust boundary (defense in depth for any future caller).
-  loadFromData(temas, opciones, nombre, atributos, creadoPor, creadoEmail) {
+  loadFromData(temas, opciones, nombre, atributos, creadoPor, creadoEmail, bienvenida) {
     const badTema = temas.find((c) => !this.isSafeId(c.id));
     const badOpcion = opciones.find((o) => !this.isSafeId(o.id));
     if (badTema || badOpcion) {
@@ -419,6 +489,13 @@ export default class PlantillaService {
       atributos: atributos !== undefined ? atributos : (p.atributos || []),
       temas,
       opciones,
+      // Igual que `nombre`: omitirlo conserva el mensaje actual (una edición
+      // masiva del builder), pasarlo lo reemplaza (adoptar otra Plantilla).
+      bienvenida: bienvenida !== undefined ? this._sanitizeBienvenida(bienvenida) : (p.bienvenida || ''),
+      // Adoptar datos NO implica que vengan de otra persona (un preset también
+      // pasa por acá). Los caminos de import llaman a marcarComoImportada()
+      // justo después; el resto se queda en false, que es lo correcto.
+      importada: false,
       creadoPor: creadoPor !== undefined ? creadoPor : '',
       creadoEmail: creadoEmail !== undefined ? creadoEmail : '',
     }));
@@ -435,7 +512,7 @@ export default class PlantillaService {
   }
 
   resetToSeed() {
-    this.loadFromData(SEED_TEMAS, SEED_OPCIONES, SEED_STATE.nombre, SEED_STATE.atributos);
+    this.loadFromData(SEED_TEMAS, SEED_OPCIONES, SEED_STATE.nombre, SEED_STATE.atributos, '', '', SEED_STATE.bienvenida || '');
   }
 
   _cleanupOrphaned(removedTemaIds, removedOpcionIds) {

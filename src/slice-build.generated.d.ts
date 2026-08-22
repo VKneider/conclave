@@ -4,6 +4,10 @@ export interface AppShellProps {
   [key: string]: unknown;
 }
 
+export interface BienvenidaModalProps {
+  [key: string]: unknown;
+}
+
 export interface ButtonProps {
   [key: string]: unknown;
   customColor?: Record<string, unknown>;
@@ -309,6 +313,10 @@ export interface SwitchProps {
   toggle?: (...args: unknown[]) => unknown;
 }
 
+export interface SynthTextoModalProps {
+  [key: string]: unknown;
+}
+
 export interface TabsProps {
   [key: string]: unknown;
   activeTab?: string;
@@ -383,6 +391,7 @@ export interface ViewHeaderProps {
 
 export interface SliceComponentPropsMap {
   AppShell: AppShellProps;
+  BienvenidaModal: BienvenidaModalProps;
   Button: ButtonProps;
   CarouselView: CarouselViewProps;
   ChartService: ChartServiceProps;
@@ -442,6 +451,7 @@ export interface SliceComponentPropsMap {
   StatusBadge: StatusBadgeProps;
   StoreService: StoreServiceProps;
   Switch: SwitchProps;
+  SynthTextoModal: SynthTextoModalProps;
   Tabs: TabsProps;
   TemaRow: TemaRowProps;
   TestHarness: TestHarnessProps;

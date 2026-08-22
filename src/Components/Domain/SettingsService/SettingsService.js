@@ -8,7 +8,7 @@
 // guarantees init runs before any consumer, so no per-method defensive ensure.
 const CONTEXT = 'settings';
 const STORAGE_KEY = 'conclave-settings-v3';
-const INITIAL_STATE = { autor: '', email: '', lideres: {}, lideresEnabled: false, soundEnabled: true };
+const INITIAL_STATE = { autor: '', email: '', lideres: {}, lideresEnabled: false, soundEnabled: true, bienvenidaOculta: '' };
 
 export default class SettingsService {
   init() {
@@ -67,6 +67,37 @@ export default class SettingsService {
     const opcionId = this.getLider(temaId);
     if (opcionId) return { opcion: plantilla.getOpcionById(opcionId), locked: false };
     return null;
+  }
+
+  // ── Ocultar el mensaje de bienvenida ────────────────────────
+  // Es una preferencia del DISPOSITIVO, no de la Plantilla: quien la comparte
+  // no decide por el resto, y si la Plantilla llevara el "oculto" adentro se
+  // propagaría a todo el grupo.
+  //
+  // Se guarda la huella del mensaje ocultado, no un booleano: así, cuando
+  // llega una Plantilla nueva con OTRO mensaje, la huella deja de coincidir y
+  // vuelve a mostrarse. Con un booleano, ocultar una vez silenciaría para
+  // siempre todos los mensajes futuros.
+  isBienvenidaOculta(mensaje) {
+    const huella = this._huella(mensaje);
+    return !!huella && this.getState().bienvenidaOculta === huella;
+  }
+
+  ocultarBienvenida(mensaje) {
+    const bienvenidaOculta = this._huella(mensaje);
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, bienvenidaOculta }));
+  }
+
+  // Hash barato y estable del contenido (mismo esquema que
+  // PlantillaService.colorFor). No necesita ser criptográfico: sólo distinguir
+  // "es el mismo mensaje que oculté" de "es otro". Se le antepone el largo
+  // para abaratar el caso distinto y hacer una colisión aún menos probable.
+  _huella(mensaje) {
+    const texto = (mensaje || '').trim();
+    if (!texto) return '';
+    let hash = 0;
+    for (let i = 0; i < texto.length; i++) hash = (hash * 31 + texto.charCodeAt(i)) >>> 0;
+    return `${texto.length}-${hash.toString(36)}`;
   }
 
   isSoundEnabled() {

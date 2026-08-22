@@ -182,7 +182,10 @@ export default class ResumenFinalView extends HTMLElement {
           onConfirm: () => {
             try {
               const roster = slice.getComponent('PlantillaService');
-              roster.loadFromData(p.temas || [], p.opciones || [], p.nombre, p.atributos, p.creadoPor, p.creadoEmail);
+              roster.loadFromData(p.temas || [], p.opciones || [], p.nombre, p.atributos, p.creadoPor, p.creadoEmail, p.bienvenida || '');
+              // loadFromData resetea `importada` a false; el backup guarda el
+              // estado del dispositivo, así que se restituye si lo traía.
+              if (p.importada) roster.marcarComoImportada();
 
               if (data.respuestas) {
                 slice.getComponent('RespuestasService').importMine(data.respuestas);

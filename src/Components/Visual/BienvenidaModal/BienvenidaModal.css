@@ -1,0 +1,7 @@
+/* El host no pinta nada: el <slice-modal> que construye este componente vive
+   en document.body, y su skin está en sliceStyles.css junto al del resto de
+   los modales con clase marcadora (.bienvenida-modal). Mismo patrón que
+   ConfirmActionModal / SharePlantillaModal. */
+slice-bienvenidamodal {
+  display: contents;
+}

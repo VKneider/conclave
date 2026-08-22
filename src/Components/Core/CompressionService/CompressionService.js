@@ -2,7 +2,7 @@ import LZString from 'lz-string';
 
 const FULL_TO_SHORT = {
   tipo: 't', nombre: 'n', email: 'e',
-  temas: 'ts', opciones: 'os', atributos: 'at',
+  temas: 'ts', opciones: 'os', atributos: 'at', bienvenida: 'bv',
   respuestas: 'rs', autor: 'a',
   seleccion: 'sl', texto: 'tx', voto: 'vt', ranking: 'rk',
   modo: 'm', orden: 'o', participable: 'p', meta: 'mt', temaId: 'ti',
