@@ -93,7 +93,9 @@ A real bug in the installed copy of `Modal.css` (from the official registry, not
 ### 14. Registry Visual components ship with their own visual identity — reskin them in their own `.css`, not from a consumer
 
 `Input`, `Select`, and `Checkbox` (installed from the registry for `CategoriaRow`/`OpcionRow`/`PlantillaBuilderView`) came with a look that doesn't match this app's Sticker Book language: soft `--slice-border`, a focus glow ring, 25px stacked-form margins meant for a standalone form (fights every dense-row/flex-gap layout we actually use them in), and — for `Select`'s open menu — a soft blur shadow instead of a hard offset one. The fix is **not** to override their internals from every consumer that uses them (e.g. `slice-categoriarow slice-input .slice_input { ... }` from `CategoriaRow.css`) — that duplicates the same override block per consumer and silently drifts if one gets updated and the others don't. Since none of these components use Shadow DOM (`slice.attachTemplate` is light-DOM),
-their internal classes are directly addressable, so the fix is patched **directly in the vendored files** — `Input.css`, `Select.css`, `Checkbox.css` — exactly like the `Modal.css` patch above. Consumers only add genuinely local overrides on top (e.g. `CategoriaRow.css`'s compact padding/border-width for its dense-row context) — never the base skin. **If `Input`/`Select`/`Checkbox` are ever re-synced from the registry (`slice sync`), re-check these patches survived the overwrite.**
+their internal classes are directly addressable, so the fix is patched **directly in the vendored files** — `Input.css`, `Select.css`, `Checkbox.css`, `Textarea.css` — exactly like the `Modal.css` patch above. Consumers only add genuinely local overrides on top (e.g. `CategoriaRow.css`'s compact padding/border-width for its dense-row context) — never the base skin. **If `Input`/`Select`/`Checkbox`/`Textarea` are ever re-synced from the registry (`slice sync`), re-check these patches survived the overwrite.**
+
+`Textarea.js` carries three **behavior** patches on top of the reskin (header comment in the file): `grow()` never writes a `0px` height — it skips while detached or `display:none` (`scrollHeight` is 0 there) and re-measures from `connectedCallback` and from a `ResizeObserver` (width change → text re-wraps; hidden → visible again). Without that, `slice.build()` running `init()` before the parent appends the node left the field at `height: 0px` until the first keystroke, and a `TemaRow` hidden by the modo filter came back collapsed. `updateState()` runs `validateValue()` when `conditions` are set, matching `Input`. And the padding is exposed as `--slice-textarea-pad-y/-x` so a dense consumer (`TemaRow`) compacts the field through those instead of overriding `.slice_textarea`'s padding — the floating label's rest position is computed from them and would otherwise drift. Same re-sync caveat.
 
 Same treatment was later applied to `Modal.css` (folding the `.confirm-modal`/`.team-members-modal` per-consumer marker-class overrides into the component's own default — every current usage wanted the Sticker Book look, so there was no reason to keep it opt-in) and `Toast.css` (never patched at all until this pass — still had the stock soft-blur shadow and a `#9333ea` purple fallback absent from both themes). **If `Modal`/`Toast` are ever re-synced, re-check these too.**
 
@@ -202,11 +204,25 @@ Every view and component uses `@media (max-width: 760px)` as the sole breakpoint
 
 Running `pnpm run slice:doctor` on a fresh clone (or after a `slice get`/`slice sync`) may fail with type-resolution errors — the doctor validates component props against the generated TypeScript declarations, and those declarations (`src/Types/`) only exist after `pnpm run slice:types` (i.e. `node ./node_modules/slicejs-cli/client.js types generate`). **If doctor fails complaining about missing types, run `pnpm run slice:types generate` first, then re-run doctor.** Doctor doesn't invoke type generation itself — it assumes the declarations already exist. (Confirmed by reading the doctor source: it imports from a generated types module, and the CLI's `doctor` command has no implicit `types generate` step.)
 
-### 35. Never call `slice.router.navigate()` inside `AppShell.init()` — it races with child registration
+### 35. `slice.router.navigate()` inside `AppShell.init()` used to build a SECOND AppShell (FIXED upstream in framework 4.x — the mitigations below stay for other reasons)
 
-The Router's `onRouteChange()` (`Router.js:415`) debounces route handling with `setTimeout(..., 10)`. If you call `slice.router.navigate()` during `AppShell.init()` — e.g. to redirect to `/mis-respuestas` after importing from a URL hash — the 10ms timeout can fire **before** `init()` finishes building the shell's children (TopBar, MultiRoute, ProfileBubble). When that happens:
+> **Status (framework 4.0.2):** this no longer happens. `Slice.js` (`_build`) now registers the instance **before** calling `init()`:
+> ```js
+> // Register before init so the component is visible in activeComponents
+> // during init. This lets slice.router.navigate() work from inside init()
+> // without the Router creating a duplicate instance…
+> this.controller.registerComponent(componentInstance);
+> if (componentInstance.init) await componentInstance.init();
+> ```
+> So `handleRoute()` finds the half-built AppShell through `getComponent('route-AppShell')` and takes the `existingComponent` branch instead of building another one. That is why `AppShell._tryImportPlantilla()` can call `navigate()` from inside `init()` (the `impact = 0` branch) without trouble.
+>
+> **What still holds** even with the race closed: at that moment the inner `MultiRoute` does not exist yet, so `renderRoutesInComponent()` finds nothing to paint — hence the `await content.renderIfCurrentRoute()` at the end of `init()` (`AppShell.js:41`). And **do not open a modal that navigates from inside `init()`**: `BienvenidaModal` is queued in `_pendingBienvenida` and opened at the end, with the shell already mounted. If you touch this path again, check the framework version before reintroducing the `history.pushState` workaround — that workaround also does **not** fire the Router's `afterEach`, which is what sets `document.title` (`src/App/index.js`).
 
-1. The Router looks for an existing `AppShell` via `slice.controller.getComponent('route-AppShell')` — but the first one isn't registered yet (`registerComponent` runs AFTER `init()` returns, in `_build()`).
+What follows is the historical record of the bug, valid for framework 3.x:
+
+The Router's `onRouteChange()` debounces route handling with `setTimeout(..., 10)`. Calling `slice.router.navigate()` during `AppShell.init()` — e.g. to redirect to `/mis-respuestas` after importing from a hash — let that 10 ms timeout fire **before** `init()` had finished building the shell's children (TopBar, MultiRoute, ProfileBubble). When that happened:
+
+1. The Router looks for an existing `AppShell` via `slice.controller.getComponent('route-AppShell')` — but the first one isn't registered yet (in 3.x `registerComponent` ran AFTER `init()` returned, inside `_build()`; **this is exactly the line 4.x flipped**).
 2. Finding none, the Router calls `slice.build('AppShell', ...)` to create a **second** AppShell.
 3. The second AppShell's `init()` runs and successfully registers its own children (`appTopbar`, `appContent`, `appProfileBubble`).
 4. The first `init()` resumes and tries to build the same child components with the same `sliceId` values — `verifyComponentIds()` sees them already in `activeComponents` and returns `false`, so `slice.build()` returns `null`.
@@ -222,19 +238,16 @@ Error registering instance MultiRoute appContent
 Error creating instance AppShell TypeError: Failed to execute 'appendChild' on 'Node': parameter 1 is not of type 'Node'.
 ```
 
-**Fix:** For navigations that happen during `init()`, avoid the Router's async machinery entirely — use `history.pushState()` to update the URL synchronously, then let `MultiRoute.renderIfCurrentRoute()` (called at the end of `init()`) pick up the new path:
+**The workaround used back then** (no longer needed — see the box above): skip the Router's async machinery entirely and change the URL with `history.pushState()`, letting `MultiRoute.renderIfCurrentRoute()` (at the end of `init()`) pick up the new path.
 
 ```js
-// DON'T — races with init():
+// Framework 3.x: this built a second AppShell…
 await slice.router.navigate('/mis-respuestas');
-
-// DO — synchronous URL change, picked up by renderIfCurrentRoute():
+// …and this avoided it, at the cost of losing the afterEach that sets document.title.
 history.pushState(null, '', '/mis-respuestas');
 ```
 
-This is safe because `pushState` is synchronous — `window.location.pathname` reflects the new value immediately. The `renderIfCurrentRoute()` call (already present at `AppShell.js:40`) will match the new path and render the correct view.
-
-`slice.router.navigate()` is safe to call AFTER `init()` completes (e.g. from a `confirm:request` callback triggered by a modal button click), because by then the AppShell and all its children are fully built and registered. The Router will find the existing instance and reuse it without creating a duplicate.
+`slice.router.navigate()` is safe AFTER `init()` completes (e.g. from a `confirm:request` callback triggered by a modal button click), because by then the AppShell and all its children are fully built and registered. The Router will find the existing instance and reuse it without creating a duplicate.
 
 Introduced in commit `6137519` (feat: mobile TopBar restructure) which added `slice.router.navigate('/mis-respuestas')` inside `_tryImportPlantilla`'s `proceed()` callback. Previously the data was loaded with no navigation, so no race existed. Commit `5492026` attempted to mitigate the rendering half with `renderIfCurrentRoute()` but didn't fix the duplicate registration.
 
@@ -317,26 +330,38 @@ await page.evaluate(({ deltaY, duration }) => {
 
 This guarantees deterministic, frame-accurate, buttery-smooth scrolling animations for video capture without inertia artifacts or layout clipping.
 
-### 39. El harness `/__test` tiene que arrancar `Providers`, o los componentes montados reciben servicios `undefined` — y fallan en silencio
+### 39. The `/__test` harness must boot `Providers`, or mounted components get `undefined` services — and fail silently
 
-`TestHarness.init()` sólo publicaba `window.__sliceTestRoot`, sin construir `Providers`. Todo Visual de este repo asume que los singletons ya existen (`docs/COMPONENT-PATTERNS.md` §Core services: "always available via `slice.getComponent`"), así que un componente montado con el fixture `mount` recibía `undefined` de `slice.getComponent('HtmlService')` y reventaba en cuanto lo usaba.
+`TestHarness.init()` only published `window.__sliceTestRoot`, without building `Providers`. Every Visual in this repo assumes the singletons already exist (`docs/COMPONENT-PATTERNS.md` §Core services: "always available via `slice.getComponent`"), so a component mounted with the `mount` fixture got `undefined` back from `slice.getComponent('HtmlService')` and blew up the moment it used it.
 
-Lo peligroso no es el fallo, es **cómo se ve**: el error ocurre dentro de un método `async` (`show()`) al que el spec no le hace `await` — el `page.evaluate` lanza la promesa y sigue. Resultado: cero `pageErrors`, cero errores en consola, y el spec sólo reporta que su `waitForSelector` nunca encontró el elemento. Los 10 specs de `SynthTextoModal` llevaban así un tiempo, pareciendo un problema del modal cuando el modal está bien.
+The dangerous part is not the failure, it is **how it looks**: the error happens inside an `async` method (`show()`) that the spec never awaits — `page.evaluate` fires the promise and moves on. Result: zero `pageErrors`, zero console errors, and the spec only reports that its `waitForSelector` never found the element. All 10 `SynthTextoModal` specs had been like that for a while, looking like a modal problem when the modal was fine.
 
-**Fix: `await slice.build('Providers', { singleton: true })` al principio de `TestHarness.init()`**, igual que hace `AppShell`. Si un spec montado empieza a fallar con "el selector nunca aparece" y no hay ningún error visible, sospecha de un servicio no arrancado antes que del componente.
+**Fix: `await slice.build('Providers', { singleton: true })` at the top of `TestHarness.init()`**, exactly as `AppShell` does. If a mounted spec starts failing with "the selector never appears" and no error is visible, suspect an unbooted service before the component.
 
-### 40. `waitForSliceReady()` esperaba al framework, no a la app — y por eso la suite era intermitente
+### 40. `waitForSliceReady()` waited for the framework, not for the app — which is why the suite was intermittent
 
-`waitForSliceReady` hacía sólo `waitForFunction(() => !!window.slice?.router)`. Eso confirma que **el framework** arrancó, pero `AppShell.init()` sigue en vuelo bastante después: construye `Providers`, el `TopBar` y el `MultiRoute`, y recién entonces monta la vista.
+`waitForSliceReady` only did `waitForFunction(() => !!window.slice?.router)`. That confirms **the framework** booted, but `AppShell.init()` is still in flight well after that: it builds `Providers`, the `TopBar` and the `MultiRoute`, and only then mounts the view.
 
-Los helpers que recargan (`resetState`, `injectPlantilla`) volvían en ese hueco, esperaban 200 ms fijos y el test navegaba de inmediato — justo a mitad del `init()`, que es la carrera del §35: el Router no encuentra el `AppShell` todavía registrado, construye un segundo, y los hijos con `sliceId` fijo mueren con `A component with the same slice id attribute is already registered: avViewHeader`. Slice se traga ese error, así que la vista simplemente no montaba.
+The reloading helpers (`resetState`, `injectPlantilla`) returned in that gap, waited a fixed 200 ms and the test navigated immediately — right in the middle of `init()`, which is the §35 race: the Router did not find the `AppShell` registered yet, built a second one, and the children with fixed `sliceId` died with `A component with the same slice id attribute is already registered: avViewHeader`. Slice swallows that error, so the view simply never mounted.
 
-Como depende de tiempos, **el conjunto de tests que fallaba cambiaba en cada corrida** (típicamente 5–8, en `RespuestasView`, `ResetView`, `CompareView`, `PlantillaBuilderView`), y todos pasaban en aislamiento — el patrón clásico que se confunde con "tests flaky que hay que reintentar".
+Being timing-dependent, **the set of failing tests changed on every run** (typically 5–8, across `RespuestasView`, `ResetView`, `CompareView`, `PlantillaBuilderView`), and they all passed in isolation — the classic pattern mistaken for "flaky tests that just need a retry".
 
-**Fix: `waitForSliceReady` ahora espera además a que el `MultiRoute` tenga una vista real montada** (`:scope > *:not(slice-loading)`; `slice-loading` es lo que muestra mientras resuelve), con un atajo para `/__test`, que no usa `AppShell`. Con eso la suite pasa entera.
+**Fix: `waitForSliceReady` now also waits for the `MultiRoute` to hold a real mounted view** (`:scope > *:not(slice-loading)`; `slice-loading` is what it shows while resolving), with a shortcut for `/__test`, which does not use `AppShell`. With that the whole suite passes.
 
-**Corolario para specs nuevos:** un test que afirma que algo NO está visible pasa igual de bien si la vista entera no montó. Cuando escribas ese tipo de aserción, afirma primero que la vista está montada (`await expect(page.locator('slice-<vista>')).toBeVisible()`), o el test te dará un verde que no significa nada.
+**Corollary for new specs:** a test asserting that something is NOT visible passes just as happily when the entire view failed to mount. When you write that kind of assertion, assert first that the view IS mounted (`await expect(page.locator('slice-<view>')).toBeVisible()`), or the test gives you a green that means nothing.
 
-### 41. `icons.js` devuelve `''` en silencio para un nombre de icono inexistente
+### 41. `icons.js` silently returns `''` for a non-existent icon name
 
-`svg(name)` hace `const iconNode = ICON_MAP[name]; if (!iconNode) return '';`. No avisa por consola ni lanza: un botón con `icon: { name: 'trash' }` simplemente sale sin icono, y nadie se entera (el nombre real es `trash-2`, que era el caso en `SynthTextoModal`). Al añadir un icono, **verifica la clave contra `ICON_MAP` en `src/Components/Visual/Icon/icons.js`** — y recuerda que agregar uno nuevo obliga a tocar el `import` de `lucide` de la línea 1, con el cuidado del §36.
+`svg(name)` does `const iconNode = ICON_MAP[name]; if (!iconNode) return '';`. It neither warns nor throws: a button with `icon: { name: 'trash' }` simply renders without an icon and nobody notices (the real name is `trash-2`, which was the case in `SynthTextoModal`). When adding an icon, **check the key against `ICON_MAP` in `src/Components/Visual/Icon/icons.js`** — and remember that adding a new one means touching the `lucide` import on line 1, with the care §36 describes.
+
+### 42. `DragDropService` on touch: without `pointercancel` the service hung after the first scroll — it now arms on a short hold, and auto-scroll walks the whole container chain
+
+Three defects in the registry version, all patched in the vendored file (`src/Components/Providers/DragDropService/DragDropService.js`, header comment; same re-sync caveat as §14):
+
+- **`pointercancel` was never listened for.** A finger on a chip is ambiguous — scroll or drag? — and the browser settles it at the first move: unless `touch-action` forbids panning, it starts scrolling and fires `pointercancel`, after which no `pointermove`/`pointerup` ever arrives for that pointer. The half-started `_activeDrag` stayed active forever (`if (this._activeDrag) return` then refused every later drag), and a sortable left its row at `display:none` with the ghost stuck on screen. Now `pointercancel` cleans up: drag without a drop (firing `onDragLeave`/`onDragEnd`), sortable back to its original slot with no `onReorder`.
+- **It did not tell a scroll from a drag.** On touch the gesture arms only after `touchDelay` ms (200 by default, configurable per `makeDraggable`/`makeSortable`) with the finger held still (`_TOUCH_SLOP` 8 px); moving before that means "scroll" and hands the gesture back to the browser. Once armed, a **non-passive** `touchmove` listener calls `preventDefault()` — the only way to stop the browser taking the gesture away mid-drag — and the long-press context menu and selection callout are suppressed (`-webkit-touch-callout: none` on `.dnd-dragging`). Mouse and pen still start instantly.
+- **Auto-scroll only looked at the NEAREST scrollable ancestor.** Dragging out of the board's "Sin asignar" sidebar on a phone (stacked layout, squares below the fold) scrolled only the sidebar: the page never moved and the drop targets stayed out of reach. `_getScrollTargets` now collects the whole chain up to the viewport, and each frame scrolls the first container that is both in its edge zone **and** still able to move that way — once the sidebar is exhausted, the page takes over.
+
+This removed the need for the `(pointer: coarse)` gate that hid the "Por tema" tab in `RespuestasView` and disabled the builder's sortable: it was a patch on the symptom, not a product call (`DESIGN.md` always claimed the DnD "works with touch"). Spec: `DragDropService.spec.js` (synthetic events, including the auto-scroll handover at phone viewport). Validation with real Chromium touch input (CDP `Input.dispatchTouchEvent`, emulating a Pixel 7) confirmed all four scenarios: swipe = scroll, hold = drag, sidebar → page auto-scroll until a square is reachable, and sortable reordering.
+
+**General rule:** any Pointer Events DnD must listen for `pointercancel` and decide explicitly how it coexists with touch scrolling (a hold delay + non-passive `touchmove`, or `touch-action: none`); otherwise it works on desktop and "doesn't work very well on mobile".

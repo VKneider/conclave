@@ -1,19 +1,14 @@
-
-
-const MODO_OPTIONS = [
-  { text: 'Asignación', value: 'reparto' },
-  { text: 'Votación', value: 'votacion' },
-  { text: 'Ranking', value: 'ranking' },
-  { text: 'Texto libre', value: 'texto_libre' },
-];
+import { TEMA_MODOS } from '../../../AppConfig.js';
 
 // One row per Tema in PlantillaBuilderView — a real build-once Visual
 // component (reused by stable sliceId, updated via the `tema` setter)
 // instead of a re-templated HTML string. Talks directly to PlantillaService,
-// same pattern OpcionChip already uses for DragDropService. Nombre/Líder use
-// the registry Input, Modo uses the registry Select, Participable uses the
-// registry Checkbox — reskinned in TemaRow.css to match Sticker Book
-// (see that file's header comment for why). Mín/Máx stay plain <input>:
+// same pattern OpcionChip already uses for DragDropService. Nombre is a
+// registry Textarea (autoGrow: a tema is usually a full question, and a
+// one-line Input scrolled it out of sight), Líder uses the registry Input,
+// Modo the registry Select, Participable the registry Checkbox — reskinned
+// in TemaRow.css to match Sticker Book (see that file's header comment for
+// why). Mín/Máx stay plain <input>:
 // three dense number fields in a row don't fit Input's floating-label
 // pattern, and they're already tucked behind "Detalles".
 export default class TemaRow extends HTMLElement {
@@ -79,8 +74,8 @@ export default class TemaRow extends HTMLElement {
   async init() {
     this._html = slice.getComponent('HtmlService');
     const [nameInput, modoSelect, liderInput, participableCheckbox, opcAddBtn] = await Promise.all([
-      slice.build('Input', { sliceId: `${this.sliceId}-name`, placeholder: 'Nombre' }),
-      slice.build('Select', { sliceId: `${this.sliceId}-modo`, options: MODO_OPTIONS, visibleProp: 'text' }),
+      slice.build('Textarea', { sliceId: `${this.sliceId}-name`, placeholder: 'Nombre', rows: 1, autoGrow: true }),
+      slice.build('Select', { sliceId: `${this.sliceId}-modo`, options: TEMA_MODOS, visibleProp: 'text' }),
       slice.build('Input', { sliceId: `${this.sliceId}-lider`, placeholder: 'Responsable fijo (opcional)' }),
       slice.build('Checkbox', { sliceId: `${this.sliceId}-participable`, label: 'Participable' }),
       slice.build('Button', { sliceId: `${this.sliceId}-opcadd`, value: 'Agregar', size: 'sm', variant: 'filled', icon: { name: 'plus', size: '14' }, onClick: () => this._addOpc() }),
@@ -97,7 +92,27 @@ export default class TemaRow extends HTMLElement {
     this.$participableSlot.appendChild(participableCheckbox);
     this.$opcAddBtnSlot.appendChild(opcAddBtn);
 
-    nameInput.addEventListener('change', () => this._patch({ nombre: nameInput.value.trim() }));
+    // A tema name is single-line everywhere it's shown, so the Textarea is
+    // only there to WRAP long questions: Enter commits (like the Input did)
+    // instead of inserting a newline, and any newline that gets in anyway
+    // (Shift+Enter, paste) is collapsed to a space on save.
+    const commitName = () => {
+      const nombre = nameInput.value.replace(/\s+/g, ' ').trim();
+      if (nombre !== nameInput.value) nameInput.value = nombre;
+      if (this._tema && nombre !== this._tema.nombre) this._patch({ nombre });
+    };
+    nameInput.addEventListener('change', commitName);
+    nameInput.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.keyCode === 13) && !e.shiftKey) { e.preventDefault(); commitName(); return; }
+      // Escape discards the edit and restores the stored name. The `change`
+      // event that follows the blur then finds nothing to patch, because
+      // commitName only writes when the value actually differs.
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        nameInput.value = this._tema?.nombre || '';
+        e.target.blur?.();
+      }
+    });
     modoSelect.onChange = () => {
       const chosen = modoSelect.value;
       if (chosen && !Array.isArray(chosen)) this._patch({ modo: chosen.value });
@@ -130,25 +145,19 @@ export default class TemaRow extends HTMLElement {
     const isRanking = c.modo === 'ranking';
     const ownsOpciones = isVotacion || isRanking; // votación/ranking own their Opciones
     const hasExtra = isReparto || ownsOpciones;
+    const modo = TEMA_MODOS.find((o) => o.value === c.modo) || TEMA_MODOS.find((o) => o.value === 'texto_libre');
 
     if (this.$order) this.$order.textContent = c.orden || '';
-    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(isReparto ? 'target' : isVotacion ? 'vote' : isRanking ? 'trophy' : 'file-text', 14, isReparto ? 'var(--primary-color)' : isVotacion ? 'var(--secondary-color)' : isRanking ? 'var(--warning-color)' : 'var(--success-color)');
-    this.$icon.title = isReparto ? 'Asignación' : isVotacion ? 'Votación' : isRanking ? 'Ranking' : 'Texto libre';
-    this.$hint.textContent = isReparto
-      ? 'Ej: un equipo, una charla — las Opciones se ubican acá.'
-      : isVotacion
-        ? 'Ej: "¿Qué fecha elegimos?" — carga las opciones acá; cada persona elige una.'
-        : isRanking
-          ? 'Ej: "Ordena las ideas por prioridad" — carga las opciones acá; cada persona las ordena.'
-          : 'Ej: "¿Qué propones para el cierre?" — cada persona escribe su respuesta, sin Opciones.';
+    this.$icon.innerHTML = slice.getComponent('IconProvider').svg(modo.icon, 14, modo.color);
+    this.$icon.title = modo.text;
+    this.$hint.textContent = modo.hint;
     this.$toggle.hidden = !hasExtra;
     if (this.$repartoFields) this.$repartoFields.hidden = !isReparto;
     if (this.$votacionEditor) this.$votacionEditor.hidden = !ownsOpciones;
 
     if (this.$nameInput && this.$nameInput.value !== c.nombre) this.$nameInput.value = c.nombre || '';
     if (this.$modoSelect) {
-      const match = MODO_OPTIONS.find((o) => o.value === c.modo) || MODO_OPTIONS[0];
-      if (!this.$modoSelect.value || this.$modoSelect.value.value !== match.value) this.$modoSelect.value = [match];
+      if (!this.$modoSelect.value || this.$modoSelect.value.value !== modo.value) this.$modoSelect.value = [modo];
     }
     if (this.$min.value !== String(c.min ?? '')) this.$min.value = c.min ?? '';
     if (this.$max.value !== String(c.max ?? '')) this.$max.value = c.max ?? '';
@@ -191,7 +200,10 @@ export default class TemaRow extends HTMLElement {
     const m = this._tema?.modo;
     const hasExtra = m === 'reparto' || m === 'votacion' || m === 'ranking';
     this.$extra.hidden = !expanded || !hasExtra;
-    this.$toggle.innerHTML = `${expanded ? slice.getComponent('IconProvider').svg('chevron-down', 14) : slice.getComponent('IconProvider').svg('chevron-right', 14)} Detalles`;
+    // The label is hidden on narrow screens (TemaRow.css) so the actions bar
+    // fits in one line; the accessible name stays via aria-label.
+    this.$toggle.innerHTML = `${expanded ? slice.getComponent('IconProvider').svg('chevron-down', 14) : slice.getComponent('IconProvider').svg('chevron-right', 14)} <span class="cat-row__toggle-label">Detalles</span>`;
+    this.$toggle.setAttribute('aria-label', expanded ? 'Ocultar detalles' : 'Mostrar detalles');
     this.$toggle.setAttribute('aria-expanded', String(expanded));
   }
 
@@ -224,7 +236,7 @@ export default class TemaRow extends HTMLElement {
     const ownsOpciones = c.modo === 'votacion' || c.modo === 'ranking';
     const ownedOpc = ownsOpciones ? plantilla.getOpcionesDeTema(c.id).length : 0;
     const opcSuffix = ownedOpc ? ` Se eliminarán también sus ${ownedOpc} opción${ownedOpc !== 1 ? 'es' : ''}.` : '';
-    const suffix = (impact ? ` Se limpiarán ${impact} respuesta${impact !== 1 ? 's' : ''} que apuntaban a ella.` : '') + opcSuffix;
+    const suffix = (impact ? ` Se limpiarán ${impact} respuesta${impact !== 1 ? 's' : ''} que apuntaban a este tema.` : '') + opcSuffix;
     slice.events.emit('confirm:request', {
       title: `¿Eliminar «${c.nombre || c.id}»?`,
       message: `Esta acción no se puede deshacer.${suffix}`,
@@ -232,7 +244,7 @@ export default class TemaRow extends HTMLElement {
       danger: true,
       onConfirm: () => {
         plantilla.removeTema(c.id);
-        slice.events.emit('toast:show', { message: 'Tema eliminada', type: 'success' });
+        slice.events.emit('toast:show', { message: 'Tema eliminado', type: 'success' });
       },
     });
   }

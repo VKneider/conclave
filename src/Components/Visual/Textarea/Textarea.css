@@ -1,0 +1,120 @@
+/* Encapsulated under the custom element so the textarea styles never leak.
+   PATCHED for Sticker Book (see DESIGN.md), mirroring the Input.css patch:
+   the stock registry look (soft --slice-border, focus glow ring, 25px
+   stacked-form spacing) doesn't match this app's thin-border-at-rest/
+   bold-ink-on-focus language, and its 25px margins fight every dense-row/
+   flex-gap layout we actually use it in. If Textarea is ever re-synced from
+   the registry (`slice sync`), re-check this file survived the overwrite —
+   same caveat as the documented Modal.css patch (see GOTCHAS.md §14). */
+
+slice-textarea {
+  display: block;
+  /* Dense consumers (TemaRow) override these two instead of `.slice_textarea`'s
+     padding, so the floating label's rest position follows along. */
+  --slice-textarea-pad-y: 9px;
+  --slice-textarea-pad-x: 12px;
+}
+
+slice-textarea .slice_textarea {
+  display: flex;
+  padding: var(--slice-textarea-pad-y) var(--slice-textarea-pad-x);
+  max-width: 100%;
+  border-radius: 9px;
+  font-family: var(--font-body, var(--font-family));
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-background-color, var(--primary-background-color));
+  margin: 0;
+  position: relative;
+  transition: border-color 0.15s ease;
+}
+
+slice-textarea .slice_textarea:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: none;
+}
+
+slice-textarea .textarea_area {
+  color: var(--font-primary-color);
+  width: 100%;
+  min-height: 1.4em;
+  background: none;
+  outline: none;
+  border: none;
+  padding: 0;
+  resize: vertical;
+  font-family: var(--font-body, var(--font-family));
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* At rest the label sits centred on the FIRST line (a textarea has no
+   vertical centre to hang it from, unlike Input): pad-y + half the 19.6px
+   line box − half the label's own height. */
+slice-textarea .slice_textarea_placeholder {
+  color: var(--font-secondary-color);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  position: absolute;
+  top: calc(var(--slice-textarea-pad-y) + 4px);
+  left: var(--slice-textarea-pad-x);
+  transition: all 0.2s ease;
+  user-select: none;
+  cursor: text;
+  pointer-events: none;
+}
+
+/* Floated (has-value/focused) state — sits clear ABOVE the 2px border with
+   its own background patch, "notched-label" style (same reasoning as the
+   Input.css comment: no 25px top margin to land in, so it needs the patch). */
+slice-textarea .slice_textarea_value,
+slice-textarea .slice_textarea_focus {
+  top: -0.85rem;
+  left: 10px;
+  transform: scale(0.8);
+  transform-origin: left center;
+  background: var(--panel-background-color, var(--primary-background-color));
+  padding: 0 4px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+slice-textarea .required,
+slice-textarea .required label,
+slice-textarea .required textarea {
+  border-color: var(--danger-color);
+  --primary-color: var(--danger-color);
+}
+
+slice-textarea .disabled,
+slice-textarea .disabled label {
+  border-color: var(--disabled-color);
+  cursor: not-allowed;
+  pointer-events: none;
+  color: var(--disabled-color);
+}
+
+@keyframes slice_textarea_shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px) rotate(0.5deg);
+  }
+  50% {
+    transform: translateX(5px) rotate(-0.5deg);
+  }
+  75% {
+    transform: translateX(-3px) rotate(0.3deg);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+slice-textarea .error {
+  --primary-color: var(--danger-color);
+  animation: slice_textarea_shake 0.5s infinite;
+}

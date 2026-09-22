@@ -186,19 +186,28 @@ test.describe('11. Importar Plantilla', () => {
       const plantilla = await app.getContext('plantilla');
       expect(plantilla.nombre).toBe('Sin Impacto');
 
-      // Verify exactly ONE AppShell in the DOM (no duplicate)
-      const shellCount = await app.page.evaluate(
-        () => document.querySelectorAll('slice-app-shell').length
-      );
-      expect(shellCount).toBe(1);
+      // Exactly ONE AppShell in the DOM (no duplicate).
+      //
+      // This must RETRY rather than read the DOM once: the URL changes inside
+      // `AppShell.init()` (the impact=0 branch navigates), while the Router
+      // only appends the shell to #app after `slice.build()` resolves — i.e.
+      // after init() returns. A single `evaluate()` right after the
+      // waitForFunction above therefore raced the append and saw 0 shells
+      // whenever the machine was loaded. toHaveCount(1) waits for exactly one,
+      // so a duplicate (2) still fails the way this test intends.
+      await expect(app.page.locator('slice-app-shell')).toHaveCount(1, { timeout: 15000 });
 
       // Verify the mis-respuestas view is visible and functional
-      await expect(app.page.locator('.respuestas-view')).toBeVisible({ timeout: 5000 });
+      // RespuestasView builds five sub-views (carousel, board, votación,
+      // ranking, texto) before it paints, so it needs more than the 5s default
+      // when the suite runs eight workers wide.
+      await expect(app.page.locator('.respuestas-view')).toBeVisible({ timeout: 15000 });
 
-      // Verify navigation still works after the init()-time navigate
+      // Verify navigation still works after the init()-time navigate.
+      // waitForURL, not a fixed sleep: the click handler is async, so under
+      // load 300 ms was not always enough for the URL to have changed.
       await app.page.locator('a.tab[data-path="/dashboard"]').click();
-      await app.page.waitForTimeout(300);
-      expect(app.page.url()).toContain('/dashboard');
+      await app.page.waitForURL('**/dashboard', { timeout: 15000 });
 
       // No JS errors
       expect(app.pageErrors).toEqual([]);

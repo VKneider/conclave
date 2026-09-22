@@ -1,7 +1,7 @@
 # Data format & lifecycle
 
 Reflects the post-Fase-3 model (Tema/Opción vocabulary, four modos, dynamic
-atributos, voto/ranking). See `REDESIGN.md` for the phased history and
+atributos, voto/ranking). See `docs/legacy/REDESIGN.md` for the phased history and
 `docs/COMPONENT-PATTERNS.md` for how components read/write this state.
 
 ## Storage (all `slice.context`, `persist: true` → localStorage)
@@ -22,68 +22,82 @@ fallback only).
 ```js
 {
   nombre: 'Retiro 2026',
-  bienvenida: '<p>Hola equipo…</p>',  // mensaje opcional para quien la importa
-  importada: true,                    // ← hecho LOCAL: no viaja al compartir
+  bienvenida: '<p>Hola equipo…</p>',  // optional message for whoever imports it
+  importada: true,                    // ← LOCAL fact: it does not travel when sharing
   atributos: [ /* Atributo[] — custom per-Opción fields */ ],
   temas: [ /* Tema[] */ ],
   opciones: [ /* Opcion[] */ ],
-  creadoPor: 'Ana', creadoEmail: 'ana@…',  // identidad de quien la compartió
+  creadoPor: 'Ana', creadoEmail: 'ana@…',  // identity of whoever shared it
 }
 ```
 
-### `importada` — propia vs. de otra persona
+### `importada` — mine vs. someone else's
 
-Es la **única** propiedad del contexto `plantilla` que NO viaja al compartir:
-describe esta copia en este dispositivo, no la Plantilla. `loadFromData()` la
-pone en `false` (adoptar datos no implica que sean ajenos — un preset también
-pasa por ahí) y cada camino de import llama a `marcarComoImportada()` justo
-después. Sí va en el `.conclave-backup`, que es el estado del dispositivo.
+It is the **only** property of the `plantilla` context that does NOT travel
+when sharing: it describes this copy on this device, not the Plantilla.
+`loadFromData()` sets it to `false` (adopting data does not imply the data is
+foreign — a preset goes through there too) and every import path calls
+`marcarComoImportada()` right after. It IS included in the `.conclave-backup`,
+which is the device's state.
 
-Su único consumidor hoy es el banner de bienvenida (ver abajo). **No se deduce
-de `creadoPor`**: compartir por enlace no obliga a poner el nombre, así que ese
-campo puede llegar vacío en una Plantilla perfectamente ajena — deducirlo de ahí
-escondería el mensaje justo a quien tenía que leerlo.
+Its only consumer today is the welcome banner (below). It is **never inferred
+from `creadoPor`**: sharing by link does not force you to fill in a name, so
+that field can arrive empty on a perfectly foreign Plantilla — inferring it
+from there would hide the message from exactly the person meant to read it.
 
-### `bienvenida` — el mensaje de bienvenida
+### `bienvenida` — the welcome message
 
-HTML enriquecido (negrita, cursiva, listas) que el autor escribe una vez en
-PlantillaBuilderView → *Detalles*, y que ve quien importa la Plantilla para
-responder: en `BienvenidaModal` al momento de importar, y después en el banner
-plegable de `RespuestasView`. Viaja en las tres vías de compartir (enlace
-comprimido con la clave corta `bv`, archivo `.plantilla`, y `.conclave-backup`).
+Rich HTML (bold, italic, lists) the author writes once in
+PlantillaBuilderView → *Detalles*, and that whoever imports the Plantilla sees
+before answering: in `BienvenidaModal` at import time, and afterwards in
+`RespuestasView`'s collapsible banner. It travels through all three sharing
+paths (compressed link under the short key `bv`, the `.plantilla` file, and the
+`.conclave-backup`).
 
-Tres reglas que no son obvias:
+Three rules that are not obvious:
 
-- **Se sanea con `HtmlService.sanitizeRichText()`, no con `sanitize()`.** Lo
-  escribió otra persona; el perfil ancho de `sanitize()` dejaría pasar
-  `<img>`/`<a href>`, y un `<img src="https://tracker/…">` en una Plantilla
-  compartida filtra la IP de quien la abre sin mostrar nada.
-- **Todo pasa por `PlantillaService._sanitizeBienvenida()`**, que además
-  **corta por longitud** (`BIENVENIDA_HTML_MAX_LENGTH`). `BIENVENIDA_MAX_LENGTH`
-  sólo lo aplica el editor, o sea el autor en su dispositivo: un archivo o un
-  hash fabricado a mano no pasa por ahí, y esto se persiste en localStorage
-  (pasarse de cuota rompe la persistencia de todo el contexto, no sólo el campo).
-- **El tope real de compartir por enlace no es el del mensaje.** Los 3800
-  caracteres de `SHARE_URL_MAX_LENGTH` los consume la Plantilla entera. El
-  contador del builder cuenta texto plano; quien avisa de verdad es
-  `canShareByLink()` al momento de compartir.
+- **It is sanitised with `HtmlService.sanitizeRichText()`, not `sanitize()`.**
+  Someone else wrote it; `sanitize()`'s wide profile would let `<img>` through,
+  and an `<img src="https://tracker/…">` in a shared Plantilla leaks the IP of
+  whoever opens it while showing nothing. The allowlist is exactly what
+  `EnhancedEditor` can produce: bold, italic, underline, lists, paragraphs and
+  **links**.
+  - A link is allowed where an image is not, because it only reaches its
+    destination when the reader deliberately clicks it, and the destination is
+    visible first. Every surviving `<a href>` is rewritten with
+    `target="_blank" rel="noopener noreferrer nofollow"`, so the destination
+    can never reach back into this tab through `window.opener` nor receive the
+    referrer. `javascript:`/`data:` URLs are rejected by DOMPurify's default
+    URI policy — and by the editor itself, before they are ever inserted.
+- **Everything goes through `PlantillaService._sanitizeBienvenida()`**, which
+  also **truncates by length** (`BIENVENIDA_HTML_MAX_LENGTH`).
+  `BIENVENIDA_MAX_LENGTH` is only enforced by the editor, i.e. by the author on
+  their own device: a hand-crafted file or hash never passes through it, and
+  this is persisted to localStorage (blowing the quota breaks persistence for
+  the whole context, not just this field).
+- **The real limit when sharing by link is not the message's.** The 3800
+  characters of `SHARE_URL_MAX_LENGTH` are consumed by the entire Plantilla.
+  The builder's counter counts plain text; the one that actually warns you is
+  `canShareByLink()` at share time.
 
-#### Dónde se ve, y las dos condiciones que lo esconden
+#### Where it shows, and the two conditions that hide it
 
-`BienvenidaModal` al importar (enlace o archivo) y el banner plegable de
-`RespuestasView` para releerlo. El banner se esconde si:
+`BienvenidaModal` on import (link or file), and `RespuestasView`'s collapsible
+banner to re-read it. The banner hides when:
 
-1. **La Plantilla es propia** (`importada === false`) — el mensaje lo escribió
-   quien está mirando, dirigido a otros; devolvérselo en la vista de responder
-   es ruido. Lo sigue viendo y editando en el builder.
-2. **Se ocultó a mano** (✕) — preferencia de ESE dispositivo, guardada en
-   `settings.bienvenidaOculta` como la **huella del mensaje ocultado**, no como
-   un booleano: cuando llega otra Plantilla con otro mensaje la huella deja de
-   coincidir y vuelve a mostrarse. Con un booleano, ocultar una vez silenciaría
-   todos los mensajes futuros para siempre.
+1. **The Plantilla is your own** (`importada === false`) — the message was
+   written by the person looking at it, addressed to other people; handing it
+   back in the answering view is noise. They still see and edit it in the
+   builder.
+2. **It was dismissed by hand** (✕) — a preference of THAT device, stored in
+   `settings.bienvenidaOculta` as the **fingerprint of the dismissed message**,
+   not as a boolean: when another Plantilla arrives with another message the
+   fingerprint stops matching and it shows again. With a boolean, dismissing
+   once would silence every future message forever.
 
-Es una preferencia del dispositivo y no de la Plantilla a propósito: si viajara
-dentro de la Plantilla, quien la comparte decidiría por todo el grupo.
+It is a device preference and deliberately not part of the Plantilla: if it
+travelled inside the Plantilla, whoever shares it would decide for the whole
+group.
 
 ### Tema (ex "Categoría"/"Equipo")
 A decision axis. Its **`modo`** decides how it's answered:

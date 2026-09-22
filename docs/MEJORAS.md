@@ -1,136 +1,197 @@
-# Mejoras potenciales
+# Potential improvements
 
-Análisis de oportunidades recolectado en julio 2026 — bugs, UI/UX, nuevos casos de uso, deuda técnica.
-
----
-
-## Bugs / pendientes
-
-| Prioridad | Ítem | Localización | Notas |
-|---|---|---|---|
-| Alta | Overflow de tabla en CompareView en mobile | `CompareView.js` `_renderOpcionView` / `_renderTemaView` | Sin scroll horizontal, en pantallas angostas los datos se salen del viewport. Agregar `overflow-x: auto` + indicador visual "deslizá". |
-| Alta | Manejo de foco en carrusel al avanzar | `MisRespuestasView.js` | Tras navegar (‹ › / teclado / dots), el foco no se mueve al nuevo set de pills de la opción activa. Usuario de teclado debe tabear todo. |
-| Media | API de toasts inconsistente | `CompareView.js:158` vs `CompareView.js:1822` | A veces usa `ToastProvider.show()`, a veces `slice.events.emit('toast:show', ...)`. Unificar en una sola vía. |
-| Media | Animaciones faltantes en votación/ranking | `RespuestasVotacionView.js`, `RespuestasRankingView.js` | El carrusel tiene `pillAssignPop` (bounce). Votación cambia clase instantáneamente, ranking mueve ítems sin transición. Agregar un scale/bounce al seleccionar voto y slide al reordenar ranking. |
-| Baja | Tokens `--male-color` / `--female-color` muertos | `Light.css`, `Dark.css` | Sobrante de Fase 2 (sexo hardcodeado). Ya no se referencian desde ningún CSS. |
+A backlog of opportunities — bugs, UI/UX, new use cases, technical debt.
+Originally collected July 2026; re-checked against the code each time it is
+touched, so a row here is an **open** item (shipped ones are deleted, not
+ticked).
 
 ---
 
-## Deuda técnica
+## Bugs / open
 
-| Prioridad | Ítem | Localización | Notas |
+| Priority | Item | Location | Notes |
 |---|---|---|---|
-| Alta | **CompareView: 1008 líneas** | `CompareView.js` | Archivo más grande por mucho. REDESIGN.md ya identificó extraer `ComparativaService` pero nunca se hizo. Maneja 6 sub-vistas distintas en un solo archivo. |
-| Media | **Lógica de notas duplicada** | `CompareView.js:246-293`, `ResumenFinalView.js:84-116` | ~50 líneas casi idénticas de load/save/persist de notas en localStorage, misma clave `conclave-notas-por-tema-v1`. Mover a un Core o Domain service. |
-| Baja | `var` en `ConsensoService` | `ConsensoService.js:224-227,231,306-320` | Usa `var` en medio de código ES6 moderno. Pasar a `const`/`let`. |
-| Baja | `innerHTML` para sub-vistas grandes | `CompareView.js` `_renderVotacion`, `_renderRanking`, `_renderOpcionView`, `_renderTemaView` | Strings HTML enormes, más duros de mantener y testear que componentes Slice. |
-| Baja | CSS de impresión/export duplicado | `RespuestasService.js:365`, `ConsensoService.js:292` | Estilos inline en strings JS que duplican el design system. Si cambia el tema sticker book, no se actualizan. |
+| High | CompareView table overflows on mobile | `CompareView.js` `_renderOpcionView` / `_renderTemaView` | No horizontal scroll: on narrow screens the data runs off the viewport. Add `overflow-x: auto` plus a visual "swipe" hint. |
+| High | Focus handling in the carousel when advancing | `MisRespuestasView.js` | After navigating (‹ › / keyboard / dots), focus does not move to the new Opción's pill set. A keyboard user has to tab through everything. |
+| Medium | Missing animations in votación/ranking | `RespuestasVotacionView.js`, `RespuestasRankingView.js` | The carousel has `pillAssignPop` (bounce). Votación swaps a class instantly; ranking moves items with no transition. Add a scale/bounce on vote and a slide on reorder. |
+
+---
+
+## Technical debt
+
+| Priority | Item | Location | Notes |
+|---|---|---|---|
+| High | **CompareView: 1086 lines** | `CompareView.js` | By far the largest file. `docs/legacy/REDESIGN.md` already identified extracting a `ComparativaService`, but it was never done. It handles 6 distinct sub-views in one file. |
+| Medium | **Duplicated notes logic** | `CompareView.js`, `ResumenFinalView.js` | ~50 near-identical lines of load/save/persist for notes in localStorage, sharing the key `conclave-notas-por-tema-v1`. Move it into a Core or Domain service. |
+| Low | `var` in `ConsensoService` | `ConsensoService.js` (23 occurrences) | Uses `var` in the middle of otherwise modern ES6. Move to `const`/`let`. |
+| Low | `innerHTML` for large sub-views | `CompareView.js` `_renderVotacion`, `_renderRanking`, `_renderOpcionView`, `_renderTemaView` | Huge HTML strings, harder to maintain and test than Slice components. |
+| Low | Duplicated print/export CSS | `RespuestasService.js`, `ConsensoService.js` | Inline styles in JS strings that duplicate the design system. If the Sticker Book theme changes, they do not follow. |
 
 ---
 
 ## UI / UX polish
 
-### Animaciones
-- **Votación**: las pills de `RespuestasVotacionView` cambian clase `vv-opc--chosen` sin transición. Un bounce como el `pillAssignPop` del carrusel daría feedback inmediato.
-- **Ranking**: los botones ▲▼ intercambian ítems sin animación. Un slide del ítem hacia arriba/abajo mejoraría la percepción. Alternativamente: drag-to-reorder reusando `DragDropService`.
+### Animations
+- **Votación**: `RespuestasVotacionView`'s pills swap the `vv-opc--chosen`
+  class with no transition. A bounce like the carousel's `pillAssignPop` would
+  give immediate feedback.
+- **Ranking**: the ▲▼ buttons swap items with no animation. Sliding the item
+  up/down would read better. Alternatively: drag-to-reorder, reusing
+  `DragDropService` (which now handles touch — GOTCHAS §42).
 
-### Estado vacío
-- `CompareView` construye sus propios divs `.empty-state` con HTML. Existe un componente `EmptyState` reutilizable que no se usa ahí. Unificar.
+### Empty states
+- `CompareView` builds its own `.empty-state` divs in HTML. A reusable
+  `EmptyState` component exists and is not used there. Unify them.
 
 ### Fullscreen
-- `RespuestasTextoView` tiene overlay fullscreen para el editor. `CompareView` tiene otro fullscreen para toda la vista. Difieren en estilo y en forma de cierre (Escape vs botón). Compartir patrón.
+- `RespuestasTextoView` has a fullscreen overlay for the editor; `CompareView`
+  has another one for the whole view. They differ in style and in how they
+  close (Escape vs button). Share the pattern.
 
 ### Responsive / mobile
-- **Tabla comparativa**: overflow horizontal sin indicación. Agregar gradiente de scroll como pista.
-- **Flechas del carrusel**: los caracteres `‹` `›` son targets de tap muy pequeños en mobile. Agrandar a botones de mínimo 44px.
-- **Teclado móvil + overlay fullscreen**: en `RespuestasTextoView`, el overlay fixed pierde scroll cuando se abre el teclado virtual.
+- **Comparison table**: horizontal overflow with no affordance. Add a scroll
+  gradient as a hint.
+- **Carousel arrows**: the `‹` `›` characters are very small tap targets on
+  mobile. Grow them to at least 44px buttons.
+- **Mobile keyboard + fullscreen overlay**: in `RespuestasTextoView`, the fixed
+  overlay loses scroll when the virtual keyboard opens.
 
-### Accesibilidad
-- **Sin regiones `aria-live`**: las actualizaciones dinámicas (avance de carrusel, refresco de comparación, toasts) no se anuncian a lectores de pantalla.
-- **Indicadores solo-color**: los badges `.ok`/`.over`/`.under` usan solo color de fondo sin icono o texto adicional. OK en el tag de CompareView que sí incluye texto ("Coincide"/"Difiere").
-- **Skip navigation link**: no hay "saltear al contenido principal" para navegación por teclado.
-- **Focus trapping en modales**: `ConfirmActionModal` no trapea foco explícitamente (aunque el Modal del registry podría hacerlo — verificar).
-- **`prefers-reduced-motion`**: `pillAssignPop` y `checkBounce` no tienen el media query guard que sí existe en `UX.md` para otras animaciones.
+### Accessibility
+- **No `aria-live` regions**: dynamic updates (carousel advance, comparison
+  refresh, toasts) are not announced to screen readers.
+- **Colour-only indicators**: the `.ok`/`.over`/`.under` badges use background
+  colour alone, with no icon or extra text. (CompareView's tag is fine — it
+  includes the words "Coincide"/"Difiere".)
+- **Skip navigation link**: there is no "skip to main content" for keyboard
+  navigation.
+- **Focus trapping in modals**: `ConfirmActionModal` does not trap focus
+  explicitly (the registry `Modal` might — worth verifying).
+- **`prefers-reduced-motion`**: `pillAssignPop` and `checkBounce` lack the
+  media-query guard that `UX.md` prescribes for every other animation.
 
-### Consistencia
-- **Landing page estática**: los cards de caso de uso y los pasos son siempre iguales. Podrían reflejar el estado actual ("Tenés 5 opciones sin asignar").
-- **Import por URL oculto**: está dentro de un `<details>` en CompareView — poco descubrible.
-
----
-
-## Nuevos casos de uso
-
-### 1. PWA / offline first (esfuerzo: 1-2 días)
-Todo el estado vive en localStorage, no hay servidor. Solo falta:
-- `service-worker.js` que cachee los assets
-- `manifest.json` con íconos y `display: standalone`
-- Registrar el SW en `AppShell.init()`
-
-### 2. Sesión rápida co-locada via BroadcastChannel (esfuerzo: 1 día)
-Ver explicación detallada más abajo.
-
-### 3. Galería de plantillas en landing (esfuerzo: medio día)
-Hoy los 6 presets están en un `<details>` dentro del builder. Mostrarlos en la landing como jump-start cards, cada una con su descripción. Al clickear, navegar a `/plantilla` con el preset precargado (o mostrar confirmación si hay datos).
-
-### 4. Multi-plantilla (esfuerzo: 2-3 días)
-Hoy solo se puede tener una plantilla a la vez (importar reemplaza). Una vista de dashboard con lista de plantillas guardadas (abrir, duplicar, borrar) habilitaría a organizadores que manejan múltiples sesiones.
-
-### 5. Votación ponderada (esfuerzo: 2-3 días)
-En lugar de un voto por persona por opción, permitir distribuir puntos (ej: 10 puntos a repartir entre opciones). Sería un modo nuevo o una variante de `votacion`.
-
-### 6. Importar opciones desde CSV (esfuerzo: 1 día)
-Para organizadores que gestionan listados en Excel/Sheets. Subir CSV mapea columnas a nombre + atributos, crea las opciones en el pool o en el tema activo.
-
-### 7. Filtro por persona en CompareView (esfuerzo: medio día)
-Los filtros actuales son por opción (query) y por tema (dropdown). No hay forma de ver solo las respuestas de una persona específica.
-
-### 8. Exportar sesión completa en PDF/HTML (esfuerzo: 1-2 días)
-`ResumenFinalView` ya exporta HTML con las decisiones. Un "exportar todo" que combine: descripción de la plantilla + todas las respuestas (por persona) + decisiones finales, en un solo documento.
+### Consistency
+- **Static landing page**: the use-case cards and the steps are always the
+  same. They could reflect the current state ("You have 5 unassigned Opciones").
+- **URL import is hidden**: it lives inside a `<details>` in CompareView —
+  hard to discover.
 
 ---
 
-## BroadcastChannel — explicación
+## New use cases
 
-`BroadcastChannel` es una API del navegador que permite comunicación entre **pestañas/ventanas/iframes del mismo origen** (mismo `https://dominio`). No requiere servidor ni conexión de red.
+### 1. PWA / offline-first (effort: 1–2 days)
+All the state already lives in localStorage and there is no server. What is
+missing:
+- a `service-worker.js` caching the assets
+- a `manifest.json` with icons and `display: standalone`
+- registering the SW in `AppShell.init()`
 
-### Cómo funciona
+### 2. Quick co-located session via BroadcastChannel (effort: 1 day)
+See the detailed explanation below.
+
+### 3. Preset gallery on the landing page (effort: half a day)
+Today the 6 presets live in a `<details>` inside the builder. Showing them on
+the landing as jump-start cards, each with its description, and navigating to
+`/plantilla` with the preset preloaded on click (or a confirmation when data
+exists).
+
+### 4. Multi-Plantilla (effort: 2–3 days)
+Today you can only hold one Plantilla at a time (importing replaces it). A
+dashboard listing saved Plantillas (open, duplicate, delete) would unlock
+organisers running several sessions.
+
+### 5. Weighted voting (effort: 2–3 days)
+Instead of one vote per person per Opción, let people distribute points (e.g.
+10 points to split across Opciones). Either a new modo or a variant of
+`votacion`.
+
+### 6. Import Opciones from CSV (effort: 1 day)
+For organisers who keep lists in Excel/Sheets. Uploading a CSV maps columns to
+nombre + atributos and creates the Opciones in the pool or in the active Tema.
+
+### 7. Filter by person in CompareView (effort: half a day)
+The current filters are by Opción (query) and by Tema (dropdown). There is no
+way to see only one specific person's answers.
+
+### 8. Export the whole session as PDF/HTML (effort: 1–2 days)
+`ResumenFinalView` already exports HTML with the decisions. An "export
+everything" combining the Plantilla's description + every answer (per person) +
+the final decisions, in one document.
+
+---
+
+## BroadcastChannel — explanation
+
+`BroadcastChannel` is a browser API for communication between **tabs, windows
+and iframes of the same origin** (same `https://domain`). It needs no server
+and no network connection.
+
+### How it works
 
 ```js
-// Pestaña A: enviar mensaje
+// Tab A: send a message
 const canal = new BroadcastChannel('conclave-sync');
 canal.postMessage({ type: 'respuestas-update', data: respuestas });
 
-// Pestaña B: recibir mensaje
+// Tab B: receive it
 const canal = new BroadcastChannel('conclave-sync');
 canal.onmessage = (event) => {
   if (event.data.type === 'respuestas-update') {
-    // importar/mergear respuestas
+    // import/merge the respuestas
   }
 };
 ```
 
-### Para qué serviría en Conclave
+### What it would be good for in Conclave
 
-Hoy, dos personas en la misma sala deben: (1) exportar archivo `.respuestas`, (2) compartirlo por mail/USB/mensaje, (3) importarlo. Con BroadcastChannel:
+Today, two people in the same room have to: (1) export a `.respuestas` file,
+(2) share it by mail/USB/message, (3) import it. With BroadcastChannel:
 
-1. **Un organizador abre la plantilla en su máquina.**
-2. **Comparte un enlace** (misma URL) a los demás en la sala.
-3. **Cada persona abre la misma URL en su propia pestaña** (misma máquina o distintas — si están en la misma red local, también se puede con WebRTC, pero BroadcastChannel es solo misma máquina).
-4. **Cuando alguien completa sus respuestas y hace clic en "Compartir"**, la app envía las respuestas por BroadcastChannel.
-5. **Las otras pestañas** reciben el mensaje y las importan automáticamente, sin archivos intermedios.
+1. **An organiser opens the Plantilla on their machine.**
+2. **They share a link** (the same URL) with everyone else in the room.
+3. **Each person opens that same URL in their own tab** (same machine, or a
+   different one — on the same LAN that would need WebRTC; BroadcastChannel is
+   same-machine only).
+4. **When someone finishes their answers and clicks "Compartir"**, the app
+   posts the respuestas over the channel.
+5. **The other tabs** receive the message and import them automatically, with
+   no file in between.
 
-### Limitaciones
-- **Solo funciona entre pestañas del mismo navegador en la misma máquina.** No sirve para personas en distintas computadoras (para eso están los archivos `.respuestas` o un servidor).
-- Si se quiere sincronizar entre dispositivos en la misma red local, se necesitaría WebRTC o un servidor intermediario (ej: WebSocket, peer.js). Eso escapa al espíritu serverless de Conclave.
+### Limitations
+- **It only works between tabs of the same browser on the same machine.** It
+  does nothing for people on different computers (that is what the
+  `.respuestas` files or a server are for).
+- Syncing between devices on the same LAN would need WebRTC or an intermediary
+  server (WebSocket, peer.js). That escapes Conclave's serverless spirit.
 
-### Alternativa complementaria: QR + hash
-La app ya tiene QR en los modales de compartir. Si en lugar de (o además de) exportar un archivo, el QR codificara la plantilla + respuestas en un hash de la URL (como ya se hace con `#plantilla=` y `#consenso=`), escanear el QR abriría la app con los datos precargados en otra pestaña — combinado con BroadcastChannel para sincronizar cambios posteriores.
+### Complementary alternative: QR + hash
+The app already shows a QR in the sharing modals. If the QR encoded the
+Plantilla + respuestas in a URL hash (as `#plantilla=` and `#consenso=` already
+do) instead of — or as well as — exporting a file, scanning it would open the
+app with the data preloaded in another tab, and BroadcastChannel could keep
+later changes in sync.
 
 ---
 
-## Prioridad sugerida
+## Suggested priority
 
-1. **Alta/bajo esfuerzo**: animaciones votación + ranking, unificar toasts, manejo de foco carrusel, overflow tabla mobile, cleanup tokens muertos.
-2. **Alto impacto**: extraer `ComparativaService`, deduplicar notas → reduce deuda y destraba mejoras en CompareView.
-3. **Nuevo feature (sesión rápida)**: BroadcastChannel + QR hash existente → killer feature para uso en sala.
-4. **Futuro**: PWA, multi-plantilla, galería en landing, CSV import.
+1. **High value / low effort**: votación + ranking animations, carousel focus
+   handling, mobile table overflow.
+2. **High impact**: extract `ComparativaService`, deduplicate the notes logic —
+   both reduce debt and unblock further CompareView work.
+3. **New feature (quick session)**: BroadcastChannel + the existing QR hash →
+   the killer feature for in-room use.
+4. **Later**: PWA, multi-Plantilla, landing gallery, CSV import.
+
+---
+
+## Shipped since this list was written
+
+Deleted from the backlog because they are done — kept here only so a reader
+does not re-file them:
+
+- Unified toast API (`CompareView` now emits `toast:show` everywhere; no direct
+  `ToastProvider.show()` calls remain).
+- Dead `--male-color` / `--female-color` tokens removed from the themes.
+- Touch drag-and-drop: the board and the builder's sortable work on a phone
+  (GOTCHAS §42), so "Por tema" is no longer hidden on coarse pointers.

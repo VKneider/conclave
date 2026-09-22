@@ -1,7 +1,10 @@
 // Drag-and-drop board. Chips and dropzones are built ONCE in _buildShell();
 // every subsequent refresh only re-parents existing chip nodes into the
 // right container (cheap, no rebuild) and updates counts/badges via cached
-// refs / setComponentProps — never destroys and recreates them.
+// refs / setComponentProps — never destroys and recreates them. The shell is
+// only rebuilt when the SET of reparto temas changes; a reorder or a rename/
+// mín/máx edit in the builder (same ids) is applied in place by _render(),
+// which moves the squares to the Plantilla's order and refreshes the labels.
 export default class PorTemaView extends HTMLElement {
   constructor(props) {
     super();
@@ -83,12 +86,12 @@ export default class PorTemaView extends HTMLElement {
             <span class="lider-drop__name" data-lider-name="${t.id}"></span>
           </div>
           <div class="ps-sq-head">
-            <h3><span class="color-dot" style="background:${col}"></span>${this._html.esc(t.nombre)}</h3>
-            <span class="ps-count"><span data-el="n-${t.id}"></span><small>/${t.max != null ? t.max : '–'}</small></span>
+            <h3><span class="color-dot" style="background:${col}"></span><span data-el="name-${t.id}">${this._html.esc(t.nombre)}</span></h3>
+            <span class="ps-count"><span data-el="n-${t.id}"></span><small data-el="max-${t.id}">/${t.max != null ? t.max : '–'}</small></span>
           </div>
           <div class="ps-sq-meta">
             <span class="badge-slot" data-badge="${t.id}"></span>
-            Mín ${t.min ?? '–'}
+            <span data-el="min-${t.id}">Mín ${t.min ?? '–'}</span>
             <span class="full-tag" data-fulltag="${t.id}" hidden>LLENO</span>
           </div>
           <div class="bar"><span data-el="bar-${t.id}" style="background:${col}"></span></div>
@@ -100,12 +103,16 @@ export default class PorTemaView extends HTMLElement {
     html += `</div></div></div>`;
     this.$root.innerHTML = this._html.sanitize(html);
 
+    this._grid = this.$root.querySelector('.ps-grid');
     this._teamEls = {};
     temas.forEach((t) => {
       this._teamEls[t.id] = {
         chips: this.$root.querySelector(`[data-chips="${t.id}"]`),
         empty: this.$root.querySelector(`[data-empty="${t.id}"]`),
         n: this.$root.querySelector(`[data-el="n-${t.id}"]`),
+        name: this.$root.querySelector(`[data-el="name-${t.id}"]`),
+        max: this.$root.querySelector(`[data-el="max-${t.id}"]`),
+        min: this.$root.querySelector(`[data-el="min-${t.id}"]`),
         bar: this.$root.querySelector(`[data-el="bar-${t.id}"]`),
         fullTag: this.$root.querySelector(`[data-fulltag="${t.id}"]`),
         square: this.$root.querySelector(`.ps-square[data-drop="${t.id}"]`),
@@ -228,6 +235,15 @@ export default class PorTemaView extends HTMLElement {
     this._unassignedEls.empty.innerHTML = unassigned.length === 0 ? `¡Todos asignados! ${this._icons.svg('party-popper', 16, 'var(--secondary-color)')}` : 'No hay coincidencias.';
     slice.setComponentProps(this._unassignedBadge, { status: 'empty', label: String(unassigned.length) });
 
+    // Squares follow the Plantilla's order (the builder can reorder temas
+    // while this cached view exists). Moving a node keeps its chips and its
+    // dropzone registration, so this is a plain re-parent — only done when
+    // the order actually differs, to spare the grid needless reflows.
+    const squares = temas.map((t) => this._teamEls[t.id]?.square).filter(Boolean);
+    if (this._grid && squares.some((sq, i) => this._grid.children[i] !== sq)) {
+      squares.forEach((sq) => this._grid.appendChild(sq));
+    }
+
     temas.forEach((t) => {
       const people = grouped[t.id];
       const els = this._teamEls[t.id];
@@ -237,6 +253,12 @@ export default class PorTemaView extends HTMLElement {
         if (chip) els.chips.appendChild(chip);
       });
       els.empty.hidden = people.length > 0;
+
+      // Labels baked into the shell — refreshed here so a rename or a
+      // mín/máx edit shows up without waiting for a full rebuild.
+      els.name.textContent = t.nombre;
+      els.max.textContent = `/${t.max != null ? t.max : '–'}`;
+      els.min.textContent = `Mín ${t.min ?? '–'}`;
 
       const n = counts[t.id];
       const st = roster.statusOf(t, n);

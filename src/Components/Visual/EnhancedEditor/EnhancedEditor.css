@@ -34,8 +34,17 @@ slice-enhancededitor .tp-btn {
 }
 slice-enhancededitor .tp-btn:hover { background: var(--secondary-background-color); }
 slice-enhancededitor .tp-btn:active { background: color-mix(in srgb, var(--primary-color) 12%, transparent); }
+/* The toolbar is keyboard-reachable, so the focus ring has to be visible —
+   the default outline disappears against the panel background. */
+slice-enhancededitor .tp-btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 1px;
+  background: var(--secondary-background-color);
+}
+slice-enhancededitor .tp-btn[hidden] { display: none; }
 slice-enhancededitor .tp-btn strong { font-size: 14px; }
 slice-enhancededitor .tp-btn em { font-style: italic; font-size: 14px; }
+slice-enhancededitor .tp-btn u { font-size: 14px; }
 slice-enhancededitor .tp-sep {
   width: 1px; height: 18px;
   background: var(--border-color);
@@ -81,4 +90,12 @@ slice-enhancededitor .tp-content[data-tiptap] li {
 slice-enhancededitor .tp-btn.is-active {
   background: color-mix(in srgb, var(--primary-color) 12%, transparent);
   color: var(--primary-color);
+}
+
+/* Links inside the editor read as links while writing, and match what
+   BienvenidaModal/RespuestasView render after sanitising. */
+slice-enhancededitor .tp-content[data-tiptap] a {
+  color: var(--primary-color);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

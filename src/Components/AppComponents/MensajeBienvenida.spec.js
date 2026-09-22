@@ -210,19 +210,28 @@ test.describe('12. Mensaje de bienvenida', () => {
 
   test.describe('12.4 Saneado del HTML importado', () => {
 
-    test('12.4.1: descarta <img> y <a> de un mensaje ajeno', async ({ app }) => {
+    test('12.4.1: descarta <img> de un mensaje ajeno y endurece sus enlaces', async ({ app }) => {
       await montar(app, '/plantilla', conBienvenida(''));
       await esperarVista(app, 'slice-plantillabuilderview');
 
       const limpio = await app.page.evaluate(() => slice.getComponent('HtmlService')
-        .sanitizeRichText('<p>Hola <strong>equipo</strong></p><img src="https://rastreador.example/pixel.gif"><a href="https://malo.example">click</a>'));
+        .sanitizeRichText('<p>Hola <strong>equipo</strong></p><img src="https://rastreador.example/pixel.gif"><a href="https://ajeno.example">click</a><a href="javascript:alert(1)">malo</a>'));
 
       // Sobrevive el formato real del editor...
       expect(limpio).toContain('<strong>equipo</strong>');
-      // ...y se cae todo lo que puede filtrar datos o llevarse a otro sitio.
+      // ...y se cae lo que filtra datos sin que el lector haga nada: una
+      // imagen remota entrega IP y User-Agent con sólo renderizarse.
       expect(limpio).not.toContain('<img');
       expect(limpio).not.toContain('rastreador.example');
-      expect(limpio).not.toContain('href');
+
+      // Un enlace SÍ sobrevive (el editor puede crearlos): sólo llega a destino
+      // si el lector lo pulsa, y va endurecido para que la pestaña destino no
+      // alcance a ésta ni reciba el referrer.
+      expect(limpio).toContain('href="https://ajeno.example"');
+      expect(limpio).toContain('rel="noopener noreferrer nofollow"');
+      expect(limpio).toContain('target="_blank"');
+      // Un esquema ejecutable nunca pasa.
+      expect(limpio).not.toContain('javascript:');
       expect(app.pageErrors).toEqual([]);
     });
 

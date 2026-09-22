@@ -35,21 +35,26 @@
       <span class="gen-badge" id="catCount">0</span>
       <span class="pb-clear-all" id="catClearAllSlot"></span>
     </div>
-    <p class="view-sub">Cada Tema elige su propio modo: <b>Asignación</b> (asigna Opciones acá dentro, con un máximo opcional — equipos, charlas, turnos) o <b>Texto libre</b> (una pregunta abierta que cada persona responde con su propia idea, sin Opciones). Puedes mezclar los dos modos en la misma Plantilla — el filtro de abajo solo ordena la vista, no restringe qué puedes crear.</p>
+    <p class="view-sub">Cada Tema elige su propio modo: <b>Asignación</b> (reparte las Opciones del pool entre Temas, con un máximo opcional — equipos, charlas, turnos), <b>Votación</b> (cada persona elige una de las opciones del Tema), <b>Ranking</b> (cada persona las ordena) o <b>Texto libre</b> (una pregunta abierta que cada persona responde con su propia idea, sin Opciones). Puedes mezclar modos en la misma Plantilla — el filtro de abajo solo ordena la vista, no restringe qué puedes crear.</p>
     <div class="pb-bulk-bar" id="catBulkBar" hidden>
       <span class="pb-bulk-count" id="catBulkCount">0 seleccionados</span>
       <span class="pb-bulk-delete" id="catBulkDeleteSlot"></span>
     </div>
     <div class="pb-cat-filters" id="catFilters"></div>
     <div class="pb-lideres-slot" id="lideresToggleSlot"></div>
-    <p class="pb-modo-hint pb-lideres-hint">Solo aplica a Temas en modo Selección — cada una puede tener un responsable fijo (ver "Detalles" en su fila) o uno elegido desde "Mis respuestas".</p>
-    <div class="pb-add-row">
-      <div class="pb-add-slot" id="addCatSlot"></div>
-      <span class="pb-add-btn" id="addCatBtnSlot"></span>
-    </div>
-    <div class="empty-state" id="catEmpty" hidden>Todavía no hay temas. Escribe un nombre arriba y presiona Enter.</div>
+    <p class="pb-modo-hint pb-lideres-hint">Solo aplica a Temas en modo Asignación — cada uno puede tener un responsable fijo (ver "Detalles" en su fila) o uno elegido desde "Mis respuestas".</p>
+    <div class="empty-state" id="catEmpty" hidden>Todavía no hay temas. Escribe la primera pregunta abajo y presiona Enter.</div>
     <div class="empty-state" id="catFilterEmpty" hidden>No hay temas de este tipo con el filtro actual.</div>
     <div class="pb-list" id="catList"></div>
+    <!-- Below the list, not above: new temas are appended at the END, so the
+         field sits right where the new row shows up (and stays in view while
+         typing several back-to-back). -->
+    <div class="pb-add-row pb-add-row--below pb-add-row--tema">
+      <div class="pb-add-slot" id="addCatSlot"></div>
+      <div class="pb-add-modo" id="addCatModoSlot"></div>
+      <span class="pb-add-btn" id="addCatBtnSlot"></span>
+    </div>
+    <p class="pb-add-error" id="addCatError" role="alert" hidden></p>
   </div>
 
   <div class="section-card" id="opcSection">
@@ -64,19 +69,23 @@
       <span class="pb-bulk-delete" id="opcBulkDeleteSlot"></span>
     </div>
     <div class="pb-atributos">
-      <div class="pb-atributos__head">Atributos de las Opciones <span class="pb-atributos__hint">campos extra por opción (ej. Rol, Antigüedad) — genéricos, los definís vos</span></div>
+      <div class="pb-atributos__head">Atributos de las Opciones <span class="pb-atributos__hint">campos extra por opción (ej. Rol, Antigüedad) — genéricos, los defines tú</span></div>
+      <div class="empty-state pb-atrib__empty" id="atribEmpty" hidden>Sin atributos. Agrega campos extra para tus Opciones (opcional).</div>
       <div class="pb-atributos__list" id="atribList"></div>
       <div class="pb-atributos__add">
-        <input class="pb-atributos__label-in" id="atribAddLabel" type="text" placeholder="Nombre del atributo (ej. Rol)" />
+        <div class="pb-atributos__label-slot" id="atribAddLabelSlot"></div>
         <span id="atribAddTypeSlot"></span>
         <span id="atribAddBtnSlot"></span>
       </div>
+      <p class="pb-add-error" id="atribAddError" role="alert" hidden></p>
     </div>
-    <div class="pb-add-row">
+    <div class="empty-state" id="opcEmpty" hidden>Todavía no hay opciones. Escribe la primera abajo y presiona Enter.</div>
+    <div class="pb-list" id="opcList"></div>
+    <!-- Same convention as the Temas add row: new opciones append at the END. -->
+    <div class="pb-add-row pb-add-row--below">
       <div class="pb-add-slot" id="addOpcSlot"></div>
       <span class="pb-add-btn" id="addOpcBtnSlot"></span>
     </div>
-    <div class="empty-state" id="opcEmpty" hidden>Todavía no hay opciones. Escribe un nombre arriba y presiona Enter.</div>
-    <div class="pb-list" id="opcList"></div>
+    <p class="pb-add-error" id="addOpcError" role="alert" hidden></p>
   </div>
 </div>

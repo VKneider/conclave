@@ -1,0 +1,85 @@
+/* One attribute row inside PlantillaBuilderView's "Atributos de las Opciones"
+   panel. Same dense-row language as TemaRow/OpcionRow, but lighter: these sit
+   INSIDE an already-bordered sub-panel, so no border/shadow of their own. */
+
+slice-atributorow {
+  display: block;
+}
+
+slice-atributorow[hidden] {
+  display: none;
+}
+
+slice-atributorow .atr-row {
+  display: flex;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 14px;   /* room for the floating label when the row wraps */
+  flex-wrap: wrap;
+}
+
+slice-atributorow .atr-row__label-slot {
+  flex: 0 1 190px;
+  min-width: 140px;
+}
+
+slice-atributorow .atr-row__opts-slot {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+
+slice-atributorow .atr-row__opts-slot[hidden] {
+  display: none;
+}
+
+slice-atributorow .atr-row__type {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--font-secondary-color);
+  background: var(--secondary-background-color);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+slice-atributorow .atr-row__remove {
+  flex: none;
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 13px;
+  border-radius: 50%;
+  color: var(--font-secondary-color);
+}
+
+slice-atributorow .atr-row__remove:hover {
+  color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 12%, transparent);
+}
+
+/* Compact the registry Input for this dense context — same local override
+   TemaRow/OpcionRow make (the base Sticker Book skin lives in Input.css,
+   see GOTCHAS §14). */
+slice-atributorow slice-input .slice_input {
+  padding: 6px 10px;
+  border-radius: 7px;
+  border-width: 1.5px;
+}
+
+slice-atributorow slice-input .input_area {
+  font-size: 13px;
+}
+
+/* Narrow: line 1 = nombre · tipo · ✕, line 2 = the lista options. Without the
+   reorder the ✕ (margin-left:auto) wrapped onto a line of its own, detached
+   from the row it belongs to. */
+@media (max-width: 760px) {
+  /* basis 0 so it takes the space LEFT OVER by the badge and the ✕ instead of
+     sizing to its own content and pushing them onto another line. */
+  slice-atributorow .atr-row__label-slot { flex: 1 1 0; min-width: 90px; }
+  slice-atributorow .atr-row__remove { order: 2; }
+  slice-atributorow .atr-row__opts-slot { order: 3; flex: 1 1 100%; }
+}

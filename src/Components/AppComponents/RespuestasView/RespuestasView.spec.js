@@ -352,4 +352,83 @@ test.describe('3. Llenar Respuestas — Asignación (carrusel)', () => {
          expect(app.pageErrors).toEqual([]);
       });
    });
+
+   // The builder can reorder / rename temas while these cached views exist.
+   // Temas and pool must read in the SAME order everywhere, live — no
+   // reload, no tab switch.
+   test.describe('3.3 Orden sincronizado con la Plantilla', () => {
+
+      const participableIds = (plantilla) => plantilla.temas.filter((t) => t.participable && t.modo === 'reparto').map((t) => t.id);
+
+      test('3.3.1: carrusel — las pills siguen el orden de la Plantilla al reordenar', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/mis-respuestas');
+         await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
+
+         const before = participableIds(await app.getContext('plantilla'));
+         const pills = () => app.page.locator('.tema-pills .pill[data-tema]:not(.pill-clear)');
+         expect(await pills().evaluateAll((els) => els.map((e) => e.dataset.tema))).toEqual(before);
+
+         await app.page.evaluate((id) => window.slice.getComponent('PlantillaService').moveTema(id, 1), before[0]);
+         await app.page.waitForTimeout(300);
+
+         const after = participableIds(await app.getContext('plantilla'));
+         expect(after[1]).toBe(before[0]);
+         expect(await pills().evaluateAll((els) => els.map((e) => e.dataset.tema))).toEqual(after);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('3.3.2: tablero Por tema — los cuadros se reordenan y renombran en vivo', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/mis-respuestas');
+         await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
+         // The board is built alongside the carousel (secondary tab), so its
+         // squares exist even while hidden.
+         const squares = () => app.page.locator('slice-portemaview .ps-square[data-drop]');
+         await expect(squares()).not.toHaveCount(0);
+
+         const before = participableIds(await app.getContext('plantilla'));
+         expect(await squares().evaluateAll((els) => els.map((e) => e.dataset.drop))).toEqual(before);
+
+         // Move the last tema to the front and rename another one — same id
+         // set, so the shell must NOT be rebuilt, only patched in place.
+         const last = before[before.length - 1];
+         await app.page.evaluate(([id, steps, renameId]) => {
+            const ps = window.slice.getComponent('PlantillaService');
+            for (let i = 0; i < steps; i++) ps.moveTema(id, -1);
+            ps.updateTema(renameId, { nombre: 'Equipo renombrado', max: 42 });
+         }, [last, before.length - 1, before[0]]);
+         await app.page.waitForTimeout(400);
+
+         const after = participableIds(await app.getContext('plantilla'));
+         expect(after[0]).toBe(last);
+         expect(await squares().evaluateAll((els) => els.map((e) => e.dataset.drop))).toEqual(after);
+         await expect(app.page.locator(`slice-portemaview [data-el="name-${before[0]}"]`)).toHaveText('Equipo renombrado');
+         await expect(app.page.locator(`slice-portemaview [data-el="max-${before[0]}"]`)).toHaveText('/42');
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('3.3.3: texto libre — las tarjetas siguen el orden de la Plantilla al reordenar', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/mis-respuestas');
+         await expect(app.page.locator('[data-slot="carousel"]')).toBeVisible();
+
+         const textoIds = (pl) => pl.temas.filter((t) => t.modo === 'texto_libre').map((t) => t.id);
+         const before = textoIds(await app.getContext('plantilla'));
+         expect(before.length).toBeGreaterThan(1);
+         const titles = () => app.page.locator('slice-respuestastextoview slice-textocard .rt-title');
+         const nameOf = (pl, id) => pl.temas.find((t) => t.id === id).nombre;
+         let pl = await app.getContext('plantilla');
+         expect(await titles().allTextContents()).toEqual(before.map((id) => nameOf(pl, id)));
+
+         await app.page.evaluate((id) => window.slice.getComponent('PlantillaService').moveTema(id, -1), before[before.length - 1]);
+         await app.page.waitForTimeout(400);
+
+         pl = await app.getContext('plantilla');
+         const after = textoIds(pl);
+         expect(after).not.toEqual(before);
+         expect(await titles().allTextContents()).toEqual(after.map((id) => nameOf(pl, id)));
+         expect(app.pageErrors).toEqual([]);
+      });
+   });
 });

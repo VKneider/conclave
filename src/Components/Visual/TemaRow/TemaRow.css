@@ -154,10 +154,20 @@ slice-temarow .cat-row__lider-slot {
    size deltas — same trick as the documented ConfirmActionModal/Modal.css
    patch, just narrower in scope than a full reskin. */
 slice-temarow slice-input .slice_input,
+slice-temarow slice-textarea .slice_textarea,
 slice-temarow slice-select .slice_select_container {
   padding: 7px 10px;
   border-radius: 7px;
   border-width: 1.5px;
+}
+
+/* The name Textarea's padding goes through its custom properties (not a
+   raw padding override) so its floating label keeps lining up with the
+   first line — see Textarea.css. It grows with the question; the row's
+   other controls stay vertically centred on it (.cat-row__main). */
+slice-temarow slice-textarea {
+  --slice-textarea-pad-y: 7px;
+  --slice-textarea-pad-x: 10px;
 }
 
 slice-temarow slice-select .slice_select {
@@ -172,9 +182,34 @@ slice-temarow slice-checkbox .checkbox_label {
   font-size: 12px;
 }
 
+/* The action group is invisible to layout on desktop (its children are
+   flex items of .cat-row__main, exactly as before the wrapper existed). */
+slice-temarow .cat-row__actions {
+  display: contents;
+}
+
 @media (max-width: 760px) {
+  /* Narrow: line 1 = checkbox · icon · nº · name; line 2 = the actions bar,
+     with the modo Select taking the slack and ✕ pinned to the right — instead
+     of the five controls wrapping one at a time (✕ used to land alone). */
+  slice-temarow .cat-row__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1 1 100%;
+    min-width: 0;
+  }
   slice-temarow .cat-row__modo-slot {
-    width: 110px;
+    flex: 0 0 130px;   /* "Asignación" + caret don't fit in less; fixed so ✕ stays inside the row */
+    width: 130px;
+  }
+  /* ~300px of row at 412px: Select 130 + ▲▼ 56 + chevron 34 + ✕ 30 + gaps fits;
+     the word "Detalles" (~70px) doesn't. aria-label keeps the button named. */
+  slice-temarow .cat-row__toggle-label {
+    display: none;
+  }
+  slice-temarow .cat-row__remove {
+    margin-left: auto;
   }
 }
 

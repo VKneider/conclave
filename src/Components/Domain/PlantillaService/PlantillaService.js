@@ -74,6 +74,11 @@ export default class PlantillaService {
     if (Array.isArray(temas)) {
       const mapped = temas.map((t) => (t && t.modo === 'seleccion' ? { ...t, modo: 'reparto' } : t));
       if (mapped.some((t, i) => t !== temas[i])) { temas = mapped; changed = true; }
+      // `orden` used to be a creation counter frozen at addTema time; it's
+      // now the 1-based position (see _renumber), so stored data that predates
+      // that gets its labels settled once here.
+      const renumbered = this._renumber(temas.filter(Boolean));
+      if (renumbered.length !== temas.length || renumbered.some((t, i) => t !== temas[i])) { temas = renumbered; changed = true; }
     }
 
     let opciones = state.opciones;
@@ -487,7 +492,9 @@ export default class PlantillaService {
     slice.context.setState(CONTEXT, (p) => ({
       nombre: nombre !== undefined ? nombre : p.nombre,
       atributos: atributos !== undefined ? atributos : (p.atributos || []),
-      temas,
+      // `orden` = position (see _renumber); an imported file may carry stale
+      // creation counters, so it's settled here rather than trusted.
+      temas: this._renumber(temas),
       opciones,
       // Igual que `nombre`: omitirlo conserva el mensaje actual (una edición
       // masiva del builder), pasarlo lo reemplaza (adoptar otra Plantilla).
@@ -670,10 +677,34 @@ export default class PlantillaService {
     // temaId null = global reparto pool; a non-null temaId means this Opción
     // belongs to that votacion/ranking tema (see getOpcionesDeTema).
     const o = { nombre: '', temaId: null, meta: { sexo: '', edad: null, fijo: false, rolFijo: null }, ...opcion, id };
-    // Prepended, not appended — newest-first, so a just-added row shows up
-    // at the top of PlantillaBuilderView's list without scrolling to find it.
-    slice.context.setState(CONTEXT, (prev) => ({ ...prev, opciones: [o, ...prev.opciones] }));
+    // Appended, same as addTema: the pool's order is the carousel's order in
+    // "Mis respuestas", so a new Opción belongs after the ones already listed
+    // (the builder's add row sits under the list, where it lands).
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, opciones: [...prev.opciones, o] }));
     return o;
+  }
+
+  // Pool reorder (▲/▼ and drag in the builder). The pool is a filtered VIEW
+  // of `opciones` (temaId == null) — votación/ranking temas' owned opciones
+  // share the array — so the indices are POOL positions, and the owned ones
+  // keep the slots they had. The pool's order is what "Mis respuestas"
+  // walks through, which is why it's worth ordering by hand.
+  reorderOpcionesPool(fromIndex, toIndex) {
+    const pool = this.getOpcionesPool();
+    if (fromIndex === toIndex || fromIndex < 0 || fromIndex >= pool.length || toIndex < 0 || toIndex >= pool.length) return;
+    const reordered = [...pool];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    let next = 0;
+    slice.context.setState(CONTEXT, (prev) => ({
+      ...prev,
+      opciones: prev.opciones.map((o) => (o.temaId == null ? reordered[next++] : o)),
+    }));
+  }
+
+  moveOpcion(opcionId, direction) {
+    const idx = this.getOpcionesPool().findIndex((o) => String(o.id) === String(opcionId));
+    if (idx !== -1) this.reorderOpcionesPool(idx, idx + direction);
   }
 
   removeOpcion(opcionId) {
@@ -682,18 +713,33 @@ export default class PlantillaService {
     this._cleanupOrphaned([], [id]);
   }
 
+  // `orden` is the Tema's 1-based POSITION in the list — the number TemaRow
+  // shows next to each row — and the array order is the only source of truth
+  // for that. It used to be a creation counter frozen at addTema time, so
+  // after creating five temas and deleting three the survivors still read
+  // "1" and "5". Every mutation that changes the list goes through here so
+  // the label can never drift from what the user sees. (`meta.numero` is the
+  // legacy creation counter behind nextTemaId(); it's not displayed.)
+  _renumber(temas) {
+    return temas.map((t, i) => (t.orden === i + 1 ? t : { ...t, orden: i + 1 }));
+  }
+
   addTema(tema) {
     const numero = this.nextTemaId();
     // An explicit id (import/preset) is validated, not transformed — preserves
     // the imported Plantilla's ids. Manual creation gets a fresh opaque id.
     const id = tema?.id && this.isSafeId(tema.id) ? String(tema.id) : this._genId('t');
     const c = {
-      id, nombre: '', modo: DEFAULT_TEMA_MODO, orden: numero, min: null, max: null,
+      id, nombre: '', modo: DEFAULT_TEMA_MODO, min: null, max: null,
       participable: true, meta: { lider: null, numero },
       ...tema,
+      // Last position — a caller's `orden` (presets carry one) is overridden
+      // because position is the only thing it means now.
+      orden: this.getTemas().length + 1,
     };
-    // Prepended, not appended — newest-first, same reasoning as addOpcion.
-    slice.context.setState(CONTEXT, (prev) => ({ ...prev, temas: [c, ...prev.temas] }));
+    // Appended, not prepended: a Plantilla reads top-to-bottom, so a new
+    // pregunta belongs after the ones already written (addOpcion does the same).
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, temas: this._renumber([...prev.temas, c]) }));
     return c;
   }
 
@@ -704,7 +750,18 @@ export default class PlantillaService {
     const target = idx + direction;
     if (target < 0 || target >= temas.length) return;
     [temas[idx], temas[target]] = [temas[target], temas[idx]];
-    slice.context.setState(CONTEXT, (prev) => ({ ...prev, temas }));
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, temas: this._renumber(temas) }));
+  }
+
+  // Drag-and-drop reorder (DragDropService's onReorder in the builder). Lives
+  // here rather than as a raw setState in the view so `orden` is renumbered
+  // on this path too.
+  reorderTemas(fromIndex, toIndex) {
+    const temas = [...this.getTemas()];
+    if (fromIndex === toIndex || fromIndex < 0 || fromIndex >= temas.length || toIndex < 0 || toIndex >= temas.length) return;
+    const [moved] = temas.splice(fromIndex, 1);
+    temas.splice(toIndex, 0, moved);
+    slice.context.setState(CONTEXT, (prev) => ({ ...prev, temas: this._renumber(temas) }));
   }
 
   removeTema(temaId) {
@@ -713,7 +770,7 @@ export default class PlantillaService {
     const ownedOpcionIds = this.getOpciones().filter((o) => String(o.temaId) === String(temaId)).map((o) => String(o.id));
     slice.context.setState(CONTEXT, (prev) => ({
       ...prev,
-      temas: prev.temas.filter((c) => c.id !== temaId),
+      temas: this._renumber(prev.temas.filter((c) => c.id !== temaId)),
       opciones: prev.opciones.filter((o) => String(o.temaId) !== String(temaId)),
     }));
     this._cleanupOrphaned([temaId], ownedOpcionIds);
@@ -725,7 +782,7 @@ export default class PlantillaService {
     const ownedOpcionIds = this.getOpciones().filter((o) => idSet.has(o.temaId)).map((o) => String(o.id));
     slice.context.setState(CONTEXT, (prev) => ({
       ...prev,
-      temas: prev.temas.filter((c) => !idSet.has(c.id)),
+      temas: this._renumber(prev.temas.filter((c) => !idSet.has(c.id))),
       opciones: prev.opciones.filter((o) => !idSet.has(o.temaId)),
     }));
     this._cleanupOrphaned([...idSet], ownedOpcionIds);
