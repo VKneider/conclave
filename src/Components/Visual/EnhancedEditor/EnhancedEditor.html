@@ -1,10 +1,14 @@
 <div class="tp-editor">
-  <div class="tp-toolbar" data-md-toolbar>
-    <button class="tp-btn" data-md-cmd="bold" title="Negrita"><strong>B</strong></button>
-    <button class="tp-btn" data-md-cmd="italic" title="Cursiva"><em>I</em></button>
+  <div class="tp-toolbar" data-md-toolbar role="toolbar" aria-label="Formato de texto">
+    <button class="tp-btn" type="button" data-md-cmd="bold" title="Negrita (Ctrl+B)" aria-label="Negrita"><strong>B</strong></button>
+    <button class="tp-btn" type="button" data-md-cmd="italic" title="Cursiva (Ctrl+I)" aria-label="Cursiva"><em>I</em></button>
+    <button class="tp-btn" type="button" data-md-cmd="underline" title="Subrayado (Ctrl+U)" aria-label="Subrayado"><u>U</u></button>
     <span class="tp-sep"></span>
-    <button class="tp-btn" data-md-cmd="list" title="Lista con viñetas">•</button>
-    <button class="tp-btn" data-md-cmd="olist" title="Lista numerada">1.</button>
+    <button class="tp-btn" type="button" data-md-cmd="list" title="Lista con viñetas" aria-label="Lista con viñetas">•</button>
+    <button class="tp-btn" type="button" data-md-cmd="olist" title="Lista numerada" aria-label="Lista numerada">1.</button>
+    <span class="tp-sep"></span>
+    <button class="tp-btn" type="button" data-md-cmd="link" title="Insertar enlace (Ctrl+K)" aria-label="Insertar enlace">🔗</button>
+    <button class="tp-btn" type="button" data-md-cmd="unlink" title="Quitar enlace" aria-label="Quitar enlace" hidden>⛓️‍💥</button>
   </div>
   <div class="tp-content" data-tiptap></div>
 </div>

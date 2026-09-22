@@ -20,6 +20,17 @@ export const BIENVENIDA_HTML_MAX_LENGTH = BIENVENIDA_MAX_LENGTH * 4;
 export const SHARE_URL_MAX_LENGTH = 3800;
 export const ACCEPT_ALL = `application/json,.json,${EXT_PLANTILLA},${EXT_RESPUESTAS},${EXT_CONSENSO}`;
 export const DEFAULT_TEMA_MODO = 'texto_libre';
+// The four Tema modos, in the order the UI lists them — ONE definition of
+// label / icon / color / hint. The builder's modo Selects and filter pills
+// and TemaRow's icon + hint all read from here; they used to carry their own
+// copies and drifted (TemaRow showed 'file-text' where every other view shows
+// 'pen' for texto libre). `text`/`value` are what the registry Select expects.
+export const TEMA_MODOS = [
+  { value: 'reparto', text: 'Asignación', icon: 'target', color: 'var(--primary-color)', hint: 'Ej: un equipo, una charla — las Opciones se ubican acá.' },
+  { value: 'votacion', text: 'Votación', icon: 'vote', color: 'var(--secondary-color)', hint: 'Ej: "¿Qué fecha elegimos?" — carga las opciones acá; cada persona elige una.' },
+  { value: 'ranking', text: 'Ranking', icon: 'trophy', color: 'var(--warning-color)', hint: 'Ej: "Ordena las ideas por prioridad" — carga las opciones acá; cada persona las ordena.' },
+  { value: 'texto_libre', text: 'Texto libre', icon: 'pen', color: 'var(--success-color)', hint: 'Ej: "¿Qué propones para el cierre?" — cada persona escribe su respuesta, sin Opciones.' },
+];
 export const DEFAULT_PLANTILLA_PRESET = 'retro';
 
 // MIME types

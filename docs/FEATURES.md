@@ -1,7 +1,7 @@
 # Feature documentation
 
-> **Post-Fase-3 additions** (the sections further down predate these in some
-> naming; Categoría→Tema, seleccion→reparto throughout):
+> **What the phased redesign added** (the whole document already uses the
+> current vocabulary — Tema, Opción, `reparto`; see AGENTS.md §Vocabulary):
 >
 > - **Four modos per Tema** (`docs/DATA.md`): `reparto` (pool→temas, the old
 >   assignment flow), `votacion` (pick one owned Opción), `ranking` (order owned
@@ -41,65 +41,76 @@
 File: `src/Components/AppComponents/LandingView/LandingView.js`
 
 The landing page shows:
-- **Live stats row**: Opción count, Categoría count, respondidas count (computed from `PlantillaService` + `RespuestasService` on render).
+- **Live stats row**: Opción count, Tema count, respondidas count (computed from `PlantillaService` + `RespuestasService` on render).
 - **Four quick-action cards**: Responder (`/mis-respuestas`), Comparar (`/comparar`), Dashboard (`/dashboard`), Plantilla (`/plantilla`).
 - **"Cómo funciona"**: a static 3-step flow (Plantilla → Respuestas → Comparar) explaining the app's process once, generically.
 - **"Para qué podés usarla"**: three use-case cards (asignación de equipos, ponentes/exposiciones, generación de ideas) — concrete examples of that same process, matching the Sticker Book hero-card treatment (bold outline, accent top-bar).
 
 Watches `respuestas` and `plantilla` contexts directly — no custom event needed, unlike the old `roster:changed` era (see GOTCHAS.md §11).
 
-## PlantillaBuilderView — CRUD for Categorías/Opciones
+## PlantillaBuilderView — CRUD for Temas/Opciones
 
 File: `src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js`
 
-Replaces the old CSV/JSON textarea generator (`HelpView`) entirely — this is the only place Categorías and Opciones are created/edited/deleted. No bulk text parsing exists anymore.
+Replaces the old CSV/JSON textarea generator (`HelpView`) entirely — this is the only place Temas and Opciones are created/edited/deleted. No bulk text parsing exists anymore.
 
 ### Detalles
-Plantilla-level settings that used to live in the retired `SettingsView`. The "responsables" toggle moved into the Categorías section below (it only applies to modo Selección); the sexo/edad toggles live in Opciones. Two fields live here:
+Plantilla-level settings that used to live in the retired `SettingsView`. The "responsables" toggle moved into the Temas section below (it only applies to modo Asignación). Two fields live here:
 
 1. **Nombre de la Plantilla** (`PlantillaService.getNombre()`/`setNombre()`) — shown in `TopBar`'s subtitle and the landing hero.
-2. **Mensaje de bienvenida** (`getBienvenida()`/`setBienvenida()`) — an `EnhancedEditor` (bold/italic/lists), optional. It's what whoever imports the Plantilla sees before answering: `BienvenidaModal` on import, then the collapsible banner in `RespuestasView`. Saved debounced while typing + forced on blur, same contract as `TextoCard`.
+2. **Mensaje de bienvenida** (`getBienvenida()`/`setBienvenida()`) — an `EnhancedEditor` (bold/italic/underline, lists, links), optional. It's what whoever imports the Plantilla sees before answering: `BienvenidaModal` on import, then the collapsible banner in `RespuestasView`. Saved debounced while typing + forced on blur, same contract as `TextoCard`.
 
    - `#bienvenidaCount` counts **plain text** vs `BIENVENIDA_MAX_LENGTH` — that's what the editor enforces. The HTML that actually travels in a share link is bigger; the guard for that is `canShareByLink()`, which warns at share time.
    - **Vista previa** (`#bienvenidaPreviewSlot`) opens the real `BienvenidaModal` with `navigateOnStart: false` and an overridden title. It deliberately reuses that component rather than rendering its own copy: a parallel preview drifts from the real thing and, worse, would lie about sanitising (showing styles or links that get stripped on import). It forces a save first, since saving is debounced.
 
-### Categorías list
-- Rows are `CategoriaRow` — real build-once Visual components, reused by stable `sliceId` (see GOTCHAS.md's list-rendering rules), not re-templated HTML strings. Fields: nombre, `modo` select (`seleccion` / `texto_libre`), and — only when `modo === 'seleccion'` — mín/máx/capacidad fields, an optional "responsable fijo" field, and a "participable" checkbox. Switching `modo` shows/hides those fields without rebuilding the row.
-- A non-restrictive Todas/Selección/Texto libre filter groups the list by `modo` and sets a smart default for newly-added Categorías, without ever hiding what can be created — "Todas" always shows everything.
-- "👑 Habilitar responsables de categoría" toggle (`SettingsService.setLideresEnabled()`) lives here, not in Detalles — it's meaningless for modo Texto libre Categorías.
-- Editing any field calls `PlantillaService.updateCategoria(id, changes)` on `change` (blur/Enter) — never a raw object replace, always a patch.
-- Adding is inline: a registry `Input` above the list (`"Nueva categoría… — escribí y presioná Enter"`) calls `PlantillaService.addCategoria({nombre})` on `Enter`, then clears and refocuses itself — several items can be typed back-to-back without a dialog per item.
-- Deleting still goes through `confirm:request` (destructive, so it stays a dialog) — computes the impact first (`RespuestasService`'s current `seleccion`/`texto` entries pointing at this Categoría) and names the exact count before calling `PlantillaService.removeCategoria()`.
+### Temas list
+- Rows are `TemaRow` — real build-once Visual components, reused by stable `sliceId` (see GOTCHAS.md's list-rendering rules), not re-templated HTML strings. Fields: nombre (a registry `Textarea` with `autoGrow` — one line tall for a short name, wraps a long question so it's readable while editing; Enter commits instead of inserting a newline, and newlines are collapsed to spaces on save since a name is single-line everywhere else), a `modo` select (`reparto` / `votacion` / `ranking` / `texto_libre`, from `TEMA_MODOS` in `AppConfig.js` — one definition of label/icon/colour/hint shared with the filter pills and the row's own icon), and — only for `reparto` — mín/máx fields, an optional "responsable fijo" field and a "participable" checkbox; `votacion`/`ranking` instead reveal the inline editor for the Opciones that Tema owns. Switching `modo` shows/hides those fields without rebuilding the row.
+- A non-restrictive Todas/Asignación/Votación/Ranking/Texto libre filter (built from `TEMA_MODOS`) groups the list by `modo` and sets the default modo for newly-added Temas, without ever hiding what can be created — "Todas" always shows everything. With a filter active, a row's ▲/▼ move it past the hidden rows, relative to its VISIBLE neighbour.
+- "👑 Habilitar responsables de tema" toggle (`SettingsService.setLideresEnabled()`) lives here, not in Detalles — it's meaningless for modo Texto libre Temas.
+- Editing any field calls `PlantillaService.updateTema(id, changes)` on `change` (blur/Enter) — never a raw object replace, always a patch.
+- Adding is inline, in a row **below** the list: a registry `Textarea` (`autoGrow`, one line tall until the question wraps — a Tema is usually a full question, and a single-line `Input` scrolled it out of sight while writing) plus a `modo` `Select` and an "Agregar" button. `Enter` (or the button) calls `PlantillaService.addTema({ nombre, modo })`, then the field clears and refocuses itself — several items can be typed back-to-back without a dialog per item. The `modo` Select defaults to the active filter (or `DEFAULT_TEMA_MODO`) and keeps its value between adds, so a batch of votaciones goes in as votaciones.
+  - **New temas are appended at the end** (a Plantilla reads top-to-bottom), which is why the add row sits under the list: the new row lands right above the cursor and gets a one-shot pulse (`.is-new`). The pool's add row follows the same convention (append + row under the list + pulse) — the pool's order is the carousel's order in "Mis respuestas".
+  - **An empty submit is answered, not ignored**: the field shakes (`triggerError`) and an inline `role="alert"` message (`#addCatError` / `#addOpcError`) names what's missing, auto-hiding after a moment or on the next keystroke.
+  - **`orden` is the 1-based position**, renumbered by `PlantillaService._renumber` on every list mutation (add / remove / move / drag-reorder / import) and once at boot for stored data — the number `TemaRow` shows next to each row can't drift from what the user sees. It used to be a creation counter frozen at add time ("1" and "5" left after deleting three of five).
+- Deleting still goes through `confirm:request` (destructive, so it stays a dialog) — computes the impact first (`RespuestasService`'s current `seleccion`/`texto` entries pointing at this Tema) and names the exact count before calling `PlantillaService.removeTema()`.
 
-### Cuándo mezclar modos (Selección + Texto libre) en una misma Plantilla
-The data model deliberately allows a single Plantilla to have both modo Selección and modo Texto libre Categorías at once — but that's only a good fit when **the same group of respondents answers both parts together, in one sitting** (e.g. "elegí a qué equipo te querés unir" + "¿alguna sugerencia para el cierre?", submitted as one Respuesta and compared together). It's a poor fit when the two parts serve genuinely different audiences or different organizational moments — e.g. assigning a small pool of ponentes to charlas (a scheduling decision made by a few organizers) mixed with collecting open feedback from the whole group (a broad survey) don't belong in the same Plantilla even though the data model permits it; use two separate Plantillas instead. The UI never enforces this — it's a judgment call for whoever designs the Plantilla, same as choosing good Categoría names.
+### When to mix modos (Asignación + Texto libre) in a single Plantilla
+The data model deliberately allows a single Plantilla to have both modo Asignación and modo Texto libre Temas at once — but that's only a good fit when **the same group of respondents answers both parts together, in one sitting** (e.g. "elegí a qué equipo te querés unir" + "¿alguna sugerencia para el cierre?", submitted as one Respuesta and compared together). It's a poor fit when the two parts serve genuinely different audiences or different organizational moments — e.g. assigning a small pool of ponentes to charlas (a scheduling decision made by a few organizers) mixed with collecting open feedback from the whole group (a broad survey) don't belong in the same Plantilla even though the data model permits it; use two separate Plantillas instead. The UI never enforces this — it's a judgment call for whoever designs the Plantilla, same as choosing good Tema names.
 
 ### Opciones list
-- Rows are `OpcionRow` — same real-component pattern as `CategoriaRow`. Fields: nombre, sexo, edad, rol fijo, and a "fijo" checkbox (excludes it from the general assignable pool — mirrors a locked/leader member). The remove button is hidden for `fijo` Opciones, same protection the old inline editor had.
-- "Habilitar sexo" / "Habilitar edad" toggles (`SettingsService.setSexoEnabled()`/`setEdadEnabled()`, both default `true`) hide those two fields from `OpcionRow` — and from every downstream display (`DashboardView`'s Hombres/Mujeres cards and team-member modal, `PorCategoriaView`'s M/F counts and `OpcionChip`'s color dot, `MisRespuestasView`/`CompareCarousel`'s tags, `CompareView`'s comparison CSV export) — when they don't apply to the current Plantilla (e.g. assigning ponentes instead of people to teams). Turning a toggle off never deletes the underlying `meta.sexo`/`meta.edad` data — it reappears if re-enabled.
-- Same inline "escribir + Enter" add row and patch-on-change / confirm-with-impact-count delete pattern as Categorías.
+- Rows are `OpcionRow` — same real-component pattern as `TemaRow`. Fields: nombre, one dynamic field per Plantilla `atributo` (Fase 3 — `sexo`/`edad` are now just the seed's attributes, not hardcoded columns), rol fijo, and a "fijo" checkbox (excludes it from the general assignable pool — mirrors a locked/leader member). The remove button is hidden for `fijo` Opciones, same protection the old inline editor had.
+- The attribute field shell is rebuilt only when the attribute SET changes; values sync in place, skipping the focused field, so typing is never interrupted.
+- Same inline "type + Enter" add row and patch-on-change / confirm-with-impact-count delete pattern as Temas — including the append convention: a new Opción lands at the END of the pool, its add row sits under the list, and the new row gets the same `.is-new` pulse. The pool's order is the order "Mis respuestas" walks through in its carousel, which is why it is worth arranging by hand.
+- **Reordering the pool**: ▲/▼ per row (an `opcion:move` event the view turns into `PlantillaService.moveOpcion`) plus drag-and-drop on the list (`makeSortable` → `reorderOpcionesPool`). The pool is a filtered VIEW of `opciones` (`temaId == null`) — votación/ranking Temas' own Opciones share that array — so both paths work in POOL indices and leave the owned ones in the slots they had.
+- **Escape discards an in-progress name edit** (both here and in `TemaRow`): the field goes back to the stored value, and the `change` that follows the blur finds nothing to write because both rows only patch when the value actually differs.
+
+### Atributos editor (custom per-Opción fields)
+- Rows are `AtributoRow` — build-once components reused by stable `sliceId`, synced through the same `_syncRows` helper as Temas/Opciones (told to read `key` instead of `id`, since an atributo has no `id`). They replaced the last hand-rolled `<input>`s in the view: the list used to be an `innerHTML` region, which cannot host registry components without leaking them on every repaint (GOTCHAS §7).
+- Each row owns its own label `Input`, a type badge, an "opciones" `Input` shown only for type `lista`, and its remove button. `key` is never editable — it is the property name each Opción stores its value under (`opcion.meta[key]`) and it travels in the exported JSON.
+- **Removing an attribute is confirm-gated** and names how many Opciones currently hold a value for it. The raw button it replaced deleted on the first click with no warning.
+- The add row uses the same `_bindAddInput` contract as Temas and Opciones, so an empty submit shakes the field and explains what is missing instead of silently doing nothing.
 
 ### Export / import / reset
 - **"📤 Compartir plantilla"**: opens `SharePlantillaModal` with three options: download `.plantilla` file (via `ExportService.downloadPlantilla()` with `autor` + `email`), copy compressed link (via `PlantillaService.copyShareLink()`), or send email (`mailto:` with the link).
-- **"📂 Importar Plantilla"**: bulk-replaces Categorías/Opciones from a JSON file — same `PlantillaService.prepareImport()` validation (shape + `isSafeId`) and confirm-of-impact dialog as `CompareView`'s Plantilla import (see below), offered here too since starting a new Plantilla from someone else's shared file is a natural thing to do right where you'd otherwise build one from scratch.
-- **"🔄 Restaurar ejemplo"**: resets to seed data (7 Categorías, 15 Opciones) with a confirmation dialog, via `PlantillaService.resetToSeed()`.
+- **"📂 Importar Plantilla"**: bulk-replaces Temas/Opciones from a JSON file — same `PlantillaService.prepareImport()` validation (shape + `isSafeId`) and confirm-of-impact dialog as `CompareView`'s Plantilla import (see below), offered here too since starting a new Plantilla from someone else's shared file is a natural thing to do right where you'd otherwise build one from scratch.
+- **"🔄 Restaurar ejemplo"**: resets to seed data (7 Temas, 15 Opciones) with a confirmation dialog, via `PlantillaService.resetToSeed()`.
 
 ## RespuestasView — tab shell
 
 File: `src/Components/AppComponents/RespuestasView/RespuestasView.js`
 
-Composes five sub-views — `MisRespuestasView` (carousel), `PorTemaView` (drag-and-drop board), `RespuestasVotacionView` (votación pick-one), `RespuestasRankingView` (ranking order), `RespuestasTextoView` (free-text answers) — all built unconditionally, behind a **two-level tab hierarchy** (same shape as `CompareView`'s kind/mode tabs, see its own FEATURES.md section). PRIMARY kind tabs "🎯 Asignación" / "🗳️ Votación" / "🏆 Ranking" / "📝 Texto libre" (only shown when the Plantilla has more than one available kind), and SECONDARY mode tabs "Carrusel" / "Por tema" nested inside Asignación (peer alternatives for the same assignment task). A "📤 Compartir respuestas" button (`slice.build('Button', ...)` → `ExportRespuestasModal`) sits in the header alongside the title.
+Composes five sub-views — `MisRespuestasView` (carousel), `PorTemaView` (drag-and-drop board), `RespuestasVotacionView` (votación pick-one), `RespuestasRankingView` (ranking order), `RespuestasTextoView` (free-text answers) — all built unconditionally, behind a **two-level tab hierarchy** (same shape as `CompareView`'s kind/mode tabs, see its own FEATURES.md section). PRIMARY kind tabs "🎯 Asignación" / "🗳️ Votación" / "🏆 Ranking" / "📝 Texto libre" (only shown when the Plantilla has more than one available kind), and SECONDARY mode tabs "Carrusel" / "Por tema" nested inside Asignación (peer alternatives for the same assignment task — both offered on touch devices too: the `(pointer: coarse)` gate that used to hide "Por tema" went away once `DragDropService` handled touch properly, GOTCHAS §42). A "📤 Compartir respuestas" button (`slice.build('Button', ...)` → `ExportRespuestasModal`) sits in the header alongside the title.
 
-**Banner del mensaje de bienvenida** (`.av-bienvenida`, arriba de todo): muestra el `plantilla.bienvenida` de quien compartió la Plantilla, plegado por defecto y desplegable. No es un aviso del sistema sino el mensaje de una persona, de ahí el acento primario y el título "Mensaje de {autor}". Sanea con `HtmlService.sanitizeRichText()` (lista blanca estrecha), nunca con `sanitize()`.
+**Welcome-message banner** (`.av-bienvenida`, at the very top): shows the `plantilla.bienvenida` of whoever shared the Plantilla, collapsed by default and expandable. It is not a system notice but a message from a person, hence the primary accent and the "Mensaje de {autor}" title. Sanitised with `HtmlService.sanitizeRichText()` (narrow allowlist), never with `sanitize()`.
 
-Se esconde en dos casos, y conviene no confundirlos:
+It hides in two cases, which are worth not confusing:
 
-| Condición | Por qué |
+| Condition | Why |
 |---|---|
-| `plantilla.importada === false` | Es tu propio mensaje, escrito para otros. Se edita en el builder, no se relee acá. |
-| `settings.bienvenidaOculta` coincide con la huella del mensaje | Lo ocultaste con el ✕. Es preferencia de ESE dispositivo, y va por huella del mensaje: otra Plantilla con otro mensaje vuelve a mostrarse. |
+| `plantilla.importada === false` | It is your own message, written for other people. You edit it in the builder; it is not re-read here. |
+| `settings.bienvenidaOculta` matches the message fingerprint | You dismissed it with the ✕. That is a preference of THAT device, and it keys on the message fingerprint: another Plantilla with another message shows up again. |
 
-Detalle de marcado: la cabecera lleva **dos botones hermanos** (desplegar / ocultar), no anidados — un `<button>` dentro de otro es HTML inválido y deja el ✕ sin poder recibir el clic.
+Markup detail: the header carries **two sibling buttons** (expand / dismiss), not nested ones — a `<button>` inside another is invalid HTML and leaves the ✕ unable to receive the click.
 
 Next-section indicator: when the current kind tab is fully answered, a success-bordered banner appears with a button to jump to the next unfinished kind tab. When all sections are complete, shows "¡Todas las secciones están completas! 🎉" with a disabled button. Uses the `Button` component (with `onClick` set dynamically and `.disabled` toggled via `$button.disabled` — see GOTCHAS §30 about clearing `onClick`).
 
@@ -107,31 +118,76 @@ File: `src/Components/AppComponents/MisRespuestasView/MisRespuestasView.js`
 CSS: `src/Components/AppComponents/MisRespuestasView/MisRespuestasView.css`
 
 ### Interaction flow
-1. User clicks a Categoría pill.
+1. User clicks a Tema pill.
 2. `RespuestasService.assignOpcion(opcionId, categoriaId)` is called (always succeeds).
 3. `_pendingAdvance` is set to the selected categoriaId, `update()` called.
 4. `_paint()` renders the carousel with the current Opción (not yet advanced).
 5. `_showAdvanceFeedback()` runs after binding:
    - The clicked pill gets `.pill-just-assigned`: green background, `pillAssignPop` bounce animation, `::after` checkmark appears with `checkBounce`.
-   - `.assign-summary` text shows `"OpciónName → CategoríaName"` with `summarySlideIn` animation.
+   - `.assign-summary` text shows `"OpciónName → TemaName"` with `summarySlideIn` animation.
    - All pills are effectively blocked during the 500ms window (`_advancePending` check).
 6. After 500ms: advance `carouselIndex++`, repaint the next Opción.
 
 ### Behavior notes
-- **Over-capacity**: If the assignment pushes a Categoría over max, `RespuestasService.assignOpcion()` shows a warning toast ("«Categoría» quedó con exceso de personas") — but the feedback still shows as a green badge. The over-capacity warning is separate from the assignment confirmation.
+- **Over-capacity**: If the assignment pushes a Tema over max, `RespuestasService.assignOpcion()` shows a warning toast ("«Tema» quedó con exceso de personas") — but the feedback still shows as a green badge. The over-capacity warning is separate from the assignment confirmation.
 - **Keyboard arrows**: Not blocked during the 500ms delay. If user presses → during feedback, the pending advance still fires but paint reflects the new index.
 - **Unassign (✕ Sin asignar)**: No feedback badge, no delay, immediate repaint.
 
-## PorCategoriaView drag-and-drop
+## PorTemaView drag-and-drop
 
-File: `src/Components/AppComponents/PorCategoriaView/PorCategoriaView.js`
+File: `src/Components/AppComponents/PorTemaView/PorTemaView.js`
 
 Uses official `DragDropService` for pointer-based drag-and-drop. Key design decisions:
-- Dropzones (sidebar + Categoría squares) are built once in `_buildShell()` and never rebuilt — `makeDroppable()` called once per zone.
+- Dropzones (sidebar + Tema squares) are built once in `_buildShell()` and never rebuilt — `makeDroppable()` called once per zone.
 - Each `OpcionChip` registers itself as draggable inside its own `_registerDraggable()`.
 - Repositioning an Opción on drop is `container.appendChild(existingChipNode)` (no destroy/rebuild).
+- The shell is rebuilt only when the SET of reparto Temas changes (`update()` compares ids). A **reorder** or a **rename / mín / máx edit** in the builder keeps the same ids, so `_render()` applies it in place: squares are re-parented into the grid in the Plantilla's order (only when the order actually differs) and the `name-`/`max-`/`min-` labels (`data-el`) are refreshed. Same for `RespuestasTextoView`: its carousel `items` are rebuilt from the Plantilla's order, not from the cards `Map`'s insertion order. Temas and pool read in the same order everywhere — see CASOS-DE-USO §3.3.
 - `getEffectiveLider()` can return `{ member: null }` when the UI-set leader points to a deleted Opción; `_layout()` guards against this with `lider && lider.member`.
-- Over-capacity Categoría squares get a pulsing outline (2.4s, disabled under `prefers-reduced-motion`).
+- Over-capacity Tema squares get a pulsing outline (2.4s, disabled under `prefers-reduced-motion`).
+
+## EnhancedEditor — the app's rich-text editor
+
+File: `src/Components/Visual/EnhancedEditor/EnhancedEditor.js`
+
+A `contenteditable` + `document.execCommand` editor — deliberately not TipTap or
+Quill, for six commands. Used by the Plantilla's welcome message, by every
+`TextoCard` and by the `texto_libre` fullscreen overlay.
+
+Toolbar: **bold, italic, underline, bullet list, ordered list, link** (plus
+"unlink", which only appears while the caret is inside a link). Shortcuts:
+`Ctrl+B` / `Ctrl+I` / `Ctrl+U` / `Ctrl+K` / `Ctrl+Shift+7` / `Ctrl+Shift+8`.
+
+Four contracts that are easy to break — each one was a real bug:
+
+- **`maxLength` truncation preserves formatting.** It counts plain text, then
+  trims the text node that crosses the limit and deletes what follows with a
+  `Range`. It must never assign `textContent`, which flattens the whole
+  document — pasting a long formatted block used to silently lose every bold,
+  list and paragraph in it. The caret is only moved when the editor actually
+  holds it.
+- **Every toolbar action is bound to `click`, not only `mousedown`.**
+  `mousedown` + `preventDefault` is what keeps the selection when the button is
+  pressed with a pointer, but Enter/Space on a focused `<button>` fires `click`
+  alone — with only `mousedown` the toolbar was dead for keyboard users. The
+  toolbar carries `role="toolbar"`, every button is `type="button"` with an
+  `aria-label`, and `:focus-visible` is styled.
+- **Paste is sanitised here, with the same `sanitizeRichText()` that runs on
+  save.** Otherwise the editor displays styles, images and links that get
+  stripped when the value is stored — it would be lying about the result, the
+  same failure the welcome-message *preview* is designed to avoid.
+- **`setSelectionRange(start, end)` speaks plain-text offsets** — the unit
+  `textLength` and `maxLength` use. It used to ignore both arguments and merely
+  focus, so "open fullscreen with the caret at the end" put it at the start.
+
+Links: a bare domain becomes `https://`, only `http`/`https`/`mailto` are
+accepted (anything else is refused with a toast, so `javascript:` never even
+reaches the document), and the URL is asked for through `confirm:request` —
+never a native `prompt()`. The selection is captured before the modal opens and
+restored in the callback. `sanitizeRichText()` then hardens every surviving
+anchor with `target="_blank" rel="noopener noreferrer nofollow"`; see
+`docs/DATA.md` §bienvenida for why a link is allowed where an image is not.
+
+Spec: `EnhancedEditor.spec.js`.
 
 ## RespuestasTextoView
 
@@ -140,11 +196,11 @@ File: `src/Components/AppComponents/RespuestasTextoView/RespuestasTextoView.js`
 The modo `texto_libre` counterpart to the carousel/board. Uses `CarouselView`
 (see below) to display one `TextoCard` per Tema with three view modes:
 
-- **Una por una** (`'single'` — default): one editor at a time with ‹ › arrows.
+- **One at a time** (`'single'` — default, labelled "Una por una"): one editor at a time with ‹ › arrows.
 - **Dos columnas** (`'columns'`): two editors side by side with arrows.
 - **Ver todas** (`'grid'`): all editors in a responsive grid (the old behavior).
 
-Each `TextoCard` has an `EnhancedEditor` (Quill) and saves on blur via
+Each `TextoCard` has an `EnhancedEditor` and saves on blur via
 `RespuestasService.setTexto(temaId, texto)`. A mode toggle (▦ ▬ ▬▬) sits in the
 header, hidden when there's only one Tema. `_syncValues()` reflects external
 changes (e.g. a session import) without stealing focus from the active editor.
@@ -169,7 +225,7 @@ Imported comparison sources live in the `respuestasImportadas` context (`Respues
 
 ### Two import controls
 - **Respuestas** (main `ImportDrop`, always visible): adds one or more people's exported Respuestas as comparison sources.
-- **Plantilla** (collapsible `<details>` "Importar una Plantilla compartida"): a single-file bulk replace of Categorías/Opciones via `PlantillaService.prepareImport()` (shape + `isSafeId` validation, shared with `PlantillaBuilderView`'s own Plantilla import), gated behind a confirm dialog that names how many current Respuestas would be orphaned by the swap.
+- **Plantilla** (collapsible `<details>` "Importar una Plantilla compartida"): a single-file bulk replace of Temas/Opciones via `PlantillaService.prepareImport()` (shape + `isSafeId` validation, shared with `PlantillaBuilderView`'s own Plantilla import), gated behind a confirm dialog that names how many current Respuestas would be orphaned by the swap.
 
 ### Selección vs. Texto libre
 When the active Plantilla mixes both modos, a "Selección"/"Texto libre" kind-tab pair appears above the existing table/carousel/team-view mode tabs. Selección keeps every pre-existing behavior (table/carousel/team views, per-Opción "Final" decision column, CSV export of the comparison, `FinalTally`). Texto libre delegates entirely to `TextCompareCards` — see its own section below. If the Plantilla only has one modo, the kind-tabs stay hidden and the view behaves as if the other modo doesn't exist.
@@ -180,7 +236,7 @@ Uses `roster.statusLabel(t, n)` for the final tally badge text in `_renderMember
 
 File: `src/Components/DataDisplay/TextCompareCards/TextCompareCards.js`
 
-The spec's "tercera vista": for a comparison to be useful for open-ended proposals (not just team assignment), everyone's free-text answer for one Categoría at a time is shown as a large, readable card — not a table cell. Navigation is by **Categoría** (prev/next, or none if there's only one), and within a Categoría every source's proposal renders as its own big card side by side, so "ver todas las ideas de los demás" (see everyone's ideas at once) actually holds. Each card has a "Marcar como elegida" button; the chosen one gets a visible "Elegida" tag and a success-colored border, driven by `ConsensoService.setResolutionTexto()`/`finalTextoFor()`.
+The spec's "tercera vista": for a comparison to be useful for open-ended proposals (not just team assignment), everyone's free-text answer for one Tema at a time is shown as a large, readable card — not a table cell. Navigation is by **Tema** (prev/next, or none if there's only one), and within a Tema every source's proposal renders as its own big card side by side, so "ver todas las ideas de los demás" (see everyone's ideas at once) actually holds. Each card has a "Marcar como elegida" button; the chosen one gets a visible "Elegida" tag and a success-colored border, driven by `ConsensoService.setResolutionTexto()`/`finalTextoFor()`.
 
 ### Respuesta final: adoptado simple vs. síntesis
 
@@ -203,7 +259,7 @@ The síntesis modal extracted into its own Visual component (pattern `CompareNot
 - **ResumenFinalView** renders the synthesized answer via `descripcionTextoFinal(entry)` — the resumen card, the "Descargar HTML"/"Imprimir" exports (`_buildTexto`), and the "backup" JSON export all carry `esSintesis` + `fuentes` unchanged.
 - **Share link** (`#consenso=`) — `importState` → `_normalizeRespuestas` keeps the entry whole; unknown keys pass through `CompressionService.unpackFromURI`, so a synthesized final survives the short-key hash roundtrip.
 
-E2E coverage lives in `CompareView.spec.js` (13.4.4–13.4.7: crear/exportar/editar/quitar) and `ResumenFinalView.spec.js` (14.1.8–14.1.10, 14.2.2: HTML, backup JSON, resumen render, import por hash).
+E2E coverage lives in `CompareView.spec.js` (13.4.4–13.4.7: create/export/edit/remove) and `ResumenFinalView.spec.js` (14.1.8–14.1.10, 14.2.2: HTML, backup JSON, summary render, hash import).
 
 ## Export/Share Modals
 
@@ -259,7 +315,7 @@ Both Plantilla share links and Plantilla JSON downloads carry the creator's iden
 File: `src/Components/AppComponents/UserMenu/UserMenu.js`
 Service: `src/Components/Service/ConfirmActionModal/ConfirmActionModal.js`
 
-Built once from `TopBar` (always mounted, reachable from any route) — a popover triggered by an avatar button, replacing both the old standalone `SettingsView` route and `AppShell`'s footer. Contents: Tu nombre (autor), tu correo electrónico (`Input type="email"`), tema (`ThemeSwitcher`, `variant: 'menu-item'`), and every "mis Respuestas" action — Compartir (opens `ExportRespuestasModal`), Importar (reemplaza `respuestas` wholesale via `RespuestasService.importMine()`, for picking up where you left off on another device), and Reiniciar. The email field is persisted to `SettingsService.email` and synced via `slice.context.watch('settings')` — doesn't overwrite while the user is actively typing (`document.activeElement` check). Doesn't edit the Plantilla at all (that's `PlantillaBuilderView`'s job) — removing the old inline-edit path in the retired `SettingsView` also removed a pre-existing bug where those edits mutated Categoría objects directly without persisting until something else saved.
+Built once from `TopBar` (always mounted, reachable from any route) — a popover triggered by an avatar button, replacing both the old standalone `SettingsView` route and `AppShell`'s footer. Contents: Tu nombre (autor), tu correo electrónico (`Input type="email"`), tema (`ThemeSwitcher`, `variant: 'menu-item'`), and every "mis Respuestas" action — Compartir (opens `ExportRespuestasModal`), Importar (reemplaza `respuestas` wholesale via `RespuestasService.importMine()`, for picking up where you left off on another device), and Reiniciar. The email field is persisted to `SettingsService.email` and synced via `slice.context.watch('settings')` — doesn't overwrite while the user is actively typing (`document.activeElement` check). Doesn't edit the Plantilla at all (that's `PlantillaBuilderView`'s job) — removing the old inline-edit path in the retired `SettingsView` also removed a pre-existing bug where those edits mutated Tema objects directly without persisting until something else saved.
 
 All confirmation prompts use the custom `confirm:request` event instead of native `confirm()`/`prompt()`. See GOTCHAS.md §12 for the event API.
 
@@ -285,15 +341,15 @@ slice.events.emit('confirm:request', {
 });
 ```
 
-Adding a Categoría/Opción no longer uses this pattern — `PlantillaBuilderView`'s inline "escribir + Enter" row (see its own section above) replaced the one-at-a-time confirm-dialog prompt for that case, since it was slow for bulk entry. `confirm:request` is still used there for destructive actions (deleting a row) and for `PlantillaBuilderView`/`CompareView`'s "replace the whole Plantilla" import confirm.
+Adding a Tema/Opción no longer uses this pattern — `PlantillaBuilderView`'s inline "escribir + Enter" row (see its own section above) replaced the one-at-a-time confirm-dialog prompt for that case, since it was slow for bulk entry. `confirm:request` is still used there for destructive actions (deleting a row) and for `PlantillaBuilderView`/`CompareView`'s "replace the whole Plantilla" import confirm.
 
 ## DashboardView
 
 File: `src/Components/AppComponents/DashboardView/DashboardView.js`
 
-Builds `StatusBadge` components lazily (via `first/rest` pattern, see GOTCHAS.md §5). Reads `respuestas` context on render. Watches `respuestas`, `settings`, and `plantilla` for reactive updates. Categoría cards (modo `seleccion`) show name, count bar, status badge, and leader name — same as before, just Categoría-generic now. A "Texto libre" section (only rendered when the Plantilla has ≥1 modo `texto_libre` Categoría) lists each one with a "Respondida"/"Pendiente" badge reflecting whether the current user has answered it yet.
+Builds `StatusBadge` components lazily (via `first/rest` pattern, see GOTCHAS.md §5). Reads `respuestas` context on render. Watches `respuestas`, `settings`, and `plantilla` for reactive updates. Tema cards (modo `reparto`) show name, count bar, status badge, and leader name. One section per modo that the Plantilla actually uses — Asignación, Votación, Ranking and Texto libre — each listing its Temas with the badge that fits ("Respondida"/"Pendiente" for texto libre). The shell is rebuilt only when `_shapeKey()` (which temas exist, their modo and name, in order) changes; otherwise only the numbers refresh.
 
-A header line shows the Plantilla's actual name (`PlantillaService.getNombre()`) plus a live composition summary ("🎯 N de selección · 📝 M de texto libre") instead of a fixed "tipo" field — there is no single type to show since a Plantilla can freely mix modos (see FEATURES.md's "Cuándo mezclar modos" note above). The stat-grid's first card is a completion doughnut (`ChartService`, built once in `_buildShell()`, updated in place on every `_refresh()` — never rebuilt) showing Asignadas vs. Sin asignar, with the percentage overlaid as plain text since Chart.js has no built-in center-label support. The "Hombres"/"Mujeres" stat cards (and the team-member modal's gender dot) hide via `SettingsService.isSexoEnabled()`.
+A header line shows the Plantilla's actual name (`PlantillaService.getNombre()`) plus a live composition summary ("🎯 N de asignación · 🗳️ N de votación · 🏆 N de ranking · 📝 N de texto libre") instead of a fixed "tipo" field — there is no single type to show since a Plantilla can freely mix modos (see the "When to mix modos" note above). The stat-grid's first card is a completion doughnut (`ChartService`, built once in `_buildShell()`, updated in place on every refresh — never rebuilt) showing answered vs. pending across every modo (`PlantillaService.getAnswerProgress()`), with the percentage overlaid as plain text since Chart.js has no built-in center-label support.
 
 **Guard**: `getEffectiveLider(t.id)` can return `{ member: null }` — the `.lider` textContent uses `lider && lider.member` check to avoid crash.
 

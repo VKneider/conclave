@@ -64,6 +64,12 @@ export default class Providers {
         payload: { temaId: 'string', direction: 'number' },
       },
     });
+    slice.events.register('opcion', {
+      move: {
+        description: 'An OpcionRow requested to move a pool opción up or down in the builder list',
+        payload: { opcionId: 'string', direction: 'number' },
+      },
+    });
     slice.events.register('toast', {
       show: {
         description: 'Show a toast notification',

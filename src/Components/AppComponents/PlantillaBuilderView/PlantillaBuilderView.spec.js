@@ -18,7 +18,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.navigateTo('/plantilla');
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
-         await app.fillInput('#addCatSlot input', 'Logística');
+         await app.fillInput('#addCatSlot textarea', 'Logística');
          await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          const plantilla = await app.getContext('plantilla');
@@ -33,11 +33,11 @@ test.describe('PlantillaBuilderView', () => {
          await app.navigateTo('/plantilla');
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
-         await app.fillInput('#addCatSlot input', 'Elegir fecha');
+         await app.fillInput('#addCatSlot textarea', 'Elegir fecha');
          await app.clickAndWait('#addCatBtnSlot .slice_button');
 
-         // New tema is inserted at the TOP of the list (by orden)
-         const addedRow = app.page.locator('#catList slice-temarow').first();
+         // New tema is appended at the END of the list
+         const addedRow = app.page.locator('#catList slice-temarow').last();
          await addedRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
          await app.page.waitForTimeout(500);
 
@@ -56,10 +56,10 @@ test.describe('PlantillaBuilderView', () => {
          await app.navigateTo('/plantilla');
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
-         await app.fillInput('#addCatSlot input', 'Priorizar ideas');
+         await app.fillInput('#addCatSlot textarea', 'Priorizar ideas');
          await app.clickAndWait('#addCatBtnSlot .slice_button');
 
-         const addedRow = app.page.locator('#catList slice-temarow').first();
+         const addedRow = app.page.locator('#catList slice-temarow').last();
          await addedRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
          await app.page.waitForTimeout(500);
 
@@ -82,7 +82,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.page.locator('.pb-filter-btn[data-filter="texto_libre"]').click();
          await app.page.waitForTimeout(200);
 
-         await app.fillInput('#addCatSlot input', 'Sugerencias libres');
+         await app.fillInput('#addCatSlot textarea', 'Sugerencias libres');
          await app.clickAndWait('#addCatBtnSlot .slice_button');
 
          const plantilla = await app.getContext('plantilla');
@@ -98,7 +98,7 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          const firstRow = app.page.locator('#catList slice-temarow').first();
-         const nameInput = firstRow.locator('.cat-row__name-slot input');
+         const nameInput = firstRow.locator('.cat-row__name-slot textarea');
          await nameInput.click();
          await nameInput.fill('Coordinación Modificada');
          await nameInput.evaluate((el) => el.dispatchEvent(new Event('change', { bubbles: true })));
@@ -107,6 +107,48 @@ test.describe('PlantillaBuilderView', () => {
          const plantilla = await app.getContext('plantilla');
          const edited = plantilla.temas.find((t) => t.id === 'coordinacion-principal');
          expect(edited.nombre).toBe('Coordinación Modificada');
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.1.5c: Escape descarta la edición del nombre', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
+
+         const field = app.page.locator('#catList slice-temarow').first().locator('.cat-row__name-slot textarea');
+         const original = (await app.getContext('plantilla')).temas[0].nombre;
+
+         await field.click();
+         await field.fill('Algo que no quiero guardar');
+         await field.press('Escape');
+         await app.page.waitForTimeout(250);
+
+         expect(await field.inputValue()).toBe(original);
+         expect((await app.getContext('plantilla')).temas[0].nombre).toBe(original);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.1.5b: el nombre es un textarea que envuelve; Enter guarda y no inserta salto', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
+
+         const row = app.page.locator('#catList slice-temarow').first();
+         const field = row.locator('.cat-row__name-slot textarea');
+         const oneLine = (await field.boundingBox()).height;
+
+         const long = '¿Qué propuestas concretas tenemos para mejorar la comunicación entre los equipos durante el próximo trimestre y cómo las medimos?';
+         await field.click();
+         await field.fill(long);
+         await app.page.waitForTimeout(150);
+         // autoGrow: the field is taller now, so the whole question is visible.
+         expect((await field.boundingBox()).height).toBeGreaterThan(oneLine + 10);
+
+         await field.press('Enter');
+         await app.page.waitForTimeout(250);
+         const plantilla = await app.getContext('plantilla');
+         expect(plantilla.temas.find((t) => t.id === 'coordinacion-principal').nombre).toBe(long);
+         expect(await field.inputValue()).not.toContain('\n');
          expect(app.pageErrors).toEqual([]);
       });
 
@@ -157,6 +199,87 @@ test.describe('PlantillaBuilderView', () => {
          await expect(rows).toHaveCount(initialCount);
          expect(app.pageErrors).toEqual([]);
       });
+
+      test('1.1.9: agregar con el campo vacío avisa y no crea nada', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
+         const before = (await app.getContext('plantilla')).temas.length;
+
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
+
+         const error = app.page.locator('#addCatError');
+         await expect(error).toBeVisible();
+         await expect(error).toContainText('Escribe');
+         // The field itself flags it too (registry Textarea's triggerError).
+         await expect(app.page.locator('#addCatSlot .slice_textarea')).toHaveClass(/required/);
+         expect((await app.getContext('plantilla')).temas.length).toBe(before);
+
+         // Typing clears the message.
+         await app.page.locator('#addCatSlot textarea').fill('a');
+         await expect(error).toBeHidden();
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.1.10: el tema nuevo queda al FINAL y numerado como último', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
+         const before = (await app.getContext('plantilla')).temas.length;
+
+         await app.fillInput('#addCatSlot textarea', '¿Qué cerramos hoy?');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
+
+         const temas = (await app.getContext('plantilla')).temas;
+         expect(temas.length).toBe(before + 1);
+         expect(temas[temas.length - 1].nombre).toBe('¿Qué cerramos hoy?');
+         expect(temas[temas.length - 1].orden).toBe(before + 1);
+
+         const lastRow = app.page.locator('#catList slice-temarow').last();
+         await expect(lastRow).toHaveAttribute('data-tema-id', temas[temas.length - 1].id);
+         await expect(lastRow.locator('.cat-row__order')).toHaveText(String(before + 1));
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.1.11: al borrar, la numeración se recompone (1..n sin huecos)', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
+
+         // Remove the 2nd tema — everything after it must shift down by one.
+         await app.page.locator('#catList slice-temarow').nth(1).locator('.cat-row__remove').click();
+         await app.confirmDialog();
+         await app.page.waitForTimeout(300);
+
+         const temas = (await app.getContext('plantilla')).temas;
+         expect(temas.map((t) => t.orden)).toEqual(temas.map((_, i) => i + 1));
+
+         const labels = await app.page.locator('#catList slice-temarow .cat-row__order').allTextContents();
+         expect(labels.map((s) => s.trim())).toEqual(temas.map((_, i) => String(i + 1)));
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.1.12: el modo elegido en la fila de alta se aplica al tema nuevo', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
+
+         await app.selectOption('#addCatModoSlot .slice_select_container', 'Votación');
+         await app.fillInput('#addCatSlot textarea', '¿Qué fecha elegimos?');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
+
+         const plantilla = await app.getContext('plantilla');
+         const added = plantilla.temas.find((t) => t.nombre === '¿Qué fecha elegimos?');
+         expect(added).toBeTruthy();
+         expect(added.modo).toBe('votacion');
+
+         // Adding a second one keeps the chosen modo (batch entry of a kind).
+         await app.fillInput('#addCatSlot textarea', '¿Y el lugar?');
+         await app.clickAndWait('#addCatBtnSlot .slice_button');
+         const again = (await app.getContext('plantilla')).temas.find((t) => t.nombre === '¿Y el lugar?');
+         expect(again.modo).toBe('votacion');
+         expect(app.pageErrors).toEqual([]);
+      });
    });
 
    test.describe('1.2 Opciones por tema (inline)', () => {
@@ -167,10 +290,10 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          // Add a tema then change its modo to votacion
-         await app.fillInput('#addCatSlot input', '¿Dónde cenamos?');
+         await app.fillInput('#addCatSlot textarea', '¿Dónde cenamos?');
          await app.clickAndWait('#addCatBtnSlot .slice_button');
 
-         const temaRow = app.page.locator('#catList slice-temarow').first();
+         const temaRow = app.page.locator('#catList slice-temarow').last();
          await temaRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
          await app.page.waitForTimeout(500);
          await app.selectOption(temaRow.locator('.cat-row__modo-slot .slice_select_container'), 'Votación');
@@ -198,10 +321,10 @@ test.describe('PlantillaBuilderView', () => {
          await app.navigateTo('/plantilla');
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
-         await app.fillInput('#addCatSlot input', '¿Dónde cenamos?');
+         await app.fillInput('#addCatSlot textarea', '¿Dónde cenamos?');
          await app.clickAndWait('#addCatBtnSlot .slice_button');
 
-         const temaRow = app.page.locator('#catList slice-temarow').first();
+         const temaRow = app.page.locator('#catList slice-temarow').last();
          await temaRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
          await app.page.waitForTimeout(500);
          await app.selectOption(temaRow.locator('.cat-row__modo-slot .slice_select_container'), 'Votación');
@@ -234,10 +357,10 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          // Create votacion tema with opcion inline
-         await app.fillInput('#addCatSlot input', '¿Dónde cenamos?');
+         await app.fillInput('#addCatSlot textarea', '¿Dónde cenamos?');
          await app.clickAndWait('#addCatBtnSlot .slice_button');
 
-         const temaRow = app.page.locator('#catList slice-temarow').first();
+         const temaRow = app.page.locator('#catList slice-temarow').last();
          await temaRow.locator('.cat-row__modo-slot slice-select').waitFor({ state: 'attached', timeout: 5000 });
          await app.page.waitForTimeout(500);
          await app.selectOption(temaRow.locator('.cat-row__modo-slot .slice_select_container'), 'Votación');
@@ -276,6 +399,9 @@ test.describe('PlantillaBuilderView', () => {
          const added = plantilla.opciones.find((o) => o.nombre === 'Juan Pérez');
          expect(added).toBeTruthy();
          expect(added.temaId).toBeNull();
+         // Appended (same convention as temas): last in the pool and in the list.
+         expect(plantilla.opciones[plantilla.opciones.length - 1].id).toBe(added.id);
+         await expect(app.page.locator('#opcList slice-opcionrow').last()).toHaveAttribute('data-opc-id', String(added.id));
          expect(app.pageErrors).toEqual([]);
       });
 
@@ -366,6 +492,76 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#opcList > *')).toHaveCount(0);
          expect(app.pageErrors).toEqual([]);
       });
+
+      test('1.3.7: ▲/▼ reordenan el pool (y sólo el pool) — el carrusel sigue ese orden', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#opcList > *')).not.toHaveCount(0);
+         const poolIds = async () => (await app.getContext('plantilla')).opciones.filter((o) => o.temaId == null).map((o) => String(o.id));
+         const before = await poolIds();
+
+         // An owned opción (votación) shares the array: it must keep its slot.
+         await app.page.evaluate(() => {
+            const ps = window.slice.getComponent('PlantillaService');
+            const t = ps.addTema({ nombre: '¿Fecha?', modo: 'votacion' });
+            ps.addOpcion({ nombre: 'Viernes', temaId: t.id });
+         });
+         await app.page.waitForTimeout(300);
+         const ownedBefore = (await app.getContext('plantilla')).opciones.findIndex((o) => o.nombre === 'Viernes');
+
+         const rows = app.page.locator('#opcList slice-opcionrow');
+         await rows.nth(2).locator('.opc-row__move-up').click();
+         await app.page.waitForTimeout(300);
+         let after = await poolIds();
+         expect(after[1]).toBe(before[2]);
+         expect(after[2]).toBe(before[1]);
+         await expect(rows.nth(1)).toHaveAttribute('data-opc-id', before[2]);
+
+         await rows.nth(0).locator('.opc-row__move-up').click();   // boundary: no-op
+         await app.page.waitForTimeout(200);
+         expect(await poolIds()).toEqual(after);
+
+         await rows.nth(1).locator('.opc-row__move-down').click();
+         await app.page.waitForTimeout(300);
+         after = await poolIds();
+         expect(after).toEqual(before);
+         const plantilla = await app.getContext('plantilla');
+         expect(plantilla.opciones.findIndex((o) => o.nombre === 'Viernes')).toBe(ownedBefore);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.3.8: drag and drop reordena el pool', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#opcList > *')).not.toHaveCount(0);
+         await app.page.locator('slice-loading').waitFor({ state: 'detached', timeout: 10000 });
+         const poolIds = async () => (await app.getContext('plantilla')).opciones.filter((o) => o.temaId == null).map((o) => String(o.id));
+         const before = await poolIds();
+
+         const ok = await app.page.evaluate(() => {
+            const rows = document.querySelectorAll('#opcList slice-opcionrow');
+            const fromRow = rows[0], toRow = rows[2];
+            const fromPageY = fromRow.getBoundingClientRect().top + window.scrollY;
+            const toPageY = toRow.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo(0, (fromPageY + toPageY) / 2 - window.innerHeight / 2);
+            const f = fromRow.getBoundingClientRect(), t = toRow.getBoundingClientRect();
+            const sx = f.left + 6, sy = f.top + 6;
+            fromRow.dispatchEvent(new PointerEvent('pointerdown', { clientX: sx, clientY: sy, bubbles: true, cancelable: true }));
+            if (!window.slice.getComponent('DragDropService')._activeSortable) return false;
+            const targetY = t.top + t.height / 2 + 5;
+            for (let i = 1; i <= 8; i++) document.dispatchEvent(new PointerEvent('pointermove', { clientX: sx, clientY: sy + (targetY - sy) * i / 8, bubbles: true, cancelable: true }));
+            document.dispatchEvent(new PointerEvent('pointerup', { clientX: sx, clientY: targetY, bubbles: true, cancelable: true }));
+            return true;
+         });
+         expect(ok).toBe(true);
+         await app.page.waitForTimeout(400);
+
+         const after = await poolIds();
+         expect(after[0]).toBe(before[1]);
+         expect(after[1]).toBe(before[2]);
+         expect(after[2]).toBe(before[0]);
+         expect(app.pageErrors).toEqual([]);
+      });
    });
 
    test.describe('1.4 Atributos personalizados', () => {
@@ -375,7 +571,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.navigateTo('/plantilla');
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
-         await app.fillInput('#atribAddLabel', 'Rol');
+         await app.fillInput('#atribAddLabelSlot input', 'Rol');
          // Type defaults to "texto"
          await app.clickAndWait('#atribAddBtnSlot .slice_button');
 
@@ -391,7 +587,7 @@ test.describe('PlantillaBuilderView', () => {
          await app.navigateTo('/plantilla');
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
-         await app.fillInput('#atribAddLabel', 'Equipo');
+         await app.fillInput('#atribAddLabelSlot input', 'Equipo');
          await app.selectOption('#atribAddTypeSlot .slice_select_container', 'Lista');
          await app.page.waitForTimeout(100);
          await app.clickAndWait('#atribAddBtnSlot .slice_button');
@@ -409,14 +605,58 @@ test.describe('PlantillaBuilderView', () => {
          await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
 
          // Seed has 2 atributos: sexo, edad
+         await expect(app.page.locator('#atribList slice-atributorow')).toHaveCount(2);
 
-         // Remove the first one
-         await app.page.locator('[data-atrib-remove]').first().click();
+         // Remove the first one — confirm-gated now (it drops whatever every
+         // Opción stored under that key).
+         await app.page.locator('#atribList slice-atributorow').first().locator('.atr-row__remove').click();
+         await app.confirmDialog();
          await app.page.waitForTimeout(300);
 
          const plantilla = await app.getContext('plantilla');
          // Should have 1 left — default seed had sexo + edad
          expect(plantilla.atributos.length).toBe(1);
+         await expect(app.page.locator('#atribList slice-atributorow')).toHaveCount(1);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.4.4: edita la etiqueta de un atributo y las opciones de uno tipo lista', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#atribList slice-atributorow')).not.toHaveCount(0);
+
+         // Seed's first atributo is `sexo`, type lista (M/F).
+         const row = app.page.locator('#atribList slice-atributorow').first();
+         const label = row.locator('.atr-row__label-slot input');
+         const opts = row.locator('.atr-row__opts-slot input');
+         await expect(opts).toBeVisible();
+
+         await label.click();
+         await label.fill('Género');
+         await label.evaluate((el) => el.dispatchEvent(new Event('change', { bubbles: true })));
+         await app.page.waitForTimeout(250);
+
+         await opts.click();
+         await opts.fill('M, F, X');
+         await opts.evaluate((el) => el.dispatchEvent(new Event('change', { bubbles: true })));
+         await app.page.waitForTimeout(250);
+
+         const atributo = (await app.getContext('plantilla')).atributos.find((a) => a.key === 'sexo');
+         expect(atributo.label).toBe('Género');
+         expect(atributo.opciones).toEqual(['M', 'F', 'X']);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.4.5: agregar un atributo sin nombre avisa y no crea nada', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#atribList slice-atributorow')).not.toHaveCount(0);
+         const before = (await app.getContext('plantilla')).atributos.length;
+
+         await app.clickAndWait('#atribAddBtnSlot .slice_button');
+
+         await expect(app.page.locator('#atribAddError')).toBeVisible();
+         expect((await app.getContext('plantilla')).atributos.length).toBe(before);
          expect(app.pageErrors).toEqual([]);
       });
    });
@@ -729,6 +969,38 @@ test.describe('PlantillaBuilderView', () => {
          await app.page.waitForTimeout(300);
 
          expect(await getTemaIds(app)).toEqual(idsBefore);
+         expect(app.pageErrors).toEqual([]);
+      });
+
+      test('1.8.4b: con un filtro activo, ▲/▼ mueven respecto al vecino VISIBLE', async ({ app }) => {
+         await seedAsignacion(app);
+         await app.navigateTo('/plantilla');
+         await expect(app.page.locator('#catList > *')).not.toHaveCount(0);
+         const idsBefore = await getTemaIds(app);
+         const rows = app.page.locator('#catList slice-temarow');
+
+         // Seed: 7 reparto temas then 2 texto_libre. Under "Asignación", the last
+         // reparto tema has no visible neighbour below → ▼ is a no-op (it used to
+         // swap with a hidden texto tema and only its number changed).
+         await app.page.locator('.pb-filter-btn[data-filter="reparto"]').click();
+         await app.page.waitForTimeout(200);
+         await rows.nth(6).locator('.cat-row__move-down').click();
+         await app.page.waitForTimeout(300);
+         expect(await getTemaIds(app)).toEqual(idsBefore);
+
+         // Put one texto tema in the middle of the reparto ones, then under
+         // "Texto libre" press ▲ on the other: it must jump over the four hidden
+         // reparto rows and land right above its visible sibling.
+         await app.page.evaluate(() => window.slice.getComponent('PlantillaService').reorderTemas(7, 3));
+         await app.page.waitForTimeout(300);
+         await app.page.locator('.pb-filter-btn[data-filter="texto_libre"]').click();
+         await app.page.waitForTimeout(200);
+         await rows.nth(8).locator('.cat-row__move-up').click();
+         await app.page.waitForTimeout(300);
+         const after = await getTemaIds(app);
+         expect(after[3]).toBe('notas-adicionales');
+         expect(after[4]).toBe('objetivos-generales');
+         expect((await app.getContext('plantilla')).temas.map((t) => t.orden)).toEqual(after.map((_, i) => i + 1));
          expect(app.pageErrors).toEqual([]);
       });
 

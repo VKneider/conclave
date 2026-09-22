@@ -4,11 +4,16 @@
     <span class="cat-row__icon"></span>
     <span class="cat-row__order"></span>
     <div class="cat-row__name-slot"></div>
-    <div class="cat-row__modo-slot"></div>
-    <button class="btn btn-ghost cat-row__move-up" type="button" title="Mover arriba" data-act="moveUp">▲</button>
-    <button class="btn btn-ghost cat-row__move-down" type="button" title="Mover abajo" data-act="moveDown">▼</button>
-    <button class="btn btn-ghost cat-row__toggle" type="button">▸ Detalles</button>
-    <button class="btn btn-ghost cat-row__remove" type="button" title="Eliminar tema">✕</button>
+    <!-- display:contents on desktop (same flex row as before); a bar of its
+         own under the name on narrow screens, instead of the controls
+         wrapping one by one. -->
+    <div class="cat-row__actions">
+      <div class="cat-row__modo-slot"></div>
+      <button class="btn btn-ghost cat-row__move-up" type="button" title="Mover arriba" data-act="moveUp">▲</button>
+      <button class="btn btn-ghost cat-row__move-down" type="button" title="Mover abajo" data-act="moveDown">▼</button>
+      <button class="btn btn-ghost cat-row__toggle" type="button">▸ Detalles</button>
+      <button class="btn btn-ghost cat-row__remove" type="button" title="Eliminar tema">✕</button>
+    </div>
   </div>
   <p class="cat-row__hint"></p>
   <div class="cat-row__extra" hidden>

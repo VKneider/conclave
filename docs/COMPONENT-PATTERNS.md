@@ -126,7 +126,11 @@ rationale in the linked GOTCHAS.
   TemaRow's owned-opciones list all do this). Wire their buttons with **event
   delegation on the container** (the listener survives the innerHTML rebuild).
 - The moment such a region needs a real `<Button>`/`<Input>`/row component,
-  convert it to build-once + reconcile (GOTCHAS §7).
+  convert it to build-once + reconcile (GOTCHAS §7). Worked example: the
+  builder's atributos editor became `AtributoRow` + `PlantillaBuilderView`'s
+  `_syncRows` when its raw `<input>`s were migrated to registry components.
+  `_syncRows` takes an optional id accessor (`idOf`), so a list keyed by
+  something other than `id` — atributos are keyed by `key` — reuses it as is.
 
 ### Fullscreen / modal overlays (GOTCHAS §29)
 The component template = `[ rebuilt region ] + [ sibling overlay ]`. Only the

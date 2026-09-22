@@ -335,6 +335,19 @@ export interface TestHarnessProps {
   [key: string]: unknown;
 }
 
+export interface TextareaProps {
+  [key: string]: unknown;
+  autoGrow?: boolean;
+  conditions?: Record<string, unknown>;
+  disabled?: boolean;
+  maxlength?: number;
+  onChange?: (...args: unknown[]) => unknown;
+  placeholder?: string;
+  required?: boolean;
+  rows?: number;
+  value?: string;
+}
+
 export interface TextCompareCardsProps {
   [key: string]: unknown;
 }
@@ -455,6 +468,7 @@ export interface SliceComponentPropsMap {
   Tabs: TabsProps;
   TemaRow: TemaRowProps;
   TestHarness: TestHarnessProps;
+  Textarea: TextareaProps;
   TextCompareCards: TextCompareCardsProps;
   TextoCard: TextoCardProps;
   ThemeSwitcher: ThemeSwitcherProps;
@@ -471,6 +485,7 @@ export type SliceDynamicElement = HTMLElement & Record<string, any>;
 
 export interface SliceEventRegistry {
   "confirm:request": { title: string; message: string; confirmLabel: string; cancelLabel: string; danger: boolean; inputLabel: string; inputPlaceholder: string; inputValue: string; onConfirm: (...args: unknown[]) => unknown; onCancel: (...args: unknown[]) => unknown };
+  "opcion:move": { opcionId: string; direction: number };
   "tema:move": { temaId: string; direction: number };
   "toast:show": { message: string; type: string };
 }

@@ -155,10 +155,18 @@ sidebar and team squares), and it's built entirely on the official
 
 **Why it was worth pulling in instead of native `draggable="true"` +
 `dragstart`/`dragover`/`drop`:**
-- **Pointer-based, not HTML5 DnD** — works with touch out of the box. Native
-  HTML5 drag-and-drop has famously inconsistent (often absent) mobile/touch
+- **Pointer-based, not HTML5 DnD** — works with touch. Native HTML5
+  drag-and-drop has famously inconsistent (often absent) mobile/touch
   support; `DragDropService` is built on Pointer Events, so the same code
-  drags on a phone or a laptop trackpad.
+  drags on a phone or a laptop trackpad. *Not* quite "out of the box",
+  though: the registry version fought the browser's own scroll gesture and
+  got stuck after it (GOTCHAS §42). The vendored copy arms a touch drag only
+  after the finger has been held still for ~200 ms — a swipe still scrolls,
+  a hold lifts the chip (with a haptic tick where supported) — and its
+  auto-scroll walks every scrollable ancestor up to the page, so on a phone
+  a chip dragged out of the "Sin asignar" list scrolls the page until a
+  square is under the finger. Same interaction for sorting Temas in the
+  builder: hold a row, then drag; ▲/▼ stay as the precise alternative.
 - **Ghost element for free** — `makeDraggable(node, { ghost: true })` clones
   the node and follows the pointer automatically; we didn't write any
   ghost-positioning math ourselves.

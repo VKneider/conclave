@@ -107,16 +107,17 @@ export default class RespuestasTextoView extends HTMLElement {
       }
     }
 
-    this._carousel.items = [...this._cards.values()];
+    // In the Plantilla's order, not the Map's insertion order — a reorder in
+    // the builder keeps the same cards (same ids) but must move them.
+    this._carousel.items = temas.map((t) => this._cards.get(t.id)).filter(Boolean);
     this._carousel.refresh();
     this.$modeToggle.hidden = temas.length < 2;
 
-    if (this._activeId && this._cards.has(this._activeId)) {
-      const card = this._cards.get(this._activeId);
-      card.focusEditor();
-      card.setSelectionRange(this._activeSelStart, this._activeSelEnd);
-    }
-    this._activeId = null;
+    // (There used to be a caret-restore block here, reading `_activeId` /
+    // `_activeSelStart` / `_activeSelEnd` — none of which was ever assigned,
+    // so it could not run. It is not needed either: `_render()` only reacts to
+    // `plantilla` changes, while typing goes through `_syncValues()`, which
+    // skips the card being edited.)
   }
 
   _clearCards() {

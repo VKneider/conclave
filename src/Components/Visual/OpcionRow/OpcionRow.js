@@ -19,6 +19,8 @@ export default class OpcionRow extends HTMLElement {
     this.$fijoTag = this.querySelector('.opc-row__fijo-tag');
     this.$nameSlot = this.querySelector('.opc-row__name-slot');
     this.$toggle = this.querySelector('.opc-row__toggle');
+    this.$moveUp = this.querySelector('.opc-row__move-up');
+    this.$moveDown = this.querySelector('.opc-row__move-down');
     this.$remove = this.querySelector('.opc-row__remove');
     this.$extra = this.querySelector('.opc-row__extra');
     this.$atributos = this.querySelector('.opc-row__atributos');
@@ -31,6 +33,10 @@ export default class OpcionRow extends HTMLElement {
     this._atribEls = {};
 
     this.$toggle.addEventListener('click', () => this._setExpanded(!this._expanded));
+    // Same contract as TemaRow's ▲/▼: the row only asks, the builder moves
+    // (PlantillaService.moveOpcion) — the pool's order is the carousel's order.
+    this.$moveUp.addEventListener('click', () => this._emitMove(-1));
+    this.$moveDown.addEventListener('click', () => this._emitMove(1));
     this.$remove.addEventListener('click', () => this._confirmRemove());
 
     // Delegated: any attribute field's change writes meta[key].
@@ -72,7 +78,19 @@ export default class OpcionRow extends HTMLElement {
     this.$rolfijoSlot.appendChild(rolfijoInput);
     this.$fijoSlot.appendChild(fijoCheckbox);
 
-    nameInput.addEventListener('change', () => this._patch({ nombre: nameInput.value.trim() }));
+    // Same contract as TemaRow's name field: only write when it really
+    // changed, and Escape discards the edit (the change event that follows
+    // the blur then has nothing to patch).
+    nameInput.addEventListener('change', () => {
+      const nombre = nameInput.value.trim();
+      if (this._opcion && nombre !== this._opcion.nombre) this._patch({ nombre });
+    });
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      nameInput.value = this._opcion?.nombre || '';
+      e.target.blur?.();
+    });
     rolfijoInput.addEventListener('change', () => this._patchMeta({ rolFijo: rolfijoInput.value.trim() || null }));
     fijoCheckbox.addEventListener('change', () => this._patchMeta({ fijo: fijoCheckbox.checked }));
 
@@ -167,6 +185,11 @@ export default class OpcionRow extends HTMLElement {
 
   _patchMeta(changes) {
     this._patch({ meta: { ...this._opcion.meta, ...changes } });
+  }
+
+  _emitMove(direction) {
+    if (!this._opcion) return;
+    slice.events.emit('opcion:move', { opcionId: String(this._opcion.id), direction });
   }
 
   _confirmRemove() {

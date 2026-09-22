@@ -26,19 +26,44 @@ export default class HtmlService {
     });
   }
 
-  // Texto enriquecido escrito por OTRA persona (hoy: el mensaje de bienvenida
-  // de una Plantilla importada). sanitize() sirve para HTML que armamos
-  // nosotros y por eso admite el perfil ancho de DOMPurify más SVG — ahí
-  // sobreviven <img>, <a href>, <table>… Para contenido ajeno eso es
-  // demasiado: un <img src="https://tracker/..."> en un mensaje compartido
-  // filtra la IP y el User-Agent de quien lo abre, sin que haya nada que
-  // mostrar. Esta lista es exactamente lo que produce EnhancedEditor
-  // (negrita, cursiva, listas, párrafos) y nada más; sin atributos, así que
-  // tampoco pasan `style` ni `href`.
+  // Rich text written by SOMEBODY ELSE (today: the welcome message of an
+  // imported Plantilla). sanitize() is for HTML we build ourselves and so
+  // takes DOMPurify's wide profile plus SVG — <img>, <table>… survive there.
+  // For foreign content that is too much: an <img src="https://tracker/...">
+  // in a shared message leaks the IP and User-Agent of whoever opens it,
+  // with nothing to show for it.
+  //
+  // This list is exactly what EnhancedEditor can produce (bold, italic,
+  // underline, lists, paragraphs, links) and nothing else. `style` still
+  // never passes.
+  //
+  // LINKS: `<a href>` is allowed, unlike <img>, because it only reaches the
+  // destination when the reader deliberately clicks it, and the destination
+  // is visible in the status bar first. DOMPurify's default URI policy
+  // already rejects `javascript:`/`data:`; on top of that the hook below
+  // forces every link to open in a new tab with `rel="noopener noreferrer
+  // nofollow"`, so a shared Plantilla can never reach back into this tab
+  // through `window.opener` nor pass the referrer along.
   sanitizeRichText(html) {
+    HtmlService._ensureLinkHook();
     return domPurify.sanitize(html == null ? '' : String(html), {
-      ALLOWED_TAGS: ['b', 'strong', 'i', 'em', 'u', 'p', 'br', 'ul', 'ol', 'li', 'div', 'span'],
-      ALLOWED_ATTR: [],
+      ALLOWED_TAGS: ['b', 'strong', 'i', 'em', 'u', 'p', 'br', 'ul', 'ol', 'li', 'div', 'span', 'a'],
+      ALLOWED_ATTR: ['href', 'target', 'rel'],
+    });
+  }
+
+  // Registered once per page on the shared DOMPurify instance. It also covers
+  // sanitize(), which is what we want: any anchor this app renders gets the
+  // same hardening.
+  static _linkHookAdded = false;
+
+  static _ensureLinkHook() {
+    if (HtmlService._linkHookAdded) return;
+    HtmlService._linkHookAdded = true;
+    domPurify.addHook('afterSanitizeAttributes', (node) => {
+      if (node.tagName !== 'A' || !node.hasAttribute('href')) return;
+      node.setAttribute('target', '_blank');
+      node.setAttribute('rel', 'noopener noreferrer nofollow');
     });
   }
 }

@@ -23,7 +23,7 @@ Una misma Plantilla puede **mezclar modos** — por ejemplo una votación de fec
 
 ## Stack
 
-Construido con [Slice.js](https://slicejs.com) (`slicejs-web-framework` 3.5.2). Todo el dato vive en el browser (`localStorage` + datos de ejemplo incluidos): no hay backend de datos ni se planea agregar uno — `api/` es solo un server estático/SPA-fallback para producción (ver `AGENTS.md` §Vercel deployment).
+Construido con [Slice.js](https://slicejs.com) (`slicejs-web-framework` 4.0.2, CLI `slicejs-cli` 4.2.0). Todo el dato vive en el browser (`localStorage` + datos de ejemplo incluidos): no hay backend de datos ni se planea agregar uno — `api/` es solo un server estático/SPA-fallback para producción (ver `AGENTS.md` §Vercel deployment).
 
 Slice.js por [@VKneider](https://github.com/VKneider).
 
@@ -35,14 +35,6 @@ Requiere Node ≥ 20 y [pnpm](https://pnpm.io/) (versión pineada en `package.js
 pnpm install
 pnpm run dev              # servidor de desarrollo (puerto 3001 por defecto)
 ```
-
-> **Importante:** Este branch requiere el CLI en la rama [`fix/vendor-shared-module-imports`](https://github.com/VKneider/slicejs-cli/tree/fix/vendor-shared-module-imports) de `slicejs-cli`. El `icons.js` usa imports individuales de `lucide`, y el CLI necesita el fix de propagación de `moduleImports` en el pipeline vendor-shared para no producir `ReferenceError: lucide is not defined`. Antes de hacer `pnpm run dev` o `pnpm run build`, asegurate de que el CLI instalado tenga ese fix:
->
-> ```bash
-> cd node_modules/slicejs-cli
-> git fetch origin fix/vendor-shared-module-imports
-> git checkout fix/vendor-shared-module-imports
-> ```
 
 Otros comandos útiles:
 
@@ -64,4 +56,5 @@ Este README es la puerta de entrada; la documentación real vive en:
 | [`docs/UX.md`](docs/UX.md) | Estándares de interacción y animación |
 | [`docs/GOTCHAS.md`](docs/GOTCHAS.md) | Trampas del framework y bugs no obvios — leer antes de cualquier cambio estructural |
 | [`DESIGN.md`](DESIGN.md) | Lenguaje visual "Sticker Book" — leer antes de cualquier cambio de CSS |
+| [`docs/legacy/`](docs/legacy/README.md) | Registro histórico: planes ya completados y bugs ya corregidos. Explican por qué el código es como es — no cómo funciona hoy. |
 | [`AGENTS.md`](AGENTS.md) | Notas operativas para quien (humano o agente) retome el código: qué leer para cada tarea, decisiones de producto no obvias, deployment |

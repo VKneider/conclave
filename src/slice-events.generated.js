@@ -42,22 +42,22 @@ export default {
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 424,
+          "line": 537,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 490,
+          "line": 603,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 506,
+          "line": 619,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 654,
+          "line": 767,
           "component": "PlantillaBuilderView"
         },
         {
@@ -97,12 +97,12 @@ export default {
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 233,
+          "line": 238,
           "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 251,
+          "line": 256,
           "component": "PlantillaService"
         },
         {
@@ -127,7 +127,7 @@ export default {
         },
         {
           "file": "src/Components/Visual/OpcionRow/OpcionRow.js",
-          "line": 178,
+          "line": 189,
           "component": "OpcionRow"
         },
         {
@@ -137,7 +137,7 @@ export default {
         },
         {
           "file": "src/Components/Visual/TemaRow/TemaRow.js",
-          "line": 228,
+          "line": 242,
           "component": "TemaRow"
         }
       ],
@@ -146,6 +146,26 @@ export default {
           "file": "src/Components/Visual/ConfirmActionModal/ConfirmActionModal.js",
           "line": 11,
           "component": "ConfirmActionModal"
+        }
+      ]
+    },
+    "opcion:move": {
+      "payload": {
+        "opcionId": "string",
+        "direction": "number"
+      },
+      "emitters": [
+        {
+          "file": "src/Components/Visual/OpcionRow/OpcionRow.js",
+          "line": 180,
+          "component": "OpcionRow"
+        }
+      ],
+      "listeners": [
+        {
+          "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
+          "line": 137,
+          "component": "PlantillaBuilderView"
         }
       ]
     },
@@ -173,14 +193,14 @@ export default {
       "emitters": [
         {
           "file": "src/Components/Visual/TemaRow/TemaRow.js",
-          "line": 210,
+          "line": 224,
           "component": "TemaRow"
         }
       ],
       "listeners": [
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 120,
+          "line": 136,
           "component": "PlantillaBuilderView"
         }
       ]
@@ -243,22 +263,22 @@ export default {
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 414,
+          "line": 527,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 419,
+          "line": 532,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/PlantillaBuilderView/PlantillaBuilderView.js",
-          "line": 689,
+          "line": 799,
           "component": "PlantillaBuilderView"
         },
         {
           "file": "src/Components/AppComponents/RespuestasView/RespuestasView.js",
-          "line": 327,
+          "line": 326,
           "component": "RespuestasView"
         },
         {
@@ -318,22 +338,22 @@ export default {
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 195,
+          "line": 200,
           "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 203,
+          "line": 208,
           "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 205,
+          "line": 210,
           "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 216,
+          "line": 221,
           "component": "PlantillaService"
         },
         {
@@ -368,7 +388,7 @@ export default {
         },
         {
           "file": "src/Components/Visual/OpcionRow/OpcionRow.js",
-          "line": 185,
+          "line": 196,
           "component": "OpcionRow"
         },
         {
@@ -388,19 +408,19 @@ export default {
         },
         {
           "file": "src/Components/Visual/SynthTextoModal/SynthTextoModal.js",
-          "line": 168,
+          "line": 171,
           "component": "SynthTextoModal"
         },
         {
           "file": "src/Components/Visual/TemaRow/TemaRow.js",
-          "line": 235,
+          "line": 249,
           "component": "TemaRow"
         }
       ],
       "listeners": [
         {
           "file": "src/Components/Providers/Providers/Providers.js",
-          "line": 114,
+          "line": 120,
           "component": "Providers"
         },
         {
