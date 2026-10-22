@@ -30,6 +30,7 @@ export default class CompareView extends HTMLElement {
   async init() {
     this._roster = slice.getComponent('PlantillaService');
     this._imports = slice.getComponent('RespuestasImportService');
+    this._shortener = slice.getComponent('UrlShortenerService');
     this._html = slice.getComponent('HtmlService');
     this._icons = slice.getComponent('IconProvider');
     this.sources = this._imports.getSources();
@@ -847,7 +848,7 @@ export default class CompareView extends HTMLElement {
     details.className = 'cmp-url-import';
     details.innerHTML = `<summary>${this._icons.svg('link', 14)} Importar desde enlaces compartidos</summary>
       <p class="view-sub" style="margin:8px 0 10px">Pegá los enlaces de respuestas que te compartieron (uno por línea).</p>
-      <textarea class="cmp-url-import__input" placeholder="https://ejemplo.com/#respuestas=…"></textarea>
+      <textarea class="cmp-url-import__input" placeholder="https://ejemplo.com/#respuestas=… o https://go.ejemplo/abc1234"></textarea>
       <button class="btn btn-primary cmp-url-import__btn" type="button">Importar</button>
       <span class="cmp-url-import__status"></span>`;
     this.querySelector('.cmp-import-slot').appendChild(details);
@@ -865,7 +866,9 @@ export default class CompareView extends HTMLElement {
       const compressor = slice.getComponent('CompressionService');
       let imported = 0, failed = 0, dupes = 0;
       for (const line of lines) {
-        const hash = line.includes('#') ? line.split('#')[1] : line.startsWith('respuestas=') ? line : null;
+        const resolved = !line.includes('#') ? await this._shortener.resolve(line) : null;
+        const source = resolved || line;
+        const hash = source.includes('#') ? source.split('#')[1] : source.startsWith('respuestas=') ? source : null;
         if (!hash) { failed++; continue; }
         const compressed = hash.startsWith('respuestas=') ? hash.slice('respuestas='.length) : hash;
         if (!compressed) { failed++; continue; }

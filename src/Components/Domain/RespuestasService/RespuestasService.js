@@ -184,12 +184,28 @@ export default class RespuestasService {
     return `${window.location.origin}${window.location.pathname}#respuestas=${compressed}`;
   }
 
+  async getShareLinkForSharing(autor) {
+    const plantilla = slice.getComponent('PlantillaService');
+    const nombre = plantilla.getNombre() || 'Conclave';
+    const autorLabel = autor || 'Alguien';
+    return slice.getComponent('UrlShortenerService').getShareUrl(
+      this.getShareLink(autor),
+      SHARE_URL_MAX_LENGTH,
+      {
+        title: `Respuestas — ${nombre}`,
+        description: `${autorLabel} compartió sus respuestas para «${nombre}»`,
+        image: `${window.location.origin}/images/og-image.png`,
+      },
+    );
+  }
+
   getShareUrlLength(autor) {
     return this.getShareLink(autor).length;
   }
 
   canShareByLink(autor) {
-    return this.getShareUrlLength(autor) <= SHARE_URL_MAX_LENGTH;
+    return this.getShareUrlLength(autor) <= SHARE_URL_MAX_LENGTH
+      || slice.getComponent('UrlShortenerService').isEnabled();
   }
 
   getShareUrlMaxLength() {
@@ -201,7 +217,7 @@ export default class RespuestasService {
     const settings = slice.getComponent('SettingsService');
     const autor = settings.getState().autor?.trim();
 
-    const doCopy = (name) => {
+    const doCopy = async (name) => {
       if (!this.canShareByLink(name)) {
         slice.events.emit('toast:show', {
           message: 'Las respuestas son demasiado largas para compartir por enlace. Exporta archivo.',
@@ -209,7 +225,14 @@ export default class RespuestasService {
         });
         return;
       }
-      const url = this.getShareLink(name);
+      const url = await this.getShareLinkForSharing(name);
+      if (!url) {
+        slice.events.emit('toast:show', {
+          message: 'No se pudo preparar el enlace corto. Exporta el archivo para compartir las respuestas.',
+          type: 'warning'
+        });
+        return;
+      }
       navigator.clipboard.writeText(url).then(() => {
         slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
       }, () => {
@@ -241,7 +264,7 @@ export default class RespuestasService {
     const plantilla = slice.getComponent('PlantillaService');
     const to = plantilla.getCreadoEmail()?.trim();
 
-    const doSend = (name) => {
+    const doSend = async (name) => {
       if (!this.canShareByLink(name)) {
         slice.events.emit('toast:show', {
           message: 'Las respuestas son demasiado largas para compartir por enlace. Exporta archivo.',
@@ -249,7 +272,14 @@ export default class RespuestasService {
         });
         return;
       }
-      const url = this.getShareLink(name);
+      const url = await this.getShareLinkForSharing(name);
+      if (!url) {
+        slice.events.emit('toast:show', {
+          message: 'No se pudo preparar el enlace corto. Exporta el archivo para compartir las respuestas.',
+          type: 'warning'
+        });
+        return;
+      }
       const plantillaNombre = plantilla.getNombre() || 'Conclave';
       const subject = encodeURIComponent(`Mis respuestas — ${plantillaNombre}`);
       const body = encodeURIComponent(

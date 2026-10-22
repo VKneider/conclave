@@ -25,6 +25,7 @@ const components = {
   "LocalStorageManager": "Core",
   "SoundService": "Core",
   "StoreService": "Core",
+  "UrlShortenerService": "Core",
   "ConsensoService": "Domain",
   "ExportService": "Domain",
   "PlantillaService": "Domain",

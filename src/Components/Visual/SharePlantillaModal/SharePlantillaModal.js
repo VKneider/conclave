@@ -178,7 +178,11 @@ export default class SharePlantillaModal extends HTMLElement {
         return;
       }
       const nombre = p.getNombre() || 'Plantilla';
-      const url = p.getShareLink();
+      const url = await p.getShareLinkForSharing();
+      if (!url) {
+        await this._shareFile();
+        return;
+      }
       try {
         await navigator.share({
           title: `Plantilla: ${nombre}`,
@@ -268,7 +272,17 @@ export default class SharePlantillaModal extends HTMLElement {
       return;
     }
 
-    const url = p.getShareLink();
+    const url = await p.getShareLinkForSharing();
+    if (!url) {
+      this.$qrBody.innerHTML = `
+        <div class="qr-modal__error">
+          <span class="qr-modal__error-icon">${slice.getComponent('IconProvider').svg('alert-triangle', 24)}</span>
+          <p>No se pudo preparar el enlace corto.</p>
+          <p class="qr-modal__error-hint">Prueba compartiendo por correo o descargando el archivo.</p>
+        </div>`;
+      this.$qrModal.open = true;
+      return;
+    }
 
     try {
       const canvas = document.createElement('canvas');

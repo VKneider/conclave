@@ -208,11 +208,31 @@ export default class ConsensoService {
     return `${window.location.origin}${window.location.pathname}#consenso=${compressed}`;
   }
 
-  canShareByLink() {
-    return this.getShareLink().length <= SHARE_URL_MAX_LENGTH;
+  async getShareLinkForSharing() {
+    const plantilla = slice.getComponent('PlantillaService');
+    const settings = slice.getComponent('SettingsService');
+    const nombre = plantilla.getNombre() || 'Conclave';
+    const autor = settings.getState().autor?.trim();
+    const description = autor
+      ? `${autor} compartió el resumen final de «${nombre}»`
+      : `Resumen final de «${nombre}» en Conclave`;
+    return slice.getComponent('UrlShortenerService').getShareUrl(
+      this.getShareLink(),
+      SHARE_URL_MAX_LENGTH,
+      {
+        title: `Resumen final — ${nombre}`,
+        description,
+        image: `${window.location.origin}/images/og-image.png`,
+      },
+    );
   }
 
-  copyShareLink() {
+  canShareByLink() {
+    return this.getShareLink().length <= SHARE_URL_MAX_LENGTH
+      || slice.getComponent('UrlShortenerService').isEnabled();
+  }
+
+  async copyShareLink() {
     if (!this.canShareByLink()) {
       slice.events.emit('toast:show', {
         message: 'El consenso es demasiado grande para compartir por enlace. Exporta archivo.',
@@ -220,7 +240,14 @@ export default class ConsensoService {
       });
       return;
     }
-    const url = this.getShareLink();
+    const url = await this.getShareLinkForSharing();
+    if (!url) {
+      slice.events.emit('toast:show', {
+        message: 'No se pudo preparar el enlace corto. Exporta el archivo para compartir el consenso.',
+        type: 'warning'
+      });
+      return;
+    }
     navigator.clipboard.writeText(url).then(() => {
       slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
     }, () => {

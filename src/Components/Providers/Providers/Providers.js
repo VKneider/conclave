@@ -98,6 +98,7 @@ export default class Providers {
     await slice.build('HtmlService', { singleton: true });
     await slice.build('DomService', { singleton: true });
     await slice.build('CompressionService', { singleton: true });
+    await slice.build('UrlShortenerService', { singleton: true });
     await slice.build('SoundService', { singleton: true });
 
     // PlantillaService must finish loading before any view reads

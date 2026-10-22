@@ -183,19 +183,38 @@ export default class PlantillaService {
     return `${window.location.origin}${window.location.pathname}#plantilla=${compressed}`;
   }
 
+  async getShareLinkForSharing() {
+    const settings = slice.getComponent('SettingsService');
+    const nombre = this.getNombre() || 'Plantilla de Conclave';
+    const autor = settings.getState().autor?.trim();
+    const description = autor
+      ? `${autor} compartió una plantilla de Conclave`
+      : 'Plantilla compartida desde Conclave';
+    return slice.getComponent('UrlShortenerService').getShareUrl(
+      this.getShareLink(),
+      SHARE_URL_MAX_LENGTH,
+      {
+        title: `Plantilla: ${nombre}`,
+        description,
+        image: `${window.location.origin}/images/og-image.png`,
+      },
+    );
+  }
+
   getShareUrlLength() {
     return this.getShareLink().length;
   }
 
   canShareByLink() {
-    return this.getShareUrlLength() <= SHARE_URL_MAX_LENGTH;
+    return this.getShareUrlLength() <= SHARE_URL_MAX_LENGTH
+      || slice.getComponent('UrlShortenerService').isEnabled();
   }
 
   getShareUrlMaxLength() {
     return SHARE_URL_MAX_LENGTH;
   }
 
-  copyShareLink() {
+  async copyShareLink() {
     if (!this.canShareByLink()) {
       slice.events.emit('toast:show', {
         message: 'La plantilla es demasiado grande para compartir por enlace. Exporta archivo.',
@@ -203,7 +222,14 @@ export default class PlantillaService {
       });
       return;
     }
-    const url = this.getShareLink();
+    const url = await this.getShareLinkForSharing();
+    if (!url) {
+      slice.events.emit('toast:show', {
+        message: 'No se pudo preparar el enlace corto. Exporta el archivo para compartir la plantilla.',
+        type: 'warning'
+      });
+      return;
+    }
     navigator.clipboard.writeText(url).then(() => {
       slice.events.emit('toast:show', { message: 'Enlace copiado al portapapeles', type: 'success' });
     }, () => {
@@ -216,7 +242,7 @@ export default class PlantillaService {
     const autor = settings.getState().autor?.trim();
     const email = settings.getEmail()?.trim();
 
-    const doSend = (name, to) => {
+    const doSend = async (name, to) => {
       if (!this.canShareByLink()) {
         slice.events.emit('toast:show', {
           message: 'La plantilla es demasiado larga para compartir por enlace. Exporta archivo.',
@@ -224,7 +250,14 @@ export default class PlantillaService {
         });
         return;
       }
-      const url = this.getShareLink();
+      const url = await this.getShareLinkForSharing();
+      if (!url) {
+        slice.events.emit('toast:show', {
+          message: 'No se pudo preparar el enlace corto. Exporta el archivo para compartir la plantilla.',
+          type: 'warning'
+        });
+        return;
+      }
       const plantillaNombre = this.getNombre() || 'Conclave';
       const subject = encodeURIComponent(`Plantilla: ${plantillaNombre}`);
       const body = encodeURIComponent(

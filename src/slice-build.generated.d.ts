@@ -4,6 +4,11 @@ export interface AppShellProps {
   [key: string]: unknown;
 }
 
+export interface AtributoRowProps {
+  [key: string]: unknown;
+  atributo?: Record<string, unknown>;
+}
+
 export interface BienvenidaModalProps {
   [key: string]: unknown;
 }
@@ -392,6 +397,10 @@ export interface TopBarProps {
   [key: string]: unknown;
 }
 
+export interface UrlShortenerServiceProps {
+  [key: string]: unknown;
+}
+
 export interface UserMenuProps {
   [key: string]: unknown;
 }
@@ -404,6 +413,7 @@ export interface ViewHeaderProps {
 
 export interface SliceComponentPropsMap {
   AppShell: AppShellProps;
+  AtributoRow: AtributoRowProps;
   BienvenidaModal: BienvenidaModalProps;
   Button: ButtonProps;
   CarouselView: CarouselViewProps;
@@ -476,6 +486,7 @@ export interface SliceComponentPropsMap {
   ToastProvider: ToastProviderProps;
   ToolTip: ToolTipProps;
   TopBar: TopBarProps;
+  UrlShortenerService: UrlShortenerServiceProps;
   UserMenu: UserMenuProps;
   ViewHeader: ViewHeaderProps;
 }

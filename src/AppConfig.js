@@ -18,6 +18,13 @@ export const BIENVENIDA_MAX_LENGTH = 1200;
 // busca que nada desmedido llegue a localStorage.
 export const BIENVENIDA_HTML_MAX_LENGTH = BIENVENIDA_MAX_LENGTH * 4;
 export const SHARE_URL_MAX_LENGTH = 3800;
+// Generic Go URL shortener. Leave empty for a local build that should use only
+// self-contained hash links.
+export const URL_SHORTENER_ENDPOINT = 'https://go.vkneider.dev';
+// Normally this is the same origin as URL_SHORTENER_ENDPOINT. It can differ
+// when a shared shortener exposes its API on one origin and its public links
+// on another.
+export const URL_SHORTENER_PUBLIC_ORIGIN = 'https://go.vkneider.dev';
 export const ACCEPT_ALL = `application/json,.json,${EXT_PLANTILLA},${EXT_RESPUESTAS},${EXT_CONSENSO}`;
 export const DEFAULT_TEMA_MODO = 'texto_libre';
 // The four Tema modos, in the order the UI lists them — ONE definition of

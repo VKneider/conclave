@@ -4,7 +4,7 @@ Project-specific knowledge for anyone (human or agent) picking up work on this c
 
 ## What this is
 
-Conclave is a Slice.js (`slicejs-web-framework` v4.x — `^4.0.2` in `package.json`, CLI `slicejs-cli@4.2.0`) app for structured group decision-making / brainstorming: a leader builds a shared **Plantilla** (**Temas** + **Opciones**), each person fills in their own **Respuestas** independently, then everyone imports each other's Respuestas to compare and settle on a final answer. Frontend-only — all data lives in localStorage + bundled seed data; there is no server-side data layer and no plan to add one (`api/` is a static/SPA-fallback server only).
+Conclave is a Slice.js (`slicejs-web-framework` v4.x — `^4.0.2` in `package.json`, CLI `slicejs-cli@4.2.0`) app for structured group decision-making / brainstorming: a leader builds a shared **Plantilla** (**Temas** + **Opciones**), each person fills in their own **Respuestas** independently, then everyone imports each other's Respuestas to compare and settle on a final answer. The app data remains frontend-only in localStorage + bundled seed data. The optional generic `../go-url-shortener/` Cloudflare Worker stores only short-code → share-URL mappings; it never stores Plantillas or Respuestas as application records. (`api/` remains a static/SPA-fallback server.)
 
 ### Vocabulary (see `docs/legacy/REDESIGN.md` for the rename's history)
 
@@ -81,7 +81,7 @@ Conclave is a Slice.js (`slicejs-web-framework` v4.x — `^4.0.2` in `package.js
 - **Short keys in share URLs.** `CompressionService.packForURI()` maps long keys (e.g. `nombre→n`, `temas→ts`) before LZ compression, producing shorter hashes. `unpackFromURI()` reverses it, passing unknown keys through unchanged (backward compatible with old full-key URLs).
 - **`mailto:` share links leave the `to` field empty** — the user fills in the recipient manually. The body includes the sharer's name and the link.
 - **All seed data is fictional** (Categoría/Opción names were replaced for public demo). Structure is preserved exactly from the original retreat data. Generic names are intentional, not bugs.
-- **Plantilla data lives entirely in the browser.** There is no server-side storage for Categorías/Opciones and no plan to add any — sharing a Plantilla is exporting/importing its file (`.plantilla`), same as Respuestas (`.respuestas`). The extensions are defined in `Core/AppConfig/AppConfig.js`. Legacy `.json` files are still accepted on import.
+- **Plantilla data lives entirely in the browser.** There is no server-side application database for Temas/Opciones/Respuestas — sharing a Plantilla is exporting/importing its file (`.plantilla`), same as Respuestas (`.respuestas`). The optional URL shortener stores only the redirect mapping described in `docs/URL-SHORTENER.md`. The extensions are defined in `src/AppConfig.js`. Legacy `.json` files are still accepted on import.
 
 ## Running it
 

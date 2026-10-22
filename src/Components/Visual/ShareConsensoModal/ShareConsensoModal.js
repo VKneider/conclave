@@ -143,7 +143,11 @@ export default class ShareConsensoModal extends HTMLElement {
         await this._shareFile();
         return;
       }
-      const url = cs.getShareLink();
+      const url = await cs.getShareLinkForSharing();
+      if (!url) {
+        await this._shareFile();
+        return;
+      }
       const plantilla = slice.getComponent('PlantillaService');
       const plantillaNombre = plantilla.getNombre() || 'Conclave';
       try {

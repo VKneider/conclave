@@ -162,7 +162,11 @@ export default class ExportRespuestasModal extends HTMLElement {
         await this._shareFile();
         return;
       }
-      const url = rs.getShareLink(name);
+      const url = await rs.getShareLinkForSharing(name);
+      if (!url) {
+        await this._shareFile();
+        return;
+      }
       const plantilla = slice.getComponent('PlantillaService');
       const plantillaNombre = plantilla.getNombre() || 'Conclave';
       try {
@@ -238,7 +242,17 @@ export default class ExportRespuestasModal extends HTMLElement {
     this.$qrBody.innerHTML = '';
 
     const autor = slice.getComponent('SettingsService').getState().autor?.trim() || '';
-    const url = slice.getComponent('RespuestasService').getShareLink(autor);
+    const url = await slice.getComponent('RespuestasService').getShareLinkForSharing(autor);
+    if (!url) {
+      this.$qrBody.innerHTML = `
+        <div class="qr-modal__error">
+          <span class="qr-modal__error-icon">${slice.getComponent('IconProvider').svg('alert-triangle', 24, 'var(--warning-color)')}</span>
+          <p>No se pudo preparar el enlace corto.</p>
+          <p class="qr-modal__error-hint">Prueba compartiendo por correo o descargando el archivo.</p>
+        </div>`;
+      this.$qrModal.open = true;
+      return;
+    }
 
     try {
       const canvas = document.createElement('canvas');

@@ -9,7 +9,8 @@
 >   replaces `utils/context.js`), `HtmlService` (`esc` + `sanitize`, replaces
 >   FormatService/SanitizeService + `utils/format.js`), `DomService`
 >   (`reconcile`), `CompressionService` (`packForURI`/`unpackFromURI` + LZ
->   compress), `SoundService` (Web Audio API synth cues, `attachSFX` bridge,
+>   compress), `UrlShortenerService` (optional Cloudflare Worker integration),
+>   `SoundService` (Web Audio API synth cues, `attachSFX` bridge,
 >   rate-limited), `ChartService`, `FetchManager`, `FileDownloadService`,
 >   `IndexedDbManager`, `LocalStorageManager`.
 > - **`Domain`** (business): `PlantillaService`, `RespuestasService`,
@@ -52,23 +53,24 @@ AppShell.init() → slice.build('Providers')
       1. slice.events.register() — declares toast:show, confirm:request
       2. StoreService — context persistence wrapper
       3. HtmlService — esc + sanitize (vendored DOMPurify)
-4. DomService — reconcile (leak-safe list rendering)
+       4. DomService — reconcile (leak-safe list rendering)
        5. CompressionService — packForURI/unpackFromURI + LZ compress
-       6. SoundService — Web Audio API, semantic synth cues, attachSFX bridge
-       7. PlantillaService — ensures `plantilla` context, seed fallback
-       8. FileDownloadService — stateless, download helper
-       9. SettingsService — ensures `settings` context
-      10. RespuestasService — ensures `respuestas` context
-      11. ConsensoService — ensures `decisionFinal` context
-      12. ExportService — stateless, download helpers
-      13. RespuestasImportService — ensures `respuestasImportadas` context, normalizes against plantilla
-      14. DragDropService — registered after the above
-      15. ChartService — wraps vendored Chart.js
-      16. IconProvider — lucide SVG icon resolver
-      17. ToastProvider — lazy (builds container on first .show())
-      18. ConfirmActionModal — lazy (builds <slice-modal> on first use)
-      19. ExportRespuestasModal — lazy (builds <slice-modal> on first show())
-      20. SharePlantillaModal — lazy (builds <slice-modal> on first show())
+       6. UrlShortenerService — optional Cloudflare Worker client
+       7. SoundService — Web Audio API, semantic synth cues, attachSFX bridge
+       8. PlantillaService — ensures `plantilla` context, seed fallback
+       9. FileDownloadService — stateless, download helper
+      10. SettingsService — ensures `settings` context
+      11. RespuestasService — ensures `respuestas` context
+      12. ConsensoService — ensures `decisionFinal` context
+      13. ExportService — stateless, download helpers
+      14. RespuestasImportService — ensures `respuestasImportadas` context, normalizes against plantilla
+      15. DragDropService — registered after the above
+      16. ChartService — wraps vendored Chart.js
+      17. IconProvider — lucide SVG icon resolver
+      18. ToastProvider — lazy (builds container on first .show())
+      19. ConfirmActionModal — lazy (builds <slice-modal> on first use)
+      20. ExportRespuestasModal — lazy (builds <slice-modal> on first show())
+      21. SharePlantillaModal — lazy (builds <slice-modal> on first show())
 ```
 
 `PlantillaService` must finish before anything else reads tema/opción data — every other Service/view assumes it's already loaded.
@@ -77,11 +79,12 @@ AppShell.init() → slice.build('Providers')
 
 | Service | Role |
 |---|---|
-| `PlantillaService` | Owns the `plantilla` context: `{ nombre, bienvenida, atributos, temas, opciones, importada, creadoPor, creadoEmail }`. Falls back to the bundled seed if localStorage is empty/invalid on first boot, after migrating older shapes (GOTCHAS §24). Full CRUD: `addTema`/`removeTema`/`removeTemas`/`clearTemas`/`updateTema`, the same for Opciones, `addAtributo`/`updateAtributo`/`removeAtributo`, plus bulk `loadFromData(...)` (Plantilla import/presets) and `resetToSeed()`. Ordering: `moveTema`/`reorderTemas` and `moveOpcion`/`reorderOpcionesPool`, both routed through `_renumber` so a Tema's `orden` is always its 1-based position. Query helpers: `getTemas()`, `getTemasParticipables()` (modo `reparto` + `participable`), `getTemasTexto()`/`getTemasVotacion()`/`getTemasRanking()`, `getOpciones()`, `getOpcionesPool()` (`temaId == null`), `getOpcionesDisponibles()`, `getOpcionesDeTema(id)`, `getAtributos()`/`getOpcionAtributos()`, `getAnswerProgress()` (across all four modos), `colorFor()` (hashed from the id, stable under reordering — GOTCHAS §22), `statusOf()`, `statusLabel()`, `countByTema()`, `isFull()`, `isLiderLocked()`, `getLiderName()`. Sharing: `getShareLink()`/`copyShareLink()`/`canShareByLink()`. Import trust boundary: `isSafeId()` + `prepareImport()`. `_cleanupOrphaned()` scrubs `respuestas`, `decisionFinal`, `settings.lideres`, and `respuestasImportadas` whenever a Tema/Opción is deleted. |
-| `RespuestasService` | Owns the `respuestas` context: `{ seleccion: {[opcionId]: temaId}, texto: {[temaId]: string}, voto: {[temaId]: opcionId}, ranking: {[temaId]: opcionId[]} }` — one sub-map per modo. `seleccion` is indexed by Opción (many Opciones share a Tema, no array needed); the other three are indexed by Tema. `assignOpcion()`/`unassignOpcion()` for `reparto` (always succeeds — over-capacity is allowed on purpose), `setVoto()`/`clearVoto()` for `votacion`, `setRanking()`/`clearRanking()` for `ranking`, `setTexto()`/`clearTexto()` for `texto_libre`. Re-normalises itself against the Plantilla on boot and on every `plantilla` change. Sharing: `exportMine()`, `getShareLink()`/`copyShareLink()`/`sendShareLinkEmail()` (guarded by `canShareByLink()`), `importMine(data)` wholesale-replaces the context ("continue on another device", see DATA.md). |
+| `PlantillaService` | Owns the `plantilla` context: `{ nombre, bienvenida, atributos, temas, opciones, importada, creadoPor, creadoEmail }`. Falls back to the bundled seed if localStorage is empty/invalid on first boot, after migrating older shapes (GOTCHAS §24). Full CRUD: `addTema`/`removeTema`/`removeTemas`/`clearTemas`/`updateTema`, the same for Opciones, `addAtributo`/`updateAtributo`/`removeAtributo`, plus bulk `loadFromData(...)` (Plantilla import/presets) and `resetToSeed()`. Ordering: `moveTema`/`reorderTemas` and `moveOpcion`/`reorderOpcionesPool`, both routed through `_renumber` so a Tema's `orden` is always its 1-based position. Query helpers: `getTemas()`, `getTemasParticipables()` (modo `reparto` + `participable`), `getTemasTexto()`/`getTemasVotacion()`/`getTemasRanking()`, `getOpciones()`, `getOpcionesPool()` (`temaId == null`), `getOpcionesDisponibles()`, `getOpcionesDeTema(id)`, `getAtributos()`/`getOpcionAtributos()`, `getAnswerProgress()` (across all four modos), `colorFor()` (hashed from the id, stable under reordering — GOTCHAS §22), `statusOf()`, `statusLabel()`, `countByTema()`, `isFull()`, `isLiderLocked()`, `getLiderName()`. Sharing: `getShareLink()`/`getShareLinkForSharing()`/`copyShareLink()`/`canShareByLink()`. Import trust boundary: `isSafeId()` + `prepareImport()`. `_cleanupOrphaned()` scrubs `respuestas`, `decisionFinal`, `settings.lideres`, and `respuestasImportadas` whenever a Tema/Opción is deleted. |
+| `RespuestasService` | Owns the `respuestas` context: `{ seleccion: {[opcionId]: temaId}, texto: {[temaId]: string}, voto: {[temaId]: opcionId}, ranking: {[temaId]: opcionId[]} }` — one sub-map per modo. `seleccion` is indexed by Opción (many Opciones share a Tema, no array needed); the other three are indexed by Tema. `assignOpcion()`/`unassignOpcion()` for `reparto` (always succeeds — over-capacity is allowed on purpose), `setVoto()`/`clearVoto()` for `votacion`, `setRanking()`/`clearRanking()` for `ranking`, `setTexto()`/`clearTexto()` for `texto_libre`. Re-normalises itself against the Plantilla on boot and on every `plantilla` change. Sharing: `exportMine()`, `getShareLink()`/`getShareLinkForSharing()`/`copyShareLink()`/`sendShareLinkEmail()` (guarded by `canShareByLink()`), `importMine(data)` wholesale-replaces the context ("continue on another device", see DATA.md). |
 | `ConsensoService` | Owns the `decisionFinal` context: `{ seleccion: {[opcionId]: temaId}, texto: {[temaId]: {autor, texto, esSintesis?, fuentes?}}, voto, ranking }` — same seleccion/texto split as `respuestas`, for the same reason. `hasResolution`/`finalFor`/`setResolution`/`suggestFinal`/`fillAllWithSuggestion`/`clearAll` for modo `reparto` (majority-vote suggestion with manual override), `finalVotoFor`/`setResolutionVoto` for `votacion` and `finalRankingFor`/`setResolutionRanking` for `ranking` (Borda-aggregated suggestion). `finalTextoFor`/`setResolutionTexto`/`clearResolutionTexto` for modo `texto_libre` (adopt one author's exact proposal as the chosen answer), plus `setSintesisTexto`/`hasSintesisTexto`/`descripcionTextoFinal` for the composed **síntesis** answer (see FEATURES.md §TextCompareCards). `exportFinal()` builds the combined final Respuestas JSON, preserving the whole texto entry (esSintesis + fuentes). |
 | `SettingsService` | Owns the `settings` context (`{ autor, email, lideres, lideresEnabled, soundEnabled, bienvenidaOculta }`). `getEffectiveLider(temaId)` returns `{ member, locked }` where `locked: true` means the leader came from the Tema's `meta.lider` (Plantilla-authored, read-only) rather than the UI-set `lideres` map. `isSoundEnabled()`/`setSoundEnabled()` gate `SoundService`'s cues, and `isBienvenidaOculta()`/`ocultarBienvenida()` remember (per device, by message fingerprint) that the welcome banner was dismissed. The old `sexoEnabled`/`edadEnabled` toggles are gone — sexo/edad are ordinary custom `atributos` now. |
 | `ExportService` | `downloadRespuestas(autor, respuestas)`, `downloadConsenso(...)`, `downloadPlantilla(plantilla)` and `downloadBackup(...)` — build the versioned JSON envelope (`{ app, version: 2, tipo, ... }`) and delegate the Blob download to `FileDownloadService`. The extension follows `tipo`: `.plantilla`, `.respuestas`, `.conclave`, `.conclave-backup` (all defined in `src/AppConfig.js`). |
+| `UrlShortenerService` | Optional client for the generic Cloudflare Worker in the private sibling repository `../go-url-shortener/`. `getShareUrl()` returns a short link when configured, falls back to the self-contained hash URL if the Worker is disabled/unavailable, and `resolve()` lets CompareView accept a pasted short URL. |
 | `RespuestasImportService` | Owns the `respuestasImportadas` context: `[{ autor, respuestas: { seleccion, texto } }]` — comparison sources imported in CompareView. Migrated to Context (from a plain in-memory array) because several components (`CompareCarousel`, `FinalTally`, `TextCompareCards`) read and react to this same list — see GOTCHAS.md §11. `import(data, filename)` normalizes/dedupes against the current Plantilla; `removeOrphaned()` cleans references when Temas/Opciones are deleted. |
 | `ConfirmActionModal` | Provider-Service owning one `<slice-modal>` instance lazily. Driven by `confirm:request` event. |
 | `ToastProvider` | Official Slice.js registry component. Lazy container. |
