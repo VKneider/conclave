@@ -353,6 +353,9 @@ comportamiento anterior.
 
 ## Pruebas
 
+La guía reproducible para configurar Rate Limiting está en el repositorio del
+Worker: [`../go-url-shortener/docs/RATE-LIMITING.md`](../go-url-shortener/docs/RATE-LIMITING.md).
+
 Desde `go-url-shortener`:
 
 ```powershell
