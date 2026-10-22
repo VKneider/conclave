@@ -55,6 +55,7 @@ Este README es la puerta de entrada; la documentación real vive en:
 | [`docs/FEATURES.md`](docs/FEATURES.md) | Cómo funciona cada vista/feature en detalle |
 | [`docs/UX.md`](docs/UX.md) | Estándares de interacción y animación |
 | [`docs/URL-SHORTENER.md`](docs/URL-SHORTENER.md) | Integración con Go, el Worker genérico de Cloudflare + KV para enlaces cortos |
+| [`backlog.md`](backlog.md) | Pendientes operativos: monitoring, alertas, CI/CD, seguridad y resiliencia |
 | [`docs/GOTCHAS.md`](docs/GOTCHAS.md) | Trampas del framework y bugs no obvios — leer antes de cualquier cambio estructural |
 | [`DESIGN.md`](DESIGN.md) | Lenguaje visual "Sticker Book" — leer antes de cualquier cambio de CSS |
 | [`docs/legacy/`](docs/legacy/README.md) | Registro histórico: planes ya completados y bugs ya corregidos. Explican por qué el código es como es — no cómo funciona hoy. |

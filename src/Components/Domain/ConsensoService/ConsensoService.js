@@ -1,4 +1,4 @@
-import { PRINT_DELAY_MS, PRINT_CLEANUP_MS, SHARE_URL_MAX_LENGTH } from '../../../AppConfig.js';
+import { PRINT_DELAY_MS, PRINT_CLEANUP_MS, SHARE_URL_MAX_LENGTH, SHORT_LINK_TTL_SECONDS } from '../../../AppConfig.js';
 
 // Context is created ONCE in init() via StoreService.ensure() — boot order
 // guarantees init runs before any consumer, so no per-method defensive ensure.
@@ -224,6 +224,7 @@ export default class ConsensoService {
         description,
         image: `${window.location.origin}/images/og-image.png`,
       },
+      SHORT_LINK_TTL_SECONDS,
     );
   }
 

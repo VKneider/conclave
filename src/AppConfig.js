@@ -25,6 +25,9 @@ export const URL_SHORTENER_ENDPOINT = 'https://go.vkneider.dev';
 // when a shared shortener exposes its API on one origin and its public links
 // on another.
 export const URL_SHORTENER_PUBLIC_ORIGIN = 'https://go.vkneider.dev';
+// Conclave short links live for 30 days. The Worker also enforces this limit
+// for the Conclave origin, so it is not only a client-side convention.
+export const SHORT_LINK_TTL_SECONDS = 2592000;
 export const ACCEPT_ALL = `application/json,.json,${EXT_PLANTILLA},${EXT_RESPUESTAS},${EXT_CONSENSO}`;
 export const DEFAULT_TEMA_MODO = 'texto_libre';
 // The four Tema modos, in the order the UI lists them — ONE definition of

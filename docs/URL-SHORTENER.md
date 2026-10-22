@@ -187,6 +187,7 @@ El Worker no es un redireccionador abierto:
 - Usa códigos aleatorios, no IDs incrementales.
 - Comprueba colisiones antes de escribir en KV.
 - Permite enviar `expiresIn` por enlace, en segundos, entre 60 y el máximo configurado.
+- Conclave impone un máximo de 30 días mediante `MAX_TTL_BY_ORIGIN`.
 - CORS solo permite los orígenes declarados en `APP_ORIGINS`.
 - La creación exige un header `Origin` perteneciente a `APP_ORIGINS`.
 - No existen secretos dentro del código cliente de Conclave.
@@ -222,6 +223,7 @@ ALLOWED_ORIGINS = "https://conclave.vkneider.dev"
 SHORTENER_ORIGIN = "https://go.vkneider.dev"
 CREATE_ENABLED = "true"
 MAX_SHORT_URL_TTL_SECONDS = "31536000"
+MAX_TTL_BY_ORIGIN = "https://conclave.vkneider.dev=2592000"
 
 [[kv_namespaces]]
 binding = "SHORT_URLS"

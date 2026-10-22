@@ -1,4 +1,4 @@
-import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH, COLOR_PALETTE, ID_MAX_LENGTH, DEFAULT_PLANTILLA_PRESET, BIENVENIDA_HTML_MAX_LENGTH } from '../../../AppConfig.js';
+import { DEFAULT_TEMA_MODO, SHARE_URL_MAX_LENGTH, SHORT_LINK_TTL_SECONDS, COLOR_PALETTE, ID_MAX_LENGTH, DEFAULT_PLANTILLA_PRESET, BIENVENIDA_HTML_MAX_LENGTH } from '../../../AppConfig.js';
 import { SEED_TEMAS, SEED_OPCIONES, DEFAULT_ATRIBUTOS } from '../../../public/data/seedData.js';
 import { PRESETS } from '../../../public/data/presets.js';
 const CONTEXT = 'plantilla';
@@ -198,6 +198,7 @@ export default class PlantillaService {
         description,
         image: `${window.location.origin}/images/og-image.png`,
       },
+      SHORT_LINK_TTL_SECONDS,
     );
   }
 
