@@ -96,33 +96,17 @@ crecimiento de KV antes de alcanzar límites de cuenta.
 
 ## Prioridad P1 — CI/CD
 
-### P1.1 GitHub Actions para Go
+### P1.1 GitHub Actions para Go — completado
 
-Crear `.github/workflows/worker.yml` en
-`cloudflare-worker-shortener`:
+Implementado en `go-url-shortener/.github/workflows/worker.yml`:
 
-En pull requests:
+- [x] Validación en Pull Requests.
+- [x] Deploy de `testing` con KV preview.
+- [x] Deploy de `main` con KV producción.
+- [x] Secrets documentados: `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID`.
 
-```text
-pnpm install --frozen-lockfile
-node --check src/index.js
-node --test
-```
-
-En `main`, después de pasar tests:
-
-```text
-wrangler deploy
-```
-
-Secrets necesarios en GitHub:
-
-```text
-CLOUDFLARE_API_TOKEN
-CLOUDFLARE_ACCOUNT_ID (si Wrangler lo requiere en el entorno)
-```
-
-No usar `wrangler login` en CI y no guardar tokens en `wrangler.toml`.
+Pendiente solo configurar los secrets en GitHub y crear el branch remoto
+`testing`.
 
 **Criterio de aceptación:** un PR defectuoso no despliega; un merge aprobado
 despliega una versión identificable y deja el commit asociado.
