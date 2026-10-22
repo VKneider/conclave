@@ -218,6 +218,7 @@ custom_domain = true
 APP_ORIGINS = "https://conclave.vkneider.dev"
 ALLOWED_ORIGINS = "https://conclave.vkneider.dev"
 SHORTENER_ORIGIN = "https://go.vkneider.dev"
+CREATE_ENABLED = "true"
 
 [[kv_namespaces]]
 binding = "SHORT_URLS"
@@ -365,3 +366,153 @@ El endpoint de producción comprobado es:
 ```text
 https://go.vkneider.dev/api/health
 ```
+
+## Clonar y recuperar los repositorios
+
+Conclave y Go son repositorios independientes:
+
+```powershell
+cd C:\Users\victo\Desktop\SPIKE-PWA-SLICE
+git clone https://github.com/VKneider/conclave.git
+git clone https://github.com/VKneider/cloudflare-worker-shortener.git go-url-shortener
+```
+
+Instalar el Worker:
+
+```powershell
+cd go-url-shortener
+pnpm install
+```
+
+Instalar Conclave:
+
+```powershell
+cd ..\conclave
+pnpm install
+```
+
+El repositorio del Worker es privado. La autenticación de GitHub se realiza
+con SSH, Git Credential Manager o el mecanismo corporativo correspondiente; no
+se deben guardar tokens en los repositorios.
+
+## Operación diaria
+
+### Desplegar una nueva versión del Worker
+
+```powershell
+cd ..\go-url-shortener
+git pull --ff-only
+pnpm install
+node_modules\.bin\wrangler.cmd whoami
+node --test
+pnpm run deploy
+```
+
+Después comprobar:
+
+```powershell
+Invoke-RestMethod https://go.vkneider.dev/api/health
+```
+
+### Desplegar una nueva versión de Conclave
+
+```powershell
+cd ..\conclave
+git pull --ff-only
+pnpm install
+pnpm run lint
+git add .
+git commit -m "Describe el cambio"
+git push origin master
+```
+
+El repositorio de Conclave está conectado a Vercel, por lo que el push a
+`master` inicia el deployment automático. La URL del Worker no cambia al
+desplegar Conclave.
+
+### Detener la creación de enlaces
+
+Para una pausa de emergencia sin romper enlaces existentes, cambia en
+`go-url-shortener/wrangler.toml`:
+
+```toml
+CREATE_ENABLED = "false"
+```
+
+Despliega de nuevo:
+
+```powershell
+pnpm run deploy
+```
+
+El Worker seguirá resolviendo enlaces existentes, pero `POST /api/v1/links`
+responderá `503`.
+
+Para reactivar:
+
+```toml
+CREATE_ENABLED = "true"
+```
+
+y vuelve a ejecutar `pnpm run deploy`.
+
+### Desactivar Go desde Conclave
+
+Si solo se quiere que Conclave deje de usar el acortador, sin tocar el Worker,
+dejar temporalmente vacías estas constantes:
+
+```js
+export const URL_SHORTENER_ENDPOINT = '';
+export const URL_SHORTENER_PUBLIC_ORIGIN = '';
+```
+
+Conclave volverá a copiar enlaces largos con `hash`. Los enlaces cortos ya
+creados seguirán funcionando mientras Go permanezca desplegado.
+
+### Rollback del Worker
+
+Listar deployments:
+
+```powershell
+node_modules\.bin\wrangler.cmd deployments list
+```
+
+Volver a una versión anterior usando su `Version ID`:
+
+```powershell
+node_modules\.bin\wrangler.cmd rollback <VERSION_ID>
+```
+
+Después comprobar `/api/health` y, si corresponde, volver a ejecutar `pnpm run
+deploy` cuando se haya corregido la causa.
+
+### Retirar completamente el Custom Domain
+
+No es el procedimiento habitual. Si se necesita apagar todo el servicio:
+
+1. Desactivar primero el uso en Conclave.
+2. Confirmar que los enlaces largos siguen disponibles.
+3. Retirar `go.vkneider.dev` desde Cloudflare Workers → Settings → Domains & Routes.
+4. No borrar KV hasta decidir qué debe ocurrir con los enlaces existentes.
+
+Retirar el Custom Domain hace que los enlaces cortos dejen de resolver.
+
+## Añadir otra aplicación
+
+1. Añadir el origen de la nueva aplicación a `APP_ORIGINS` y
+   `ALLOWED_ORIGINS`.
+2. Añadir el origen de sus imágenes OG a `ALLOWED_IMAGE_ORIGINS` si es distinto.
+3. Desplegar Go.
+4. Configurar en la aplicación:
+
+   ```js
+   const SHORTENER_ENDPOINT = 'https://go.vkneider.dev';
+   const SHORTENER_PUBLIC_ORIGIN = 'https://go.vkneider.dev';
+   ```
+
+5. Enviar un `POST /api/v1/links` con `destination` y, opcionalmente,
+   `preview`.
+
+La nueva aplicación no necesita copiar el código de Conclave. Debe conservar
+su propio formato de importación y usar el destino corto como una capa de
+transporte.
