@@ -26,7 +26,7 @@ export default class UrlShortenerService {
     return Boolean(this._endpoint);
   }
 
-  async shorten(target, preview = null) {
+  async shorten(target, preview = null, expiresIn = null) {
     if (!this.isEnabled()) return null;
 
     try {
@@ -36,6 +36,7 @@ export default class UrlShortenerService {
         body: JSON.stringify({
           destination: target,
           ...(preview ? { preview } : {}),
+          ...(expiresIn != null ? { expiresIn } : {}),
         }),
       });
       if (!response.ok) throw new Error(`Worker respondió ${response.status}`);
@@ -55,8 +56,8 @@ export default class UrlShortenerService {
   // Returns the short URL when available. If the Worker is disabled or
   // temporarily unreachable, use the existing self-contained URL as a
   // transparent fallback, unless it is too long for a direct share.
-  async getShareUrl(target, maxLength = SHARE_URL_MAX_LENGTH, preview = null) {
-    const shortUrl = await this.shorten(target, preview);
+  async getShareUrl(target, maxLength = SHARE_URL_MAX_LENGTH, preview = null, expiresIn = null) {
+    const shortUrl = await this.shorten(target, preview, expiresIn);
     if (shortUrl) return shortUrl;
     return target.length <= maxLength ? target : null;
   }

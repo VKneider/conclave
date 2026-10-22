@@ -102,6 +102,7 @@ Body:
 ```json
 {
   "destination": "https://conclave.vkneider.dev/#plantilla=...",
+  "expiresIn": 2592000,
   "preview": {
     "title": "Plantilla: Retiro 2026",
     "description": "Ana compartió una plantilla de Conclave",
@@ -128,13 +129,14 @@ que no exista una colisión.
 GET /api/v1/links/Ab3xYz9
 ```
 
-Respuesta:
+Respuesta (incluye `preview` y `expiresAt` cuando se guardaron):
 
 ```json
 {
   "code": "Ab3xYz9",
   "destination": "https://conclave.vkneider.dev/#plantilla=...",
-  "createdAt": "2026-10-21T00:00:00.000Z"
+  "createdAt": "2026-10-21T00:00:00.000Z",
+  "expiresAt": "2026-11-20T00:00:00.000Z"
 }
 ```
 
@@ -184,7 +186,7 @@ El Worker no es un redireccionador abierto:
   la aplicación si no se define esa variable).
 - Usa códigos aleatorios, no IDs incrementales.
 - Comprueba colisiones antes de escribir en KV.
-- Permite definir `SHORT_URL_TTL_SECONDS` para expiración opcional.
+- Permite enviar `expiresIn` por enlace, en segundos, entre 60 y el máximo configurado.
 - CORS solo permite los orígenes declarados en `APP_ORIGINS`.
 - La creación exige un header `Origin` perteneciente a `APP_ORIGINS`.
 - No existen secretos dentro del código cliente de Conclave.
@@ -219,6 +221,7 @@ APP_ORIGINS = "https://conclave.vkneider.dev"
 ALLOWED_ORIGINS = "https://conclave.vkneider.dev"
 SHORTENER_ORIGIN = "https://go.vkneider.dev"
 CREATE_ENABLED = "true"
+MAX_SHORT_URL_TTL_SECONDS = "31536000"
 
 [[kv_namespaces]]
 binding = "SHORT_URLS"
