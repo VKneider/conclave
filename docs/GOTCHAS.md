@@ -6,7 +6,7 @@
 
 ### 1. `slice get <Service>` doesn't always pull multi-file dependencies
 
-`DragDropService.js` (installed via `slicejs-cli get DragDropService --service`) imports a sibling `./dndGeometry.js` that the CLI never downloaded — a registry/CLI gap, not user error. It had to be fetched by hand from the same registry URL the CLI itself uses: `https://raw.githubusercontent.com/VKneider/slice.js_visual_library/master/src/Components/<Category>/<Name>/<file>`. **After `slice get`-ing any multi-file Service, grep its `import` statements and confirm every sibling file actually landed on disk.**
+`DragDropService.js` (installed via `slicejs-cli get DragDropService --service`) imports a sibling `./dndGeometry.js` that the CLI never downloaded — a registry/CLI gap, not user error. It had to be fetched by hand from the same registry URL the CLI itself uses: `https://raw.githubusercontent.com/VKneider/slicejs-components/master/src/Components/<Category>/<Name>/<file>`. **After `slice get`-ing any multi-file Service, grep its `import` statements and confirm every sibling file actually landed on disk.**
 
 ### 2. The Router reuses instances by _component name_, not by path
 
