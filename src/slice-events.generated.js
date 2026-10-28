@@ -97,12 +97,12 @@ export default {
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 257,
+          "line": 272,
           "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 275,
+          "line": 290,
           "component": "PlantillaService"
         },
         {
@@ -112,12 +112,12 @@ export default {
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 234,
+          "line": 246,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 283,
+          "line": 295,
           "component": "RespuestasService"
         },
         {
@@ -333,33 +333,23 @@ export default {
         },
         {
           "file": "src/Components/Domain/ConsensoService/ConsensoService.js",
-          "line": 222,
+          "line": 238,
           "component": "ConsensoService"
         },
         {
           "file": "src/Components/Domain/ConsensoService/ConsensoService.js",
-          "line": 230,
+          "line": 246,
           "component": "ConsensoService"
         },
         {
           "file": "src/Components/Domain/ConsensoService/ConsensoService.js",
-          "line": 237,
+          "line": 253,
           "component": "ConsensoService"
         },
         {
           "file": "src/Components/Domain/ConsensoService/ConsensoService.js",
-          "line": 239,
+          "line": 255,
           "component": "ConsensoService"
-        },
-        {
-          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 205,
-          "component": "PlantillaService"
-        },
-        {
-          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 213,
-          "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
@@ -368,17 +358,27 @@ export default {
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 222,
+          "line": 228,
           "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 233,
+          "line": 235,
           "component": "PlantillaService"
         },
         {
           "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
-          "line": 241,
+          "line": 237,
+          "component": "PlantillaService"
+        },
+        {
+          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
+          "line": 248,
+          "component": "PlantillaService"
+        },
+        {
+          "file": "src/Components/Domain/PlantillaService/PlantillaService.js",
+          "line": 256,
           "component": "PlantillaService"
         },
         {
@@ -388,32 +388,32 @@ export default {
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 211,
+          "line": 223,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 219,
+          "line": 231,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 226,
+          "line": 238,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 228,
+          "line": 240,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 258,
+          "line": 270,
           "component": "RespuestasService"
         },
         {
           "file": "src/Components/Domain/RespuestasService/RespuestasService.js",
-          "line": 266,
+          "line": 278,
           "component": "RespuestasService"
         },
         {
