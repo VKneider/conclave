@@ -142,11 +142,20 @@ with the runner's version, or it needs an image tag of its own.
 
 ## Vercel deployment
 
-**`api/index.js`** is a custom Express server (workaround for `createSliceServer()` not bundling `Slice.js` via Vercel's `fs.readFileSync` path). See `api/index.js` comments for revert instructions when the framework is fixed.
+**`api/index.js`** is a thin adapter around `createSliceServer()`. Vercel imports the exported app
+instead of running the module, so there is no listener: the entrypoint mounts the terminal
+`sliceFallback()` + `sliceErrorHandler()` itself and only calls `start()` off Vercel. The fallback is
+mounted by hand because since framework **4.1.1** the factory no longer registers it — without those
+two lines `/` answers Express's default `Cannot GET /` while assets and `/api/*` keep working. If the
+app ever configures `seo`, mount them only in the Vercel branch (the prepared SEO context is created
+inside `start()`).
 
 ### How it works
 
-1. Post-build: `node scripts/copy-slice.js` copies `Slice.js` from `node_modules` to `dist/Slice/Slice.js`.
-2. `includeFiles: "dist/**"` in `vercel.json` includes it in the function bundle.
-3. Custom `api/index.js` serves it at `/Slice/Slice.js`.
-4. `pnpm remove express` once reverted (no longer a direct consumer).
+1. `slice build` emits the runtime into `dist/Slice/Slice.js`, so the deploy is self-contained.
+2. `includeFiles: "dist/**"` in `vercel.json` ships that build with the function.
+3. In production the framework serves `dist/Slice/Slice.js` (and `dist/public`) before falling back
+   to `node_modules`, which Vercel prunes.
+4. The exported Express app is the whole server; do not add `app.listen()` outside the `!VERCEL`
+   branch.
+
