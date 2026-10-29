@@ -69,8 +69,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       slicejs-web-framework:
-        specifier: ^4.0.2
-        version: 4.0.2
+        specifier: ^4.1.1
+        version: 4.1.1
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -85,8 +85,8 @@ importers:
         specifier: ^17.7.0
         version: 17.7.0
       slicejs-cli:
-        specifier: 4.2.0
-        version: 4.2.0
+        specifier: 4.4.0
+        version: 4.4.0(eslint@9.39.5)
 
 packages:
 
@@ -955,6 +955,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -1634,17 +1635,17 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
-  slicejs-cli@4.2.0:
-    resolution: {integrity: sha512-7LTYHcC8l+xqMbExx6QitP9qqCSyUN3Qf7NvAs11icmwpsbTTlkQ1CaiQIZeN4c0VruKbkYDuYgxh7Di+qhXxQ==}
+  slicejs-cli@4.4.0:
+    resolution: {integrity: sha512-Hcy5qezcOpHsNYYYES0iIuhQewiconX6mqJrjZMMm5Usm6BUKSqDX3XbzRKLp7ewSZVF+riYy2UqbjycRJfwuQ==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
-  slicejs-web-framework@3.5.4:
-    resolution: {integrity: sha512-tP9Y0R5lWOWCi+ggnzlwpJvwTMj4zZAZX59LfBZU3Vy0iLdIVArIcLQdglzurhR9iv9MeRJpxijeRmyFw13L+A==}
-    engines: {node: '>=20'}
-
   slicejs-web-framework@4.0.2:
     resolution: {integrity: sha512-homVktLSEDQMBnDShGGsD1KdGHFc1A4SrB74G9DthKneZgYaA5pit2+83fRYTbFhGXpH/cn6I/HCpiXHZibhcQ==}
+    engines: {node: '>=20'}
+
+  slicejs-web-framework@4.1.1:
+    resolution: {integrity: sha512-WL2El655pJtnOq5uLrC6KvcDwZdh8IhJsx/ohNkdZn0GdI1kVruvbGtP54oLDBB+65paGbqANaz7CKmhicxA/w==}
     engines: {node: '>=20'}
 
   source-map-support@0.5.21:
@@ -3345,10 +3346,11 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
-  slicejs-cli@4.2.0:
+  slicejs-cli@4.4.0(eslint@9.39.5):
     dependencies:
       '@babel/parser': 7.29.7
       '@babel/traverse': 7.29.7
+      '@eslint/js': 10.0.1(eslint@9.39.5)
       chalk: 5.6.2
       chokidar: 3.6.0
       clean-css: 5.3.3
@@ -3356,23 +3358,27 @@ snapshots:
       commander: 12.1.0
       esbuild: 0.28.1
       fs-extra: 11.3.6
+      globals: 17.7.0
       html-minifier-terser: 7.2.0
       inquirer: 12.11.1
       ora: 8.2.0
-      slicejs-web-framework: 3.5.4
+      slicejs-web-framework: 4.0.2
       terser: 5.48.0
     transitivePeerDependencies:
       - '@types/node'
+      - eslint
       - supports-color
 
-  slicejs-web-framework@3.5.4:
+  slicejs-web-framework@4.0.2:
     dependencies:
       compression: 1.8.1
+      es-module-lexer: 2.3.1
+      esbuild: 0.28.1
       express: 4.22.2
     transitivePeerDependencies:
       - supports-color
 
-  slicejs-web-framework@4.0.2:
+  slicejs-web-framework@4.1.1:
     dependencies:
       compression: 1.8.1
       es-module-lexer: 2.3.1
