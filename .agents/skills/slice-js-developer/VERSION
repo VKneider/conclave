@@ -138,10 +138,10 @@ CHANGELOG
     dynamic import('pkg'); package CSS injected, WASM/images/fonts inlined.
     Dev rewrites bare specifiers to /@slice-modules/<pkg> (cached in
     node_modules/.slice-deps); build bundles once (shared -> vendor-shared).
-    Replaces the old "vendor into src/libs + publicFolders" pattern.
-  - publicFolders REMOVED. Static assets live under src/public/ (served at the
-    root URL, copied into the build) — Themes/Styles/images moved there; no
-    config key. Absolute imports kept only when the file exists under public/.
+    Replaces the old "vendor into src/libs" pattern.
+  - Static assets live under src/public/ (served at the root URL, copied into the
+    build) — Themes/Styles/images moved there; no config key. Absolute imports
+    kept only when the file exists under public/.
   - Build-time prop validation: `slice build` runs the doctor prop checks and
     BLOCKS on definition errors (unknown type, schema/items/allowedValues
     mismatch); style issues warn. Bypass with --no-validate.

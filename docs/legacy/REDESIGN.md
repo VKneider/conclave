@@ -37,7 +37,7 @@ Decisiones de producto (acordadas):
 - `utils/format.js` → borrar (`esc` vive en `HtmlService`).
 - `utils/sliceBuild.js` → borrar (GOTCHAS §5 "no usar").
 - `utils/context.js` → `StoreService.ensure/get/set` (wrappers finos sobre
-  `slice.context`). Quitar `/utils` de `publicFolders`.
+  `slice.context`).
 
 ### A.3 Core services nuevos
 - **`HtmlService`** — `esc(value)` + `sanitize(html)` (fusiona Format+Sanitize).
@@ -160,7 +160,7 @@ Migración (una vez, `StoreService`, respetando GOTCHAS §20): `seleccion→repa
   - [x] `HtmlService` adoptado en 9 vistas; `FormatService`+`SanitizeService`
     eliminados.
   - [x] `ensureContext` consolidado (1x en init, 5 servicios); `utils/` borrado
-    (`context/format/sliceBuild`); `/utils` fuera de `publicFolders`.
+    (`context/format/sliceBuild`).
   - [x] Rename **Categoría→Tema** (código+UI+data, 458 reemplazos/33 archivos):
     métodos, props, `CategoriaRow→TemaRow`, `PorCategoriaView→PorTemaView`
     (carpetas+tags+`customElements.define`), copy de UI (género + colisión
