@@ -62,13 +62,13 @@
     "lz-string": "^1.5.0",
     "qrcode": "^1.5.4",
     "quill": "^2.0.3",
-    "slicejs-web-framework": "^4.1.1"
+    "slicejs-web-framework": "^4.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "eslint": "^9.39.5",
     "globals": "^17.7.0",
-    "slicejs-cli": "4.4.0"
+    "slicejs-cli": "4.6.0"
   }
 }
