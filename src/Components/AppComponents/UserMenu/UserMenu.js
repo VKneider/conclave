@@ -17,6 +17,7 @@ export default class UserMenu extends HTMLElement {
     this.$autorFieldSlot = this.querySelector('[data-el="autorFieldSlot"]');
     this.$emailFieldSlot = this.querySelector('[data-el="emailFieldSlot"]');
     this.$themeSlot = this.querySelector('[data-el="themeSlot"]');
+    this.$tourBtnSlot = this.querySelector('[data-el="tourBtnSlot"]');
     this.$shareBtnSlot = this.querySelector('[data-el="shareBtnSlot"]');
     this.$importBtnSlot = this.querySelector('[data-el="importBtnSlot"]');
     this.$importFile = this.querySelector('[data-el="importFile"]');
@@ -61,12 +62,38 @@ export default class UserMenu extends HTMLElement {
     });
     if (themeSwitcher instanceof Node) { this.$themeSlot.appendChild(themeSwitcher); this._children.push(themeSwitcher); }
 
+    const tourActions = document.createElement('div');
+    tourActions.className = 'user-menu__tour-actions';
+    this.$tourQuickBtn = await slice.build('Button', {
+      value: 'Tour rápido',
+      icon: { name: 'help-circle', color: 'var(--secondary-color)' },
+      variant: 'ghost',
+      onClick: () => {
+        this._setOpen(false);
+        slice.getComponent('ConclaveTourService')?.startTour('landing').catch(() => {});
+      }
+    });
+    this.$tourFullBtn = await slice.build('Button', {
+      value: 'Tour completo',
+      icon: { name: 'book-open', color: 'var(--secondary-color)' },
+      variant: 'ghost',
+      onClick: () => {
+        this._setOpen(false);
+        slice.getComponent('ConclaveTourService')?.startTour('full').catch(() => {});
+      }
+    });
+    [this.$tourQuickBtn, this.$tourFullBtn].forEach((button) => {
+      if (button instanceof Node) {
+        tourActions.appendChild(button);
+        this._children.push(button);
+      }
+    });
+    this.$tourBtnSlot.appendChild(tourActions);
+
     this.$soundSlot = this.querySelector('[data-el="soundSlot"]');
     if (this.$soundSlot) {
       const settings = slice.getComponent('SettingsService');
-      const icon = document.createElement('slice-icon');
-      icon.setAttribute('name', 'volume-2');
-      icon.setAttribute('size', '16');
+      const icon = await slice.build('Icon', { name: 'volume-2', size: '16' });
       const label = document.createElement('span');
       label.textContent = 'Sonido';
       const wrapper = document.createElement('div');
@@ -83,6 +110,7 @@ export default class UserMenu extends HTMLElement {
       row.appendChild(wrapper);
       row.appendChild(this.$soundSwitch);
       this.$soundSlot.appendChild(row);
+      this._children.push(icon);
       this._children.push(this.$soundSwitch);
     }
 

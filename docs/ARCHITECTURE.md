@@ -12,10 +12,11 @@
 >   compress), `UrlShortenerService` (optional Cloudflare Worker integration),
 >   `SoundService` (Web Audio API synth cues, `attachSFX` bridge,
 >   rate-limited), `ChartService`, `FetchManager`, `FileDownloadService`,
->   `IndexedDbManager`, `LocalStorageManager`.
+>   `IndexedDbManager`, `LocalStorageManager`, `TourService` (registry
+>   onboarding engine; UI is `Visual/TourOverlay`).
 > - **`Domain`** (business): `PlantillaService`, `RespuestasService`,
 >   `ConsensoService`, `SettingsService`, `RespuestasImportService`,
->   `ExportService`.
+>   `ExportService`, `ConclaveTourService` (app tour step script).
 > - **`Providers`** (wiring + provider-services): `Providers`, `ToastProvider`,
 >   `DragDropService`, `IconProvider`. The app modals
 >   (`ConfirmActionModal`, `ExportRespuestasModal`, `SharePlantillaModal`,
@@ -71,6 +72,10 @@ AppShell.init() → slice.build('Providers')
       19. ConfirmActionModal — lazy (builds <slice-modal> on first use)
       20. ExportRespuestasModal — lazy (builds <slice-modal> on first show())
       21. SharePlantillaModal — lazy (builds <slice-modal> on first show())
+      22. ShareConsensoModal — lazy (builds <slice-modal> on first show())
+      23. BienvenidaModal — lazy (builds <slice-modal> on first show())
+      24. ConclaveTourService — builds the TourService singleton; the step
+          script and first-run/replay entry points live there
 ```
 
 `PlantillaService` must finish before anything else reads tema/opción data — every other Service/view assumes it's already loaded.
@@ -89,6 +94,8 @@ AppShell.init() → slice.build('Providers')
 | `ConfirmActionModal` | Provider-Service owning one `<slice-modal>` instance lazily. Driven by `confirm:request` event. |
 | `ToastProvider` | Official Slice.js registry component. Lazy container. |
 | `DragDropService` | Official Slice.js registry component + visual. Pointer-based drag-and-drop for `PorTemaView`. |
+| `TourService` | Official Slice.js registry component (Core). One active guided tour: spotlight, anchored step card, modal/interactive steps, focus trap, async targets and `storageKey` completion. Its renderer is the `Visual/TourOverlay` component. |
+| `ConclaveTourService` | Owns the tour scripts. `startTour('landing')` is the five-step quick tour (UserMenu), `startTour('full')` is the fifteen-step walkthrough (UserMenu + welcome modal), and `startTour('respuestas')` is the contextual chapter (RespuestasView). No tour auto-starts. Full-tour transitions are `interactive` guide steps that spotlight the real nav tab, wait for the user's click via `router:change`, and offer an explicit **Ir ahora** fallback. |
 | `FileDownloadService` | Generic Blob download helper. |
 | `ChartService` | Wraps the vendored Chart.js UMD bundle (`src/libs/chartjs/chart.umd.js`) — `create(canvas, config)`/`destroy(chart)`/`themeColor(varName)` (resolves a CSS custom property to a literal color string, since `<canvas>` can't read `var(--x)` directly). Consumers never import Chart.js themselves. First usage: `DashboardView`'s completion doughnut. |
 | `SoundService` | Web Audio API synth engine — no external audio files. Provides semantic sound cues (`ui.tap`, `ui.nav`, `toast.*`, `modal.*`, `ui.celebrate`, etc.) each defined as frequency recipes with rate-limiting per cue and a global voice cap. `attachSFX(root)` installs a `pointerdown` listener that auto-plays the matching cue on any `data-sfx` attribute, `<button>`, or `<a href="/...">` element. Muting is delegated to `SettingsService.isSoundEnabled()`. AudioContext is lazily created + unlocked on first user gesture. |

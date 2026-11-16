@@ -50,14 +50,33 @@ export default class BienvenidaModal extends HTMLElement {
       variant: 'ghost',
       onClick: () => { this.$modal.open = false; },
     });
+    this.$tourBtn = await slice.build('Button', {
+      value: 'Ver tour',
+      variant: 'ghost',
+      icon: { name: 'help-circle', size: '14' },
+      onClick: () => { this._startTourAfterClose().catch(() => {}); },
+    });
     this.$startBtn = await slice.build('Button', {
       value: 'Empezar a responder',
       variant: 'filled',
       icon: { name: 'pen', size: '14' },
       onClick: () => this._start(),
     });
+    this.$modal.appendFooter(this.$tourBtn);
     this.$modal.appendFooter(this.$closeBtn);
     this.$modal.appendFooter(this.$startBtn);
+  }
+
+  // TourService refuses modal steps while a native <dialog> is open. Close
+  // first and wait for the real close event (it fires in a queued task) before
+  // starting the full walkthrough.
+  async _startTourAfterClose() {
+    this.$modal.open = false;
+    const dialog = this.$modal.querySelector('dialog');
+    if (dialog?.open) {
+      await new Promise((resolve) => dialog.addEventListener('close', resolve, { once: true }));
+    }
+    await slice.getComponent('ConclaveTourService')?.startTour('full');
   }
 
   // `navigateOnStart: false` para quien ya está donde quiere estar — importar

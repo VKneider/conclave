@@ -1,0 +1,61 @@
+slice-tour-overlay {
+   display: contents;
+   --slice-tour-dim: rgb(0 0 0 / .55);
+   --slice-tour-card-bg: var(--primary-background-color, white);
+   --slice-tour-card-fg: var(--font-primary-color, #202124);
+   --slice-tour-accent: var(--primary-color, #635bff);
+   --slice-tour-radius: 14px;
+   --slice-tour-card-width: 360px;
+   --slice-tour-arrow: 10px;
+   --slice-tour-z: 12000;
+}
+slice-tour-overlay .slice-tour-overlay {
+   position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
+   margin: 0; padding: 0; border: 0; overflow: visible; background: transparent;
+   color: var(--slice-tour-card-fg); z-index: var(--slice-tour-z); pointer-events: none;
+   font-family: var(--font-family, sans-serif);
+}
+slice-tour-overlay .slice-tour-overlay::backdrop { background: transparent; pointer-events: none; }
+slice-tour-overlay .slice-tour-overlay__dim { position: absolute; inset: 0; pointer-events: auto; }
+slice-tour-overlay .slice-tour-overlay[data-mode='interactive'] .slice-tour-overlay__dim { pointer-events: none; }
+slice-tour-overlay .slice-tour-overlay[data-cutout='false'] .slice-tour-overlay__dim { background: var(--slice-tour-dim); }
+slice-tour-overlay .slice-tour-overlay__spotlight {
+   position: fixed; box-shadow: 0 0 0 9999px var(--slice-tour-dim);
+   outline: 2px solid var(--slice-tour-accent); pointer-events: none;
+}
+slice-tour-overlay .slice-tour-overlay__spotlight[hidden] { display: none; }
+slice-tour-overlay .slice-tour-overlay__card {
+   position: fixed; box-sizing: border-box; width: min(var(--slice-tour-card-width), calc(100vw - 24px));
+   max-height: calc(100dvh - 24px); overflow: auto; padding: 24px;
+   background: var(--slice-tour-card-bg); color: var(--slice-tour-card-fg);
+   border: 1px solid var(--slice-border, color-mix(in srgb, var(--slice-tour-card-fg) 16%, transparent));
+   border-radius: var(--slice-tour-radius); box-shadow: 0 16px 60px rgb(0 0 0 / .24);
+   pointer-events: auto; outline: none;
+}
+slice-tour-overlay .slice-tour-overlay__card:focus-visible { outline: 2px solid var(--slice-tour-accent); outline-offset: 3px; }
+slice-tour-overlay .slice-tour-overlay__close { position: absolute; right: 8px; top: 8px; }
+slice-tour-overlay .slice-tour-overlay__progress { margin: 0 30px 8px 0; font-size: .8rem; color: var(--font-secondary-color, #666); }
+slice-tour-overlay .slice-tour-overlay__title { margin: 0 24px 12px 0; font-size: 1.2rem; line-height: 1.3; }
+slice-tour-overlay .slice-tour-overlay__content { font-size: .95rem; line-height: 1.6; overflow-wrap: anywhere; }
+slice-tour-overlay .slice-tour-overlay__paragraph { margin: 0 0 12px; }
+slice-tour-overlay .slice-tour-overlay__status { font-size: .85rem; color: var(--font-secondary-color, #666); }
+slice-tour-overlay .slice-tour-overlay__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 20px; }
+slice-tour-overlay .slice-tour-overlay__skip { margin-right: auto; }
+slice-tour-overlay .slice-tour-overlay__back[hidden],
+slice-tour-overlay .slice-tour-overlay__status[hidden] { display: none; }
+slice-tour-overlay .slice-tour-overlay__arrow { position: fixed; width: var(--slice-tour-arrow); height: var(--slice-tour-arrow); background: var(--slice-tour-card-bg); transform: rotate(45deg); pointer-events: none; }
+slice-tour-overlay .slice-tour-overlay__arrow[hidden] { display: none; }
+slice-tour-overlay .slice-tour-overlay__announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Only a resolved step transition adds .is-gliding. Tracking stays immediate. */
+slice-tour-overlay .slice-tour-overlay.is-gliding .slice-tour-overlay__card,
+slice-tour-overlay .slice-tour-overlay.is-gliding .slice-tour-overlay__arrow {
+   transition-property: left, top;
+   transition-duration: var(--slice-tour-glide, 300ms);
+   transition-timing-function: var(--slice-tour-glide-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+slice-tour-overlay .slice-tour-overlay.is-gliding .slice-tour-overlay__spotlight {
+   transition-property: left, top, width, height, border-radius;
+   transition-duration: var(--slice-tour-glide, 300ms);
+   transition-timing-function: var(--slice-tour-glide-ease, cubic-bezier(0.2, 0, 0, 1));
+}

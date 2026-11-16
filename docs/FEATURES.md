@@ -354,3 +354,21 @@ A header line shows the Plantilla's actual name (`PlantillaService.getNombre()`)
 **Guard**: `getEffectiveLider(t.id)` can return `{ member: null }` — the `.lider` textContent uses `lider && lider.member` check to avoid crash.
 
 The header also contains a "📤 Compartir respuestas" button (`slice.build('Button', ...)`) that opens `ExportRespuestasModal` — same entry point as UserMenu and RespuestasView. Built in `_buildShell()` and rebuilt on shell changes (via `_rebuild()` → `destroyByContainer` cleans it up).
+
+## Tour de la app (onboarding)
+
+File: `src/Components/Domain/ConclaveTourService/ConclaveTourService.js`
+
+A set of tours built on the registry `TourService` + `TourOverlay`. **No tour auto-starts.**
+
+| Tour | Steps | Entry point |
+|---|---|---|
+| `landing` | 5 | **Tour rápido** in UserMenu |
+| `full` | 15 | **Tour completo** in UserMenu and **Ver tour** in `BienvenidaModal` (after closing the native dialog); guides the real clicks through Plantilla → Mis respuestas → Comparar → Resumen → Dashboard |
+| `respuestas` | 3 | **Cómo funciona** in `RespuestasView`'s header |
+
+The global tour does not navigate behind the user's back. Each screen starts with a **guide step**: an `interactive` step that spotlights the actual `.topbar .tab[data-path="…"]` (or the hamburger on mobile) and says “Haz clic en la pestaña X”. `_armRouteAdvance()` subscribes to `router:change`, waits for the destination path, and only then calls `next()`. The card's fallback button is labelled **Ir ahora** so a programmatic jump is always explicit. Chapters carry a `route`; `_withRoute()` only navigates when the path still differs (the “Ir ahora” path).
+
+`TourService` ends a run on route change by default, so the multi-view tour sets `stopOnRouteChange: false`. Route-swapping tours disable the card glide (`animate: false`) because moving the old card across a new page reads as a glitch.
+
+The tour is modal except for guide steps, which keep the page clickable so the nav tab can be clicked. Step copy lives in the service and the built-in controls use a Spanish `texts` override. The card uses Conclave's theme tokens plus a Sticker Book override in `src/public/Styles/sliceStyles.css` (ink border + hard offset shadow). The welcome modal's footer wraps on phones now that it holds three actions.

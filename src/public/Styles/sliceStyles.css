@@ -280,3 +280,36 @@ slice-resumenfinalview slice-comparenotesmodal .cmp-notes-fab {
   bottom: 24px;
   right: 24px;
 }
+
+/* App tour (TourOverlay) - Sticker Book treatment */
+slice-tour-overlay {
+  --slice-tour-card-bg: var(--panel-background-color);
+  --slice-tour-card-fg: var(--font-primary-color);
+  --slice-tour-accent: var(--primary-color);
+  --slice-tour-radius: var(--card-border-radius);
+  --slice-tour-dim: rgb(26 26 46 / 0.62);
+}
+slice-tour-overlay .slice-tour-overlay__card {
+  border: 2px solid var(--font-primary-color);
+  box-shadow: var(--box-shadow-primary);
+  font-family: var(--font-body, var(--font-family));
+}
+slice-tour-overlay .slice-tour-overlay__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+slice-tour-overlay .slice-tour-overlay__content {
+  font-family: var(--font-body, var(--font-family));
+  text-wrap: pretty;
+}
+slice-tour-overlay .slice-tour-overlay__progress {
+  font-family: var(--font-body, var(--font-family));
+  font-weight: 700;
+}
+
+/* Welcome modal: three footer actions (tour / close / start) must wrap on phones. */
+slice-modal.bienvenida-modal .slice-modal__footer {
+  flex-wrap: wrap;
+}

@@ -25,7 +25,7 @@ Conclave is a Slice.js (`slicejs-web-framework` v4.x — `^4.0.2` in `package.js
 
 | File | What it covers |
 |---|---|
-| `docs/GOTCHAS.md` | 41 framework/app pitfalls, numbered up to §42 (§32 does not exist), found by reading the Slice.js source and running into them. **Read before any structural change.** (§1–22 framework internals; §23 Express 5 sendFile; §24 migrate-before-reseed; §25 `slice get` regenerates registry; §26 reskin registry; §27 mobile Enter key; §28 dropdown clipped by scroll; §29 fullscreen overlays; §35 `navigate()` inside `AppShell.init()` (**fixed upstream in 4.x**, kept as a record); §36–37 bundler; §39–41 **e2e test infrastructure**; §42 **touch DnD** (pointercancel, hold-to-arm, chained auto-scroll).) |
+| `docs/GOTCHAS.md` | 42 framework/app pitfalls, numbered up to §43 (§32 does not exist), found by reading the Slice.js source and running into them. **Read before any structural change.** (§1–22 framework internals; §23 Express 5 sendFile; §24 migrate-before-reseed; §25 `slice get` regenerates registry; §26 reskin registry; §27 mobile Enter key; §28 dropdown clipped by scroll; §29 fullscreen overlays; §35 `navigate()` inside `AppShell.init()` (**fixed upstream in 4.x**, kept as a record); §36–37 bundler; §39–41 **e2e test infrastructure**; §42 **touch DnD** (pointercancel, hold-to-arm, chained auto-scroll); §43 `slice get --service` category mismatch.) |
 | `docs/COMPONENT-PATTERNS.md` | The component/refresh contract every component follows: lifecycle (`init`/`update`/`_render`), the refresh hierarchy (setter → setComponentProps → `update(props)` → `reconcile` → innerHTML-last-resort), Core services (`StoreService`/`HtmlService`/`DomService`), `reconcile`. **Read before writing/refactoring any component.** |
 | `DESIGN.md` | Visual language: "Sticker Book" concept, typography, color tokens, hero-vs-dense, motion, drag-and-drop. **Read before any CSS change.** |
 | `docs/legacy/README.md` | Index of the **historical** docs (finished plans, fixed bugs). Read one only for "why it is like this" — never as current state. |
@@ -61,8 +61,8 @@ Conclave is a Slice.js (`slicejs-web-framework` v4.x — `^4.0.2` in `package.js
 
 ### Service folder layout (`sliceConfig.json` → `paths.components`)
 
-- **`Core`** — infrastructure, no domain knowledge: `StoreService`, `HtmlService`, `DomService`, `FileDownloadService`, `FetchManager`, `LocalStorageManager`, `IndexedDbManager`, `ChartService`, `CompressionService`.
-- **`Domain`** — business logic: `PlantillaService`, `RespuestasService`, `ConsensoService`, `SettingsService`, `RespuestasImportService`, `ExportService`.
+- **`Core`** — infrastructure, no domain knowledge: `StoreService`, `HtmlService`, `DomService`, `FileDownloadService`, `FetchManager`, `LocalStorageManager`, `IndexedDbManager`, `ChartService`, `CompressionService`, `TourService` (registry onboarding engine; its UI is the `TourOverlay` Visual).
+- **`Domain`** — business logic: `PlantillaService`, `RespuestasService`, `ConsensoService`, `SettingsService`, `RespuestasImportService`, `ExportService`, `ConclaveTourService` (app tour step script).
 - **`Providers`** — wiring + provider-services: `Providers` (composition root), `ToastProvider`, `IconProvider`, `DragDropService`. The app modals (`ConfirmActionModal`, `ExportRespuestasModal`, `SharePlantillaModal`, `ShareConsensoModal`, `BienvenidaModal`) live in `Visual/` and are built by `Providers` — they are not in this category.
 - Visual UI stays in `Visual` / `AppComponents` / `DataDisplay`. There is **no `utils/` folder** — shared helpers are Core services. **Visual = UI only; domain logic lives in a Domain service.**
 

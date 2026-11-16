@@ -19,7 +19,9 @@
   "include": [
     "src/Components/**/*.js",
     "src/**/*.d.ts",
-    "src/AppConfig.js"
+    "src/AppConfig.js",
+    "src/App/**/*.js",
+    "src/routes.js"
   ],
   "exclude": [
     "node_modules",

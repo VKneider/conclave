@@ -365,3 +365,19 @@ Three defects in the registry version, all patched in the vendored file (`src/Co
 This removed the need for the `(pointer: coarse)` gate that hid the "Por tema" tab in `RespuestasView` and disabled the builder's sortable: it was a patch on the symptom, not a product call (`DESIGN.md` always claimed the DnD "works with touch"). Spec: `DragDropService.spec.js` (synthetic events, including the auto-scroll handover at phone viewport). Validation with real Chromium touch input (CDP `Input.dispatchTouchEvent`, emulating a Pixel 7) confirmed all four scenarios: swipe = scroll, hold = drag, sidebar → page auto-scroll until a square is reachable, and sortable reordering.
 
 **General rule:** any Pointer Events DnD must listen for `pointercancel` and decide explicitly how it coexists with touch scrolling (a hold delay + non-passive `touchmove`, or `touch-action: none`); otherwise it works on desktop and "doesn't work very well on mobile".
+
+### 43. `slice get --service` installs into `Components/Service/`, which is not a Conclave category
+
+The registry's category for Services is literally `Service`, so `slice get TourService --service` writes
+`src/Components/Service/TourService/` even though `sliceConfig.json` here has `Core`, `Domain` and
+`Providers` as the only Service categories. The component is then invisible to the registry scan:
+`component list` silently rewrites `components.js` without it, and `slice.build('TourService')` would
+fail at runtime.
+
+**Fix:** move the folder into a configured Service category (`Core` for generic UI infrastructure,
+`Domain` for app logic) and register it there. TourService's relative imports (`../../shared/...`,
+`./parts/steps.js`) keep working because the move preserves the folder depth. Verify with
+`component list` that the name survives the rescan, then `slice doctor`.
+
+Also note this install DID pull its helper modules (`parts/steps.js`, `shared/overlay/scrollLock.js`);
+the §1 gap is not universal, so grep imports anyway.

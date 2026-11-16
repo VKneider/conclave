@@ -142,6 +142,10 @@ export default class Providers {
     document.body.appendChild(this.$shareConsensoModal);
     document.body.appendChild(this.$bienvenidaModal);
 
+    // Onboarding tour. Owns the landing step script + the TourService
+    // singleton; AppShell starts it once and UserMenu can replay it.
+    await slice.build('ConclaveTourService', { singleton: true });
+
     this._ready = true;
     return this;
   }

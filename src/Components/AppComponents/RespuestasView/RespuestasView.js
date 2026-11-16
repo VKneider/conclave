@@ -124,6 +124,15 @@ export default class RespuestasView extends HTMLElement {
     });
     if (this._exportBtn instanceof Node) this.$exportSlot.appendChild(this._exportBtn);
 
+    this._tourBtn = await slice.build('Button', {
+      sliceId: 'avTourBtn',
+      value: 'Cómo funciona',
+      icon: { name: 'help-circle' },
+      variant: 'ghost',
+      onClick: () => slice.getComponent('ConclaveTourService')?.startTour('respuestas').catch(() => {}),
+    });
+    if (this._tourBtn instanceof Node) this.$exportSlot.prepend(this._tourBtn);
+
     this._nextBtnCmp = await slice.build('Button', {
       sliceId: 'avNextBtn',
       variant: 'filled',
@@ -275,6 +284,7 @@ export default class RespuestasView extends HTMLElement {
     slice.controller.destroyByContainer(this.$kindTabs);
     slice.controller.destroyByContainer(this.$modeTabs);
     slice.controller.destroyByContainer(this.$emptySlot);
+    slice.controller.destroyByContainer(this.$exportSlot);
   }
 
   // ── Mensaje de bienvenida de la Plantilla ───────────────────

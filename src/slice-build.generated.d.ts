@@ -57,6 +57,10 @@ export interface CompressionServiceProps {
   [key: string]: unknown;
 }
 
+export interface ConclaveTourServiceProps {
+  [key: string]: unknown;
+}
+
 export interface ConfirmActionModalProps {
   [key: string]: unknown;
 }
@@ -397,6 +401,19 @@ export interface TopBarProps {
   [key: string]: unknown;
 }
 
+export interface TourOverlayProps {
+  [key: string]: unknown;
+  onClose?: (...args: unknown[]) => unknown;
+  onNext?: (...args: unknown[]) => unknown;
+  onPrev?: (...args: unknown[]) => unknown;
+  onSkip?: (...args: unknown[]) => unknown;
+  view?: Record<string, unknown>;
+}
+
+export interface TourServiceProps {
+  [key: string]: unknown;
+}
+
 export interface UrlShortenerServiceProps {
   [key: string]: unknown;
 }
@@ -423,6 +440,7 @@ export interface SliceComponentPropsMap {
   CompareNotesModal: CompareNotesModalProps;
   CompareView: CompareViewProps;
   CompressionService: CompressionServiceProps;
+  ConclaveTourService: ConclaveTourServiceProps;
   ConfirmActionModal: ConfirmActionModalProps;
   ConsensoService: ConsensoServiceProps;
   DashboardView: DashboardViewProps;
@@ -486,6 +504,8 @@ export interface SliceComponentPropsMap {
   ToastProvider: ToastProviderProps;
   ToolTip: ToolTipProps;
   TopBar: TopBarProps;
+  TourOverlay: TourOverlayProps;
+  TourService: TourServiceProps;
   UrlShortenerService: UrlShortenerServiceProps;
   UserMenu: UserMenuProps;
   ViewHeader: ViewHeaderProps;

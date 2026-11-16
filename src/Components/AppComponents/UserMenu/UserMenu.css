@@ -19,6 +19,9 @@ slice-usermenu .user-menu.is-open .user-menu__avatar { color: var(--primary-colo
 slice-usermenu .user-menu__panel {
   position: absolute; top: calc(100% + 10px); right: 0; z-index: 30;
   width: 260px; padding: 16px;
+  max-height: calc(100vh - 96px);
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable;
   background: var(--panel-background-color); border: 2.5px solid var(--font-primary-color);
   border-radius: var(--card-border-radius); box-shadow: 6px 6px 0 var(--font-primary-color);
   animation: userMenuPop .14s ease;
@@ -65,8 +68,13 @@ slice-usermenu .user-menu__sound-toggle:hover { background: var(--tertiary-backg
 
 slice-usermenu .user-menu__version { margin: 0; font-size: 10px; color: var(--font-secondary-color); opacity: 0.6; text-align: center; }
 
+slice-usermenu .user-menu__tour-actions { display: flex; flex-direction: column; gap: 6px; }
+slice-usermenu .user-menu__tour-actions > * { justify-content: flex-start; }
+
 @media (max-width: 760px) {
   slice-usermenu .user-menu__panel {
     position: fixed; top: 64px; right: 16px; width: 260px;
+    max-height: calc(100vh - 80px);
+    max-height: calc(100dvh - 80px);
   }
 }
