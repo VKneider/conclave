@@ -6,3 +6,7 @@ playwright-report/
 test-results/
 __pycache__/
 *.spec.js-snapshots/
+
+# vkneider registry: skill copies are reproducible from .vkneider/lock.json
+.opencode/skills/
+.claude/skills/

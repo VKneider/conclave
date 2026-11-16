@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "registry": {
+    "remote": "https://github.com/VKneider/vkneider-registry.git",
+    "commit": "43df038b1db923f615d283d26b22d94652b82fc6"
+  },
+  "artifacts": {
+    "ux-first-design": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/ux-first-design@1.0.0",
+      "commit": "4aa4b0870a1fc1aff2c9b35e1b052df5d4208f45",
+      "integrity": "sha256-13505daa67ee939a282c7c1f4cd26a8a741a75f6767b4f3bb68c72897d141c06",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/ux-first-design",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/ux-first-design",
+          "mode": "copy"
+        }
+      ]
+    },
+    "ux-kit": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/ux-kit@1.0.0",
+      "commit": "789bdd3fe44f426f45b0024d45c534e8eff62492",
+      "integrity": "sha256-197d8d131b652ba202a634f1c529b8515a525f69f466fc5b4e63a25a36b9f633",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/ux-kit",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/ux-kit",
+          "mode": "copy"
+        }
+      ]
+    },
+    "make-interfaces-feel-better": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/make-interfaces-feel-better@1.0.0",
+      "commit": "d8e47fcbfc96eee51a4ae00fd9270e1026acc521",
+      "integrity": "sha256-befd4e1ae10d1c1991d77f701498c02e3ee4e473696b58572d9b8bb52657f1bf",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/make-interfaces-feel-better",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/make-interfaces-feel-better",
+          "mode": "copy"
+        }
+      ]
+    },
+    "flow-app-shell": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/flow-app-shell@1.0.0",
+      "commit": "fb28a2cec19d01d8f02e116387189167a0535ae4",
+      "integrity": "sha256-2e8b81908f121a1063c06f701494cfa820c88b0bee9241c3938eccc7f2c2b392",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/flow-app-shell",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/flow-app-shell",
+          "mode": "copy"
+        }
+      ]
+    },
+    "flow-navigation": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/flow-navigation@1.0.0",
+      "commit": "7235fedfb8e2b59f3d22595d2bd9db0042232da0",
+      "integrity": "sha256-4b4ac2df2f74dad5e8fc0ea31670e18148306f8e1469b91cdaa26a5d36d5f438",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/flow-navigation",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/flow-navigation",
+          "mode": "copy"
+        }
+      ]
+    },
+    "flow-forms": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/flow-forms@1.0.0",
+      "commit": "69a3e87f010eec87df1f2f291c1e7f1a8dde1279",
+      "integrity": "sha256-a12fddccafaa90d93b1b44d56a6cc96c567dc8d55db1e494419e12ff04dc54e2",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/flow-forms",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/flow-forms",
+          "mode": "copy"
+        }
+      ]
+    },
+    "flow-empty-states": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/flow-empty-states@1.0.0",
+      "commit": "00b75a42790e86d4fc6d3f4c1edfeb33c3ad2e71",
+      "integrity": "sha256-d3ae57c101bf8bc46888c186f49b2f8d7182742ab55a7a90cbd54199fba3b2a5",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/flow-empty-states",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/flow-empty-states",
+          "mode": "copy"
+        }
+      ]
+    },
+    "flow-errors": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/flow-errors@1.0.0",
+      "commit": "0a208c30a2f8f8a2905171ce5c8baa0c1fecfb7e",
+      "integrity": "sha256-8a59344adc5e3d5137c7a8334e8ad92fc7bcd6e86233d0539a78362c61f486cd",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/flow-errors",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/flow-errors",
+          "mode": "copy"
+        }
+      ]
+    },
+    "flow-onboarding": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/flow-onboarding@1.0.0",
+      "commit": "fc06ce147cce62d2b15f6ad3caa6247e2b3d4f31",
+      "integrity": "sha256-b5f9ffc6729dd6f654ca4b0f08a7de08ef9826d273e924be2ce341f5edca3a68",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/flow-onboarding",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/flow-onboarding",
+          "mode": "copy"
+        }
+      ]
+    },
+    "userflow": {
+      "requested": "^1.0.0",
+      "version": "1.0.0",
+      "tag": "skill/userflow@1.0.0",
+      "commit": "9fbb6c2c8e2092e141cdd0cc65e82e060b71eba4",
+      "integrity": "sha256-226d01689ecebcdf1b73d0f1effeb7eb2838c8792f17fa657c76d436283591b2",
+      "source": "profile",
+      "installs": [
+        {
+          "target": "opencode",
+          "scope": "project",
+          "path": ".opencode/skills/userflow",
+          "mode": "copy"
+        },
+        {
+          "target": "claude",
+          "scope": "project",
+          "path": ".claude/skills/userflow",
+          "mode": "copy"
+        }
+      ]
+    }
+  },
+  "profile": {
+    "name": "frontend",
+    "version": "1.0.0",
+    "tag": "profile/frontend@1.0.0"
+  }
+}
