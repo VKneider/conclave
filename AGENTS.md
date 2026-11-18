@@ -159,3 +159,16 @@ inside `start()`).
 4. The exported Express app is the whole server; do not add `app.listen()` outside the `!VERCEL`
    branch.
 
+
+## Component categories
+
+<!-- slice:generated:categories:start -->
+| Category | Type | Path | Components | Guide |
+| --- | --- | --- | --- | --- |
+| AppComponents | Visual | `src/Components/AppComponents` | 16 | [AGENTS.md](src/Components/AppComponents/AGENTS.md) |
+| Core | Service | `src/Components/Core` | 12 | [AGENTS.md](src/Components/Core/AGENTS.md) |
+| DataDisplay | Visual | `src/Components/DataDisplay` | 3 | [AGENTS.md](src/Components/DataDisplay/AGENTS.md) |
+| Domain | Service | `src/Components/Domain` | 7 | [AGENTS.md](src/Components/Domain/AGENTS.md) |
+| Providers | Service | `src/Components/Providers` | 4 | [AGENTS.md](src/Components/Providers/AGENTS.md) |
+| Visual | Visual | `src/Components/Visual` | 38 | [AGENTS.md](src/Components/Visual/AGENTS.md) |
+<!-- slice:generated:categories:end -->

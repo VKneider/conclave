@@ -17,19 +17,19 @@ export default {
       "emitters": [
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 125,
+          "line": 120,
           "component": "AppShell",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 174,
+          "line": 169,
           "component": "AppShell",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 215,
+          "line": 210,
           "component": "AppShell",
           "category": "AppComponents"
         },
@@ -77,13 +77,13 @@ export default {
         },
         {
           "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 195,
+          "line": 212,
           "component": "UserMenu",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 212,
+          "line": 229,
           "component": "UserMenu",
           "category": "AppComponents"
         },
@@ -196,6 +196,12 @@ export default {
           "category": "AppComponents"
         },
         {
+          "file": "src/Components/Domain/ConclaveTourService/ConclaveTourService.js",
+          "line": 131,
+          "component": "ConclaveTourService",
+          "category": "Domain"
+        },
+        {
           "file": "src/Components/Visual/ProfileBubble/ProfileBubble.js",
           "line": 26,
           "component": "ProfileBubble",
@@ -233,31 +239,31 @@ export default {
       "emitters": [
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 110,
+          "line": 105,
           "component": "AppShell",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 116,
+          "line": 111,
           "component": "AppShell",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 135,
+          "line": 130,
           "component": "AppShell",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 167,
+          "line": 162,
           "component": "AppShell",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/AppShell/AppShell.js",
-          "line": 203,
+          "line": 198,
           "component": "AppShell",
           "category": "AppComponents"
         },
@@ -329,25 +335,25 @@ export default {
         },
         {
           "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 188,
+          "line": 205,
           "component": "UserMenu",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 192,
-          "component": "UserMenu",
-          "category": "AppComponents"
-        },
-        {
-          "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
-          "line": 202,
+          "line": 209,
           "component": "UserMenu",
           "category": "AppComponents"
         },
         {
           "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
           "line": 219,
+          "component": "UserMenu",
+          "category": "AppComponents"
+        },
+        {
+          "file": "src/Components/AppComponents/UserMenu/UserMenu.js",
+          "line": 236,
           "component": "UserMenu",
           "category": "AppComponents"
         },
