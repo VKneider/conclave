@@ -16,75 +16,72 @@ flowchart LR
   subgraph ns8["toast"]
     e9(["toast:show"]):::event
   end
-  c10["AppShell"]:::emitter
-  c11["AtributoRow"]:::emitter
-  c12["CompareView"]:::emitter
-  c13["ConclaveTourService"]:::listener
-  c14["ConfirmActionModal"]:::listener
-  c15["ConsensoService"]:::emitter
-  c16["EnhancedEditor"]:::emitter
-  c17["ExportRespuestasModal"]:::emitter
-  c18["OpcionRow"]:::emitter
-  c19["PlantillaBuilderView"]:::both
-  c20["PlantillaService"]:::emitter
-  c21["ProfileBubble"]:::listener
-  c22["Providers"]:::listener
-  c23["RespuestasService"]:::emitter
-  c24["RespuestasView"]:::emitter
-  c25["ResumenFinalView"]:::emitter
-  c26["ShareConsensoModal"]:::emitter
-  c27["SharePlantillaModal"]:::emitter
-  c28["SynthTextoModal"]:::emitter
-  c29["TemaRow"]:::emitter
-  c30["TopBar"]:::listener
-  c31["UserMenu"]:::emitter
+  subgraph emitterGroup["Emitters"]
+    c10["AppShell"]:::emitter
+    c11["AtributoRow"]:::emitter
+    c12["CompareView"]:::emitter
+    c13["ConsensoService"]:::emitter
+    c14["EnhancedEditor"]:::emitter
+    c15["ExportRespuestasModal"]:::emitter
+    c16["OpcionRow"]:::emitter
+    c17["PlantillaService"]:::emitter
+    c18["RespuestasService"]:::emitter
+    c19["RespuestasView"]:::emitter
+    c20["ResumenFinalView"]:::emitter
+    c21["ShareConsensoModal"]:::emitter
+    c22["SharePlantillaModal"]:::emitter
+    c23["SynthTextoModal"]:::emitter
+    c24["TemaRow"]:::emitter
+    c25["UserMenu"]:::emitter
+  end
+  subgraph listenerGroup["Listeners"]
+    c26["ConclaveTourService"]:::listener
+    c27["ConfirmActionModal"]:::listener
+    c28["ProfileBubble"]:::listener
+    c29["Providers"]:::listener
+    c30["TopBar"]:::listener
+  end
+  c31["PlantillaBuilderView"]:::both
   c10 --> e1
   c12 --> e1
-  c19 --> e1
-  c25 --> e1
   c31 --> e1
   c20 --> e1
-  c23 --> e1
-  c11 --> e1
-  c16 --> e1
+  c25 --> e1
   c17 --> e1
   c18 --> e1
-  c27 --> e1
-  c29 --> e1
-  e1 -.-> c14
-  c18 --> e3
-  e3 -.-> c19
+  c11 --> e1
+  c14 --> e1
+  c15 --> e1
+  c16 --> e1
+  c22 --> e1
+  c24 --> e1
+  e1 -.-> c27
+  c16 --> e3
+  e3 -.-> c31
   e5 -.-> c30
-  e5 -.-> c13
-  e5 -.-> c21
-  c29 --> e7
-  e7 -.-> c19
+  e5 -.-> c26
+  e5 -.-> c28
+  c24 --> e7
+  e7 -.-> c31
   c10 --> e9
   c12 --> e9
-  c19 --> e9
-  c24 --> e9
-  c25 --> e9
   c31 --> e9
-  c15 --> e9
+  c19 --> e9
   c20 --> e9
-  c23 --> e9
-  c16 --> e9
+  c25 --> e9
+  c13 --> e9
   c17 --> e9
   c18 --> e9
-  c26 --> e9
-  c27 --> e9
-  c28 --> e9
-  c29 --> e9
-  e9 -.-> c22
-  subgraph legend["Legend"]
-    direction LR
-    legEmit["component that emits"]:::emitter --> legEvent(["event"]):::event
-    legEvent -.-> legListen["component that listens"]:::listener
-    legBoth["emits and listens"]:::both
-  end
+  c14 --> e9
+  c15 --> e9
+  c16 --> e9
+  c21 --> e9
+  c22 --> e9
+  c23 --> e9
+  c24 --> e9
+  e9 -.-> c29
   classDef event fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#3b0764
   classDef emitter fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
   classDef listener fill:#d1fae5,stroke:#059669,color:#064e3b
   classDef both fill:#f1f5f9,stroke:#475569,color:#0f172a
   classDef dynamic fill:#fef3c7,stroke:#d97706,color:#78350f,stroke-dasharray:4 3
-  style legend fill:none,stroke:#cbd5e1
