@@ -8,18 +8,20 @@ This catalog is generated from `slice.events.register(...)` and the static
 
 ## Summary
 
-| Namespace | Events | Emitters | Listeners | Page |
-| --- | --- | --- | --- | --- |
-| confirm | 1 | 13 | 1 | [confirm](./confirm.md) |
-| opcion | 1 | 1 | 1 | [opcion](./opcion.md) |
-| router | 1 | 0 | 3 | [router](./router.md) |
-| tema | 1 | 1 | 1 | [tema](./tema.md) |
-| toast | 1 | 16 | 1 | [toast](./toast.md) |
+| Namespace | Events | Emitters | Listeners | Page | Diagram |
+| --- | --- | --- | --- | --- | --- |
+| confirm | 1 | 13 | 1 | [confirm](./confirm.md) | [diagram](./diagram-confirm.mmd) |
+| opcion | 1 | 1 | 1 | [opcion](./opcion.md) | [diagram](./diagram-opcion.mmd) |
+| router | 1 | 0 | 3 | [router](./router.md) | [diagram](./diagram-router.mmd) |
+| tema | 1 | 1 | 1 | [tema](./tema.md) | [diagram](./diagram-tema.mmd) |
+| toast | 1 | 16 | 1 | [toast](./toast.md) | [diagram](./diagram-toast.mmd) |
 
 ## Diagram
 
-- [Mermaid source](./diagram.mmd)
+- [Mermaid source, every event](./diagram.mmd)
 - [Standalone HTML](./diagram.html)
+- Each namespace has its own smaller diagram, linked in the table above. Blue nodes emit, green
+  nodes listen, grey nodes do both; solid arrows are emits and dashed arrows are subscriptions.
 
 ## Drift
 
